@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.IBTECH">
+
+        <!-- temi Launcher 가 이 앱을 스킬로 인식하기 위한 필수 meta-data. -->
+        <meta-data
+            android:name="com.robotemi.sdk.metadata.SKILL"
+            android:value="@string/app_name" />
+
+        <!--
+            temi 전용 권한 선언.
+
+            일반 Android 권한이 아니므로 <uses-permission> 으로는 Launcher 가 인식하지 못한다.
+            (그렇게 선언하면 requestPermissions() 를 불러도 승인 팝업이 뜨지 않는다.)
+            @string/metadata_permissions 는 SDK 가 제공하는 "com.robotemi.sdk.metadata.PERMISSIONS" 다.
+
+            여러 개가 필요하면 쉼표로 구분한다. 예: "com.robotemi.permission.map,com.robotemi.permission.settings"
+            선언한 권한만 requestPermissions() 로 요청할 수 있다.
+        -->
+        <meta-data
+            android:name="@string/metadata_permissions"
+            android:value="@string/temi_permissions" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.IBTECH">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

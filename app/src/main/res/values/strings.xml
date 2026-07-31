@@ -1,0 +1,84 @@
+<resources>
+    <string name="app_name">IBTECH</string>
+
+    <!--
+        AndroidManifest 의 com.robotemi.sdk.metadata.PERMISSIONS 에 넣을 값.
+        여기 선언한 권한만 robot.requestPermissions() 로 요청할 수 있다.
+        여러 개면 쉼표로 구분한다. TemiFeaturePermission enum 과 항상 함께 수정한다.
+    -->
+    <string name="temi_permissions" translatable="false">com.robotemi.permission.map</string>
+
+    <!-- 대시보드 -->
+    <string name="dashboard_title">temi 안내 로봇</string>
+    <string name="dashboard_status_title">현재 상태</string>
+
+    <!-- 상태 배지 -->
+    <string name="status_unavailable">사용 불가</string>
+    <string name="status_connecting">연결 중</string>
+    <string name="status_standby">대기 중</string>
+    <string name="status_moving">이동 중</string>
+    <string name="status_speaking">안내 중</string>
+
+    <!-- 상태 상세 -->
+    <string name="label_connection">연결</string>
+    <string name="label_battery">배터리</string>
+    <string name="label_destination">목적지</string>
+    <string name="label_action">현재 작업</string>
+    <string name="value_none">—</string>
+    <string name="value_connected">정상</string>
+    <string name="value_connecting">연결 대기</string>
+    <string name="value_unavailable">temi 아님</string>
+    <string name="battery_format">%1$d%%</string>
+    <string name="battery_charging_format">%1$d%% (충전 중)</string>
+
+    <!-- 명령 버튼 -->
+    <string name="action_go_to_office">사무실로 이동</string>
+    <string name="action_go_to_lobby">로비로 이동</string>
+    <string name="action_speak_welcome">환영 인사 하기</string>
+    <string name="action_stop">이동 중지</string>
+    <string name="action_refresh_locations">목록 새로고침</string>
+
+    <!--
+        temi 지도에 저장된 POI 이름과 정확히 일치해야 한다.
+        현장 지도의 위치 이름이 다르면 이 값을 수정한다.
+    -->
+    <string name="location_office">사무실</string>
+    <string name="location_lobby">로비</string>
+
+    <string name="welcome_message">안녕하세요. IB테크 방문을 환영합니다. 무엇을 도와드릴까요?</string>
+
+    <!-- POI 목록 -->
+    <string name="poi_title">지도에 저장된 위치</string>
+    <string name="poi_count_format">%1$d곳</string>
+    <string name="poi_empty">저장된 위치가 없습니다. temi 지도에서 위치를 먼저 등록해 주세요.</string>
+    <string name="poi_missing_format">\'%1$s\' 위치가 지도에 없습니다.</string>
+
+    <!-- 권한 -->
+    <string name="permission_title">권한이 필요합니다</string>
+    <string name="permission_description">temi 지도와 저장된 위치를 읽으려면 지도 권한이 필요합니다. 허용하지 않으면 이동 기능을 사용할 수 없습니다.</string>
+    <string name="permission_name_map">지도 데이터</string>
+    <string name="permission_action_allow">권한 허용</string>
+    <string name="permission_requesting">권한 요청 중…</string>
+
+    <!-- 이동 결과 안내 -->
+    <string name="nav_arrived_format">\'%1$s\'에 도착했습니다.</string>
+    <string name="nav_issue_user_stopped">이동을 중지했습니다.</string>
+    <string name="nav_issue_external">외부 조작으로 이동이 취소되었습니다.</string>
+    <string name="nav_issue_timeout">로봇이 응답하지 않아 이동을 시작하지 못했습니다.</string>
+    <string name="nav_issue_error">이동에 실패했습니다. 경로를 확인해 주세요.</string>
+    <string name="nav_moving_format">\'%1$s\'(으)로 이동 중입니다.</string>
+
+    <!-- 발화 결과 안내 -->
+    <string name="speech_failed">음성 안내에 실패했습니다.</string>
+
+    <!-- 일회성 알림(스낵바) -->
+    <string name="alert_destination_unreachable_format">\'%1$s\'(으)로 갈 수 없습니다. 지도에 등록된 위치가 아닙니다.</string>
+    <string name="alert_robot_not_ready">로봇이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.</string>
+    <string name="alert_permission_required">지도 권한이 없어 이동할 수 없습니다.</string>
+    <string name="alert_permission_denied">권한이 거부되었습니다. 이동 기능을 사용할 수 없습니다.</string>
+    <string name="alert_sdk_error_format">로봇 오류가 발생했습니다. (코드 %1$d)</string>
+    <string name="alert_action_dismiss">확인</string>
+
+    <!-- 접근성 -->
+    <string name="cd_status_indicator">로봇 상태 표시</string>
+</resources>
