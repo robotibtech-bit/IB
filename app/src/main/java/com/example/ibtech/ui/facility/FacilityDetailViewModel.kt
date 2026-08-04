@@ -34,7 +34,8 @@ data class FacilityDetailUiState(
     val isLoaded: Boolean = false,
     val facility: Facility? = null,
     val guideOptions: GuideOptionSet = GuideOptionSet.Hidden,
-    val escortGate: EscortGate = EscortGate.Blocked(EscortBlockReason.SDK_NOT_READY)
+    val escortGate: EscortGate = EscortGate.Blocked(EscortBlockReason.SDK_NOT_READY),
+    val permissionRequestInFlight: Boolean = false
 )
 
 class FacilityDetailViewModel(
@@ -78,7 +79,8 @@ class FacilityDetailViewModel(
                 isLoaded = true,
                 facility = facility,
                 guideOptions = ResolveGuideOptionUseCase(facility, settings.baseFloor),
-                escortGate = CanStartEscortUseCase(facility, snapshot, settings.baseFloor)
+                escortGate = CanStartEscortUseCase(facility, snapshot, settings.baseFloor),
+                permissionRequestInFlight = snapshot.permissionStatus.requestInFlight
             )
         }
     }.stateIn(
@@ -86,4 +88,9 @@ class FacilityDetailViewModel(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = FacilityDetailUiState()
     )
+
+    /** "권한 요청" 버튼. 결과는 [uiState]가 `TemiController.permissionStatus` 변화로 자동 반영한다. */
+    fun onRequestPermission() {
+        temiController.requestMissingPermissions()
+    }
 }

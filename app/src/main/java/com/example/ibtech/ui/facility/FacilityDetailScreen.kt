@@ -38,6 +38,7 @@ fun FacilityDetailScreen(
     onEscortClick: () -> Unit,
     onLocationOnlyClick: () -> Unit,
     onGoHome: () -> Unit,
+    onRequestPermission: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val facility = uiState.facility
@@ -94,6 +95,15 @@ fun FacilityDetailScreen(
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.error
                                 )
+                                // 권한 부족은 이 화면에서 바로 재시도할 수 있는 유일한 사유라
+                                // 별도 버튼을 둔다(나머지 사유는 SDK/이동 상태가 스스로 바뀌어야 함).
+                                if (gate.reason == EscortBlockReason.PERMISSION) {
+                                    LibraryOutlinedButton(
+                                        text = stringResource(R.string.facility_detail_request_permission_action),
+                                        onClick = onRequestPermission,
+                                        enabled = !uiState.permissionRequestInFlight
+                                    )
+                                }
                             }
                             LibraryOutlinedButton(
                                 text = stringResource(R.string.facility_detail_location_action),

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +29,7 @@ import com.example.ibtech.BuildConfig
 import com.example.ibtech.R
 import com.example.ibtech.data.repository.SettingsRepository
 import com.example.ibtech.domain.model.LibrarySettings
+import com.example.ibtech.robot.TemiConnectionState
 import com.example.ibtech.robot.TemiControllerProvider
 import com.example.ibtech.ui.common.ConfirmDialog
 import com.example.ibtech.ui.common.IdleTimeoutObserver
@@ -69,9 +71,27 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
     val temiController = TemiControllerProvider.current
     val navigationState by temiController.navigationState.collectAsStateWithLifecycle()
     val batteryStatus by temiController.batteryStatus.collectAsStateWithLifecycle()
+    val connectionState by temiController.connectionState.collectAsStateWithLifecycle()
+    val permissionStatus by temiController.permissionStatus.collectAsStateWithLifecycle()
 
     var interactionTick by remember { mutableIntStateOf(0) }
     val currentRoute by navController.currentBackStackEntryAsState()
+
+    // temi가 처음 Ready가 되고 권한 확인이 끝났는데 MAP 권한이 없으면 한 번만 자동으로
+    // 요청한다(6단계). 프로세스당 1회만 — 사용자가 거부했는데 화면을 옮길 때마다 팝업이 다시
+    // 뜨면 안 되므로, 놓쳤거나 거부한 경우의 재시도는 시설 상세 화면의 수동 버튼으로만 한다.
+    var hasAutoRequestedPermission by remember { mutableStateOf(false) }
+    LaunchedEffect(connectionState, permissionStatus) {
+        if (!hasAutoRequestedPermission &&
+            connectionState is TemiConnectionState.Ready &&
+            permissionStatus.checked &&
+            permissionStatus.missing.isNotEmpty() &&
+            !permissionStatus.requestInFlight
+        ) {
+            hasAutoRequestedPermission = true
+            temiController.requestMissingPermissions()
+        }
+    }
 
     fun goHome() {
         navController.navigate(LibraryRoutes.HOME) {
@@ -166,6 +186,7 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                             navController.navigate(LibraryRoutes.facilityMap(facilityId))
                         },
                         onGoHome = { goHome() },
+                        onRequestPermission = viewModel::onRequestPermission,
                         modifier = Modifier.padding(padding)
                     )
                 }
