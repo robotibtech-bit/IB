@@ -47,6 +47,18 @@ import com.example.ibtech.ui.facility.NavigationProgressScreen
 import com.example.ibtech.ui.facility.NavigationViewModel
 import com.example.ibtech.ui.home.HomeScreen
 import com.example.ibtech.ui.home.HomeViewModel
+import com.example.ibtech.ui.kids.BookRecommendationScreen
+import com.example.ibtech.ui.kids.BookRecommendationViewModel
+import com.example.ibtech.ui.kids.KidsMenuScreen
+import com.example.ibtech.ui.kids.KidsMenuViewModel
+import com.example.ibtech.ui.kids.LibraryEtiquetteScreen
+import com.example.ibtech.ui.kids.LibraryEtiquetteViewModel
+import com.example.ibtech.ui.kids.QuizCategoryScreen
+import com.example.ibtech.ui.kids.QuizCategoryViewModel
+import com.example.ibtech.ui.kids.QuizPlayScreen
+import com.example.ibtech.ui.kids.QuizResultScreen
+import com.example.ibtech.ui.kids.QuizResultViewModel
+import com.example.ibtech.ui.kids.QuizViewModel
 import com.example.ibtech.ui.usage.UsageAnswerScreen
 import com.example.ibtech.ui.usage.UsageAnswerViewModel
 import com.example.ibtech.ui.usage.UsageCategoryScreen
@@ -373,13 +385,151 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
             }
 
             composable(LibraryRoutes.KIDS_MENU) {
+                val viewModel: KidsMenuViewModel = viewModel()
+
                 LibraryScaffold(
                     title = stringResource(R.string.title_kids_menu),
                     onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
-                    PlaceholderScreen(
-                        description = stringResource(R.string.placeholder_kids_menu),
+                    KidsMenuScreen(
+                        onQuizClick = { navController.navigate(LibraryRoutes.KIDS_QUIZ_CATEGORY) },
+                        onBooksClick = { navController.navigate(LibraryRoutes.kidsBookRecommendation()) },
+                        onEtiquetteClick = { navController.navigate(LibraryRoutes.KIDS_ETIQUETTE) },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(LibraryRoutes.KIDS_QUIZ_CATEGORY) {
+                val viewModel: QuizCategoryViewModel = viewModel()
+                val categoryUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_kids_quiz_category),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    QuizCategoryScreen(
+                        uiState = categoryUiState,
+                        onSelectCategory = { category ->
+                            navController.navigate(LibraryRoutes.kidsQuizPlay(category))
+                        },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(
+                route = LibraryRoutes.KIDS_QUIZ_PLAY,
+                arguments = listOf(navArgument("category") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val category = backStackEntry.arguments?.getString("category").orEmpty()
+                val viewModel: QuizViewModel = viewModel()
+                val quizUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                // 문제를 다 풀면(isFinished) 결과 화면으로 넘어간다 — ViewModel은 내비게이션을
+                // 직접 하지 않고 상태만 노출한다(이 앱의 기존 관례).
+                LaunchedEffect(quizUiState.isFinished) {
+                    if (quizUiState.isFinished) {
+                        navController.navigate(
+                            LibraryRoutes.kidsQuizResult(
+                                category = category,
+                                correct = quizUiState.correctCount,
+                                total = quizUiState.totalCount,
+                                bookIds = quizUiState.correctRecommendedBookIds
+                            )
+                        ) {
+                            popUpTo(LibraryRoutes.KIDS_QUIZ_PLAY) { inclusive = true }
+                        }
+                    }
+                }
+
+                LibraryScaffold(
+                    title = category,
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    QuizPlayScreen(
+                        uiState = quizUiState,
+                        onSelectChoice = viewModel::onSelectChoice,
+                        onGoHome = { goHome() },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(
+                route = LibraryRoutes.KIDS_QUIZ_RESULT,
+                arguments = listOf(
+                    navArgument("category") { type = NavType.StringType },
+                    navArgument("correct") { type = NavType.IntType; defaultValue = 0 },
+                    navArgument("total") { type = NavType.IntType; defaultValue = 0 },
+                    navArgument("bookIds") { type = NavType.StringType; nullable = true; defaultValue = null }
+                )
+            ) {
+                val viewModel: QuizResultViewModel = viewModel()
+                val resultUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_kids_quiz_result),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    QuizResultScreen(
+                        uiState = resultUiState,
+                        onGoToChildrenFacility = { facilityId ->
+                            navController.navigate(LibraryRoutes.facilityDetail(facilityId))
+                        },
+                        onRetryQuiz = {
+                            navController.navigate(LibraryRoutes.KIDS_QUIZ_CATEGORY) {
+                                popUpTo(LibraryRoutes.KIDS_QUIZ_CATEGORY) { inclusive = true }
+                            }
+                        },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(
+                route = LibraryRoutes.KIDS_BOOK_RECOMMENDATION,
+                arguments = listOf(
+                    navArgument("ageGroup") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument("topic") { type = NavType.StringType; nullable = true; defaultValue = null }
+                )
+            ) {
+                val viewModel: BookRecommendationViewModel = viewModel()
+                val bookUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_kids_book_recommendation),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    BookRecommendationScreen(
+                        uiState = bookUiState,
+                        onSelectAgeGroup = viewModel::onSelectAgeGroup,
+                        onSelectTopic = viewModel::onSelectTopic,
+                        onResetFilters = viewModel::onResetFilters,
+                        onGoToChildrenFacility = { facilityId ->
+                            navController.navigate(LibraryRoutes.facilityDetail(facilityId))
+                        },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(LibraryRoutes.KIDS_ETIQUETTE) {
+                val viewModel: LibraryEtiquetteViewModel = viewModel()
+                val etiquetteUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_kids_etiquette),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    LibraryEtiquetteScreen(
+                        uiState = etiquetteUiState,
                         modifier = Modifier.padding(padding)
                     )
                 }

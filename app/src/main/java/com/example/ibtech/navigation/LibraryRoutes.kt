@@ -22,6 +22,13 @@ object LibraryRoutes {
     const val USAGE_SUBCATEGORY = "usage_subcategory/{categoryId}"
     const val USAGE_ANSWER = "usage_answer/{topicId}"
     const val KIDS_MENU = "kids_menu"
+    const val KIDS_QUIZ_CATEGORY = "kids_quiz_category"
+    const val KIDS_QUIZ_PLAY = "kids_quiz_play/{category}"
+
+    /** 그래프 등록용 패턴. 실제 이동에는 [kidsQuizResult]를 쓴다. */
+    const val KIDS_QUIZ_RESULT = "kids_quiz_result/{category}?correct={correct}&total={total}&bookIds={bookIds}"
+    const val KIDS_BOOK_RECOMMENDATION = "kids_book_recommendation?ageGroup={ageGroup}&topic={topic}"
+    const val KIDS_ETIQUETTE = "kids_etiquette"
     const val EVENTS = "events"
 
     /** 개발자 메뉴(`BuildConfig.DEBUG` 전용). release 빌드에는 진입 버튼 자체가 없다. */
@@ -40,4 +47,19 @@ object LibraryRoutes {
     fun usageSubcategory(categoryId: String): String = "usage_subcategory/${Uri.encode(categoryId)}"
 
     fun usageAnswer(topicId: String): String = "usage_answer/${Uri.encode(topicId)}"
+
+    fun kidsQuizPlay(category: String): String = "kids_quiz_play/${Uri.encode(category)}"
+
+    fun kidsQuizResult(category: String, correct: Int, total: Int, bookIds: List<String>): String {
+        val bookIdsParam = Uri.encode(bookIds.joinToString(","))
+        return "kids_quiz_result/${Uri.encode(category)}?correct=$correct&total=$total&bookIds=$bookIdsParam"
+    }
+
+    fun kidsBookRecommendation(ageGroup: String? = null, topic: String? = null): String {
+        val params = buildList {
+            if (!ageGroup.isNullOrBlank()) add("ageGroup=${Uri.encode(ageGroup)}")
+            if (!topic.isNullOrBlank()) add("topic=${Uri.encode(topic)}")
+        }
+        return if (params.isEmpty()) "kids_book_recommendation" else "kids_book_recommendation?${params.joinToString("&")}"
+    }
 }

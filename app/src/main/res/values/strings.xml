@@ -28,7 +28,6 @@
     <string name="title_events">오늘의 행사</string>
 
     <!-- 자리표시자 화면 본문. 각 실제 화면이 구현되는 단계에서 이 문자열과 화면을 함께 교체한다. -->
-    <string name="placeholder_kids_menu">어린이 콘텐츠 화면은 8단계에서 구성됩니다.</string>
     <string name="placeholder_events">행사 안내 화면은 9단계에서 구성됩니다.</string>
 
     <!-- 시설 목록 (요구사항 2.3절) -->
@@ -111,6 +110,170 @@
     <string name="usage_staff_help_title">직원 도움이 필요하신가요?</string>
     <string name="usage_staff_help_body">가까운 안내데스크 직원에게 말씀해 주세요.</string>
     <string name="usage_staff_help_dismiss">확인</string>
+
+    <!-- 어린이 콘텐츠 메뉴 (요구사항 2.10절) -->
+    <string name="title_kids_quiz_category">오늘의 퀴즈</string>
+    <string name="title_kids_quiz_result">퀴즈 결과</string>
+    <string name="title_kids_book_recommendation">나에게 맞는 책</string>
+    <string name="title_kids_etiquette">도서관 예절</string>
+    <string name="kids_menu_action_quiz">오늘의 퀴즈</string>
+    <string name="kids_menu_action_books">나에게 맞는 책</string>
+    <string name="kids_menu_action_etiquette">도서관 예절</string>
+    <string name="kids_go_facility_action">어린이자료실 안내</string>
+
+    <!-- 퀴즈 주제 (요구사항 2.11절, 예시일 뿐 코드에 고정하지 않음 — 실제 목록은 등록된 문제 기준) -->
+    <string name="quiz_category_animal">동물</string>
+    <string name="quiz_category_dinosaur">공룡</string>
+    <string name="quiz_category_science">과학</string>
+    <string name="quiz_category_fairytale">동화</string>
+    <string name="quiz_category_empty_label">문제 준비 중</string>
+
+    <!-- 동물 -->
+    <string name="quiz_q_animal_1_text">다음 중 물속에서 사는 동물은 어느 것일까요?</string>
+    <string-array name="quiz_q_animal_1_choices">
+        <item>물고기</item>
+        <item>사자</item>
+        <item>독수리</item>
+    </string-array>
+    <string name="quiz_q_animal_1_explanation">물고기는 아가미로 숨을 쉬며 물속에서 살아요.</string>
+
+    <string name="quiz_q_animal_2_text">다음 중 하늘을 날 수 있는 동물은 어느 것일까요?</string>
+    <string-array name="quiz_q_animal_2_choices">
+        <item>참새</item>
+        <item>코끼리</item>
+        <item>거북이</item>
+    </string-array>
+    <string name="quiz_q_animal_2_explanation">참새는 날개로 하늘을 날 수 있는 새예요.</string>
+
+    <string name="quiz_q_animal_3_text">다음 중 겨울잠을 자는 동물은 어느 것일까요?</string>
+    <string-array name="quiz_q_animal_3_choices">
+        <item>곰</item>
+        <item>기린</item>
+        <item>얼룩말</item>
+    </string-array>
+    <string name="quiz_q_animal_3_explanation">곰은 추운 겨울 동안 굴 속에서 잠을 자요.</string>
+
+    <!-- 공룡 -->
+    <string name="quiz_q_dinosaur_1_text">다음 중 몸집이 아주 큰 초식 공룡은 어느 것일까요?</string>
+    <string-array name="quiz_q_dinosaur_1_choices">
+        <item>브라키오사우루스</item>
+        <item>벨로키랍토르</item>
+        <item>프테라노돈</item>
+    </string-array>
+    <string name="quiz_q_dinosaur_1_explanation">브라키오사우루스는 목이 긴 아주 큰 초식 공룡이에요.</string>
+
+    <string name="quiz_q_dinosaur_2_text">다음 중 날카로운 이빨을 가진 육식 공룡은 어느 것일까요?</string>
+    <string-array name="quiz_q_dinosaur_2_choices">
+        <item>티라노사우루스</item>
+        <item>트리케라톱스</item>
+        <item>스테고사우루스</item>
+    </string-array>
+    <string name="quiz_q_dinosaur_2_explanation">티라노사우루스는 날카로운 이빨을 가진 육식 공룡이에요.</string>
+
+    <string name="quiz_q_dinosaur_3_text">공룡은 아주 먼 옛날, 어느 시대에 살았을까요?</string>
+    <string-array name="quiz_q_dinosaur_3_choices">
+        <item>중생대</item>
+        <item>현대</item>
+        <item>조선시대</item>
+    </string-array>
+    <string name="quiz_q_dinosaur_3_explanation">공룡은 아주 먼 옛날인 중생대에 살았어요.</string>
+
+    <!-- 과학 -->
+    <string name="quiz_q_science_1_text">우리가 숨을 쉴 때 몸에 필요한 기체는 무엇일까요?</string>
+    <string-array name="quiz_q_science_1_choices">
+        <item>산소</item>
+        <item>이산화탄소</item>
+        <item>수소</item>
+    </string-array>
+    <string name="quiz_q_science_1_explanation">우리 몸은 숨을 쉴 때 산소를 이용해요.</string>
+
+    <string name="quiz_q_science_2_text">식물이 자라는 데 꼭 필요한 것은 무엇일까요?</string>
+    <string-array name="quiz_q_science_2_choices">
+        <item>햇빛과 물</item>
+        <item>사탕</item>
+        <item>장난감</item>
+    </string-array>
+    <string name="quiz_q_science_2_explanation">식물은 햇빛과 물을 이용해 자라요.</string>
+
+    <string name="quiz_q_science_3_text">물이 얼면 무엇이 될까요?</string>
+    <string-array name="quiz_q_science_3_choices">
+        <item>얼음</item>
+        <item>수증기</item>
+        <item>모래</item>
+    </string-array>
+    <string name="quiz_q_science_3_explanation">물은 온도가 낮아지면 얼어서 얼음이 돼요.</string>
+
+    <!-- 동화 -->
+    <string name="quiz_q_fairytale_1_text">커다란 콩나무를 타고 하늘로 올라간 이야기의 주인공은 누구일까요?</string>
+    <string-array name="quiz_q_fairytale_1_choices">
+        <item>잭</item>
+        <item>피노키오</item>
+        <item>신데렐라</item>
+    </string-array>
+    <string name="quiz_q_fairytale_1_explanation">잭은 콩나무를 타고 하늘 위 세상으로 올라갔어요.</string>
+
+    <string name="quiz_q_fairytale_2_text">빨간 모자를 쓰고 할머니 댁에 심부름을 간 소녀가 만난 동물은 무엇일까요?</string>
+    <string-array name="quiz_q_fairytale_2_choices">
+        <item>늑대</item>
+        <item>여우</item>
+        <item>토끼</item>
+    </string-array>
+    <string name="quiz_q_fairytale_2_explanation">빨간 모자는 할머니 댁으로 가는 길에 늑대를 만났어요.</string>
+
+    <string name="quiz_q_fairytale_3_text">유리구두를 남기고 무도회장을 떠난 동화 속 주인공은 누구일까요?</string>
+    <string-array name="quiz_q_fairytale_3_choices">
+        <item>신데렐라</item>
+        <item>백설공주</item>
+        <item>인어공주</item>
+    </string-array>
+    <string name="quiz_q_fairytale_3_explanation">신데렐라는 12시 종이 울리자 유리구두를 남기고 떠났어요.</string>
+
+    <!-- 퀴즈 진행/결과 화면 (요구사항 2.12~2.13절) -->
+    <string name="quiz_progress_format">%1$d / %2$d</string>
+    <string name="quiz_correct_feedback">정답이에요!</string>
+    <string name="quiz_incorrect_feedback">아쉬워요, 다음에 다시 도전해요!</string>
+    <string name="quiz_speech_correct">정답이에요.</string>
+    <string name="quiz_speech_incorrect">아쉬워요.</string>
+    <string name="quiz_result_summary_format">%1$d문제 중 %2$d개를 맞혔어요!</string>
+    <string name="quiz_result_books_heading">추천 도서</string>
+    <string name="quiz_result_retry">다른 퀴즈 하기</string>
+
+    <!-- 추천도서 (요구사항 2.14절) -->
+    <string name="kids_book_title_cloud_bread">구름빵</string>
+    <string name="kids_book_author_cloud_bread">백희나</string>
+    <string name="kids_book_age_cloud_bread">4~7세</string>
+    <string name="kids_book_topic_cloud_bread">상상력</string>
+    <string name="kids_book_desc_cloud_bread">비 오는 날 아빠가 만들어 준 신기한 구름빵을 먹고 하늘을 나는 이야기예요.</string>
+
+    <string name="kids_book_title_dog_poop">강아지똥</string>
+    <string name="kids_book_author_dog_poop">권정생</string>
+    <string name="kids_book_age_dog_poop">5~8세</string>
+    <string name="kids_book_topic_dog_poop">자연·생명</string>
+    <string name="kids_book_desc_dog_poop">작고 보잘것없어 보이던 강아지똥이 민들레꽃을 피우는 데 도움을 주는 이야기예요.</string>
+
+    <string name="kids_book_title_rainbow_fish">무지개 물고기</string>
+    <string name="kids_book_author_rainbow_fish">마르쿠스 피스터</string>
+    <string name="kids_book_age_rainbow_fish">4~7세</string>
+    <string name="kids_book_topic_rainbow_fish">우정·나눔</string>
+    <string name="kids_book_desc_rainbow_fish">반짝이는 비늘을 친구들과 나누며 진짜 친구를 사귀게 되는 물고기 이야기예요.</string>
+
+    <string name="kids_book_title_moon_sherbet">달샤베트</string>
+    <string name="kids_book_author_moon_sherbet">백희나</string>
+    <string name="kids_book_age_moon_sherbet">5~8세</string>
+    <string name="kids_book_topic_moon_sherbet">상상력</string>
+    <string name="kids_book_desc_moon_sherbet">더운 여름밤 녹아내린 달을 시원한 샤베트로 만들어 이웃과 나누는 이야기예요.</string>
+
+    <string name="kids_book_location_generic">어린이자료실</string>
+    <string name="kids_book_filter_age_all">전체 연령</string>
+    <string name="kids_book_filter_topic_all">전체 주제</string>
+    <string name="kids_book_empty">조건에 맞는 책이 없습니다.</string>
+    <string name="kids_book_filter_reset">필터 초기화</string>
+
+    <!-- 도서관 예절 (요구사항 2.15절) -->
+    <string name="kids_etiquette_tip_1">책을 다 읽은 뒤에는 책 수레에 놓아 주세요.</string>
+    <string name="kids_etiquette_tip_2">도서관에서는 작은 목소리로 말해요.</string>
+    <string name="kids_etiquette_tip_3">책장을 넘길 때는 손을 깨끗이 씻고 조심히 넘겨요.</string>
+    <string name="kids_etiquette_tip_4">다른 친구가 읽고 있는 책은 조용히 기다렸다가 빌려요.</string>
 
     <!-- 개발자 메뉴 (BuildConfig.DEBUG 전용, 로드맵 5단계 "개발자 메뉴에서 재현 가능") -->
     <string name="dev_menu_entry">DEV</string>
