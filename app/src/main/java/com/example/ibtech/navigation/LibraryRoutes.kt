@@ -19,6 +19,8 @@ object LibraryRoutes {
     const val FACILITY_NAVIGATION = "facility_navigation/{facilityId}"
 
     const val USAGE_CATEGORY = "usage_category"
+    const val USAGE_SUBCATEGORY = "usage_subcategory/{categoryId}"
+    const val USAGE_ANSWER = "usage_answer/{topicId}"
     const val KIDS_MENU = "kids_menu"
     const val EVENTS = "events"
 
@@ -34,4 +36,8 @@ object LibraryRoutes {
 
     fun facilityNavigation(facilityId: String): String =
         "facility_navigation/${Uri.encode(facilityId)}"
+
+    fun usageSubcategory(categoryId: String): String = "usage_subcategory/${Uri.encode(categoryId)}"
+
+    fun usageAnswer(topicId: String): String = "usage_answer/${Uri.encode(topicId)}"
 }

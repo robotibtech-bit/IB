@@ -28,7 +28,6 @@
     <string name="title_events">오늘의 행사</string>
 
     <!-- 자리표시자 화면 본문. 각 실제 화면이 구현되는 단계에서 이 문자열과 화면을 함께 교체한다. -->
-    <string name="placeholder_usage_category">이용방법 안내 화면은 7단계에서 구성됩니다.</string>
     <string name="placeholder_kids_menu">어린이 콘텐츠 화면은 8단계에서 구성됩니다.</string>
     <string name="placeholder_events">행사 안내 화면은 9단계에서 구성됩니다.</string>
 
@@ -74,6 +73,44 @@
     <string name="navigation_exit_confirm_title">안내 이동을 중지할까요?</string>
     <string name="navigation_exit_confirm_body">지금 나가면 이동 중인 안내가 중지됩니다.</string>
     <string name="navigation_exit_confirm_action">중지하고 나가기</string>
+
+    <!-- 이용방법 안내 공용 -->
+    <string name="usage_invalid_content">이 항목을 찾을 수 없습니다.</string>
+
+    <!-- 이용방법 안내 1차 메뉴 (요구사항 2.7절) -->
+    <string name="usage_category_loan">책 대출·반납</string>
+    <string name="usage_category_membership">회원가입</string>
+    <string name="usage_category_reading_room">열람실 이용</string>
+    <string name="usage_category_hours">운영시간·휴관일</string>
+
+    <!-- 책 대출·반납 세부 항목 (요구사항 2.8절) -->
+    <string name="usage_topic_loan_count_title">대출 가능 권수</string>
+    <string name="usage_topic_loan_count_answer">회원 등급에 따라 대출 가능한 권수가 다릅니다.\n정확한 권수는 안내데스크에 문의해 주세요.</string>
+    <string name="usage_topic_loan_period_title">대출 기간</string>
+    <string name="usage_topic_loan_period_answer">대출 기간은 자료 유형에 따라 다르게 적용됩니다.\n정확한 기간은 안내데스크에 문의해 주세요.</string>
+    <string name="usage_topic_loan_extend_title">연장·예약</string>
+    <string name="usage_topic_loan_extend_answer">대출 연장과 예약은 대출 기간이 끝나기 전에 가능합니다.\n자세한 방법은 안내데스크에 문의해 주세요.</string>
+    <string name="usage_topic_loan_return_kiosk_title">무인반납 방법</string>
+    <string name="usage_topic_loan_return_kiosk_answer">무인반납실에 자료를 넣으면 자동으로 반납 처리됩니다.\n화면 안내에 따라 진행해 주세요.</string>
+
+    <!-- 하위 항목이 1개뿐인 카테고리(2.7절 "1개면 건너뛴다") -->
+    <string name="usage_topic_membership_title">회원가입 안내</string>
+    <string name="usage_topic_membership_answer">회원증은 안내데스크에서 신분증을 제시하면 발급받을 수 있습니다.\n자세한 절차는 안내데스크에 문의해 주세요.</string>
+    <string name="usage_topic_reading_room_title">열람실 이용 안내</string>
+    <string name="usage_topic_reading_room_answer">열람실은 회원증으로 좌석을 배정받은 뒤 이용할 수 있습니다.\n정숙을 유지해 주세요.</string>
+    <string name="usage_topic_hours_title">운영시간 안내</string>
+    <string name="usage_topic_hours_answer">운영시간과 휴관일은 도서관 사정에 따라 달라질 수 있습니다.\n정확한 일정은 안내데스크에 문의해 주세요.</string>
+
+    <!-- 이용방법 답변 화면 (요구사항 2.9절) -->
+    <string name="usage_answer_more">더 보기</string>
+    <string name="usage_answer_less">접기</string>
+    <string name="usage_answer_qr_action">QR 코드 보기</string>
+    <string name="usage_answer_qr_error">QR을 열 수 없습니다.</string>
+    <string name="usage_answer_related_facility_action">관련 시설 안내</string>
+    <string name="usage_answer_staff_help_action">직원 도움</string>
+    <string name="usage_staff_help_title">직원 도움이 필요하신가요?</string>
+    <string name="usage_staff_help_body">가까운 안내데스크 직원에게 말씀해 주세요.</string>
+    <string name="usage_staff_help_dismiss">확인</string>
 
     <!-- 개발자 메뉴 (BuildConfig.DEBUG 전용, 로드맵 5단계 "개발자 메뉴에서 재현 가능") -->
     <string name="dev_menu_entry">DEV</string>

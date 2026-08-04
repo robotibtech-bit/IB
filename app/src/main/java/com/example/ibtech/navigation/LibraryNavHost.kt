@@ -47,6 +47,12 @@ import com.example.ibtech.ui.facility.NavigationProgressScreen
 import com.example.ibtech.ui.facility.NavigationViewModel
 import com.example.ibtech.ui.home.HomeScreen
 import com.example.ibtech.ui.home.HomeViewModel
+import com.example.ibtech.ui.usage.UsageAnswerScreen
+import com.example.ibtech.ui.usage.UsageAnswerViewModel
+import com.example.ibtech.ui.usage.UsageCategoryScreen
+import com.example.ibtech.ui.usage.UsageCategoryViewModel
+import com.example.ibtech.ui.usage.UsageSubcategoryScreen
+import com.example.ibtech.ui.usage.UsageSubcategoryViewModel
 
 /**
  * 요구사항 명세서 3절의 공통 규칙을 코드로 고정한다.
@@ -295,13 +301,72 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
             }
 
             composable(LibraryRoutes.USAGE_CATEGORY) {
+                val viewModel: UsageCategoryViewModel = viewModel()
+                val categoryUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
                 LibraryScaffold(
                     title = stringResource(R.string.title_usage_category),
                     onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
-                    PlaceholderScreen(
-                        description = stringResource(R.string.placeholder_usage_category),
+                    UsageCategoryScreen(
+                        uiState = categoryUiState,
+                        onSelectCategory = { item ->
+                            val singleTopicId = item.singleAnswerTopicId
+                            if (singleTopicId != null) {
+                                navController.navigate(LibraryRoutes.usageAnswer(singleTopicId))
+                            } else {
+                                navController.navigate(LibraryRoutes.usageSubcategory(item.category.id))
+                            }
+                        },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(
+                route = LibraryRoutes.USAGE_SUBCATEGORY,
+                arguments = listOf(navArgument("categoryId") { type = NavType.StringType })
+            ) {
+                val viewModel: UsageSubcategoryViewModel = viewModel()
+                val subcategoryUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = subcategoryUiState.category?.title ?: stringResource(R.string.title_usage_category),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    UsageSubcategoryScreen(
+                        uiState = subcategoryUiState,
+                        onSelectTopic = { topic ->
+                            navController.navigate(LibraryRoutes.usageAnswer(topic.id))
+                        },
+                        onGoHome = { goHome() },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(
+                route = LibraryRoutes.USAGE_ANSWER,
+                arguments = listOf(navArgument("topicId") { type = NavType.StringType })
+            ) {
+                val viewModel: UsageAnswerViewModel = viewModel()
+                val answerUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = answerUiState.topic?.title ?: stringResource(R.string.title_usage_category),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    UsageAnswerScreen(
+                        uiState = answerUiState,
+                        onRelatedFacilityClick = { facilityId ->
+                            navController.navigate(LibraryRoutes.facilityDetail(facilityId))
+                        },
+                        onStaffHelpClick = viewModel::onStaffHelpClick,
+                        onDismissStaffHelp = viewModel::onDismissStaffHelp,
+                        onGoHome = { goHome() },
                         modifier = Modifier.padding(padding)
                     )
                 }
