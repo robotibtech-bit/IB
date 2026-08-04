@@ -12,6 +12,9 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
 composeBom = "2024.09.00"
+# Compose BOM에 포함되지 않는 별도 아티팩트. AGP 8.13.2 / compileSdk 36 조합에서 검증된 안정 버전.
+navigationCompose = "2.8.4"
+datastorePreferences = "1.1.1"
 # temi SDK. 문서(temi_SDK.md) 기준 최신은 1.138.0 이지만, 프로젝트 검증 기준선은 1.137.1.
 # 1.138.0 은 별도 검증 브랜치에서 Launcher 138 호환 빌드와 함께 회귀 테스트 후 올린다.
 temiSdk = "1.137.1"
@@ -35,6 +38,10 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 temi-sdk = { group = "com.robotemi", name = "sdk", version.ref = "temiSdk" }
 
 [plugins]

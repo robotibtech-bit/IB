@@ -1,58 +1,56 @@
 package com.example.ibtech.ui.theme
 
-import android.app.Activity
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+/*
+ * 브랜드 색(민트·청록 + 짙은 남색)을 고정 적용한다.
+ * 기기별 Dynamic Color(Android 12+)를 쓰면 도서관마다, 단말기마다 색이 달라져
+ * PDF 디자인 원칙(2.3절)이 깨지므로 사용하지 않는다.
+ */
+private val LibraryLightColorScheme = lightColorScheme(
+    primary = MintPrimary,
+    onPrimary = SurfaceWhite,
+    primaryContainer = MintContainer,
+    onPrimaryContainer = NavyTitle,
+    secondary = NavyTitle,
+    onSecondary = SurfaceWhite,
+    secondaryContainer = NavyTitleContainer,
+    onSecondaryContainer = NavyTitle,
+    tertiary = MintPrimaryDark,
+    onTertiary = SurfaceWhite,
+    background = SurfaceWhite,
+    onBackground = NavyTitle,
+    surface = SurfaceWhite,
+    onSurface = NavyTitle,
+    surfaceVariant = SurfaceMintTint,
+    onSurfaceVariant = TextBody,
+    outline = OutlineMint,
+    outlineVariant = OutlineNeutral,
+    error = ErrorRed,
+    errorContainer = ErrorContainer,
+    onError = SurfaceWhite,
+    onErrorContainer = ErrorRed
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+// 키오스크 환경은 상시 밝은 화면을 전제로 하지만, 야간 모드 기기 대비 최소한의 폴백은 둔다.
+private val LibraryDarkColorScheme = darkColorScheme(
+    primary = MintPrimary,
+    secondary = MintPrimaryDark,
+    tertiary = NavyTitleContainer
 )
 
 @Composable
 fun IBTECHTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
+        colorScheme = if (darkTheme) LibraryDarkColorScheme else LibraryLightColorScheme,
+        typography = LibraryTypography,
+        shapes = LibraryShapes,
         content = content
     )
 }

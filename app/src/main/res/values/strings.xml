@@ -8,77 +8,78 @@
     -->
     <string name="temi_permissions" translatable="false">com.robotemi.permission.map</string>
 
-    <!-- 대시보드 -->
-    <string name="dashboard_title">temi 안내 로봇</string>
-    <string name="dashboard_status_title">현재 상태</string>
+    <!-- 공통 상단바 (요구사항 3.6절) -->
+    <string name="top_bar_back">뒤로</string>
+    <string name="top_bar_home">홈</string>
 
-    <!-- 상태 배지 -->
-    <string name="status_unavailable">사용 불가</string>
-    <string name="status_connecting">연결 중</string>
-    <string name="status_standby">대기 중</string>
-    <string name="status_moving">이동 중</string>
-    <string name="status_speaking">안내 중</string>
+    <!-- 도서관명 (2026-08-04 정정: 신트리도서관으로 고정). 환영 문구는 관리자 설정에서 읽는다. -->
+    <string name="library_name">신트리도서관</string>
 
-    <!-- 상태 상세 -->
-    <string name="label_connection">연결</string>
-    <string name="label_battery">배터리</string>
-    <string name="label_destination">목적지</string>
-    <string name="label_action">현재 작업</string>
-    <string name="value_none">—</string>
-    <string name="value_connected">정상</string>
-    <string name="value_connecting">연결 대기</string>
-    <string name="value_unavailable">temi 아님</string>
-    <string name="battery_format">%1$d%%</string>
-    <string name="battery_charging_format">%1$d%% (충전 중)</string>
+    <!-- 홈 화면 버튼 (요구사항 2.2절). -->
+    <string name="home_action_find_facility">시설을 찾고 있어요</string>
+    <string name="home_action_usage_guide">이용방법이 궁금해요</string>
+    <string name="home_action_kids_content">로봇과 놀아요</string>
+    <string name="home_action_today_events">오늘의 행사</string>
 
-    <!-- 명령 버튼 -->
-    <string name="action_go_to_office">사무실로 이동</string>
-    <string name="action_go_to_lobby">로비로 이동</string>
-    <string name="action_speak_welcome">환영 인사 하기</string>
-    <string name="action_stop">이동 중지</string>
-    <string name="action_refresh_locations">목록 새로고침</string>
+    <!-- 하위 화면 제목 -->
+    <string name="title_facility_list">시설 안내</string>
+    <string name="title_usage_category">이용방법 안내</string>
+    <string name="title_kids_menu">로봇과 놀아요</string>
+    <string name="title_events">오늘의 행사</string>
 
-    <!--
-        temi 지도에 저장된 POI 이름과 정확히 일치해야 한다.
-        현장 지도의 위치 이름이 다르면 이 값을 수정한다.
-    -->
-    <string name="location_office">사무실</string>
-    <string name="location_lobby">로비</string>
+    <!-- 자리표시자 화면 본문. 각 실제 화면이 구현되는 단계에서 이 문자열과 화면을 함께 교체한다. -->
+    <string name="placeholder_usage_category">이용방법 안내 화면은 7단계에서 구성됩니다.</string>
+    <string name="placeholder_kids_menu">어린이 콘텐츠 화면은 8단계에서 구성됩니다.</string>
+    <string name="placeholder_events">행사 안내 화면은 9단계에서 구성됩니다.</string>
 
-    <string name="welcome_message">안녕하세요. IB테크 방문을 환영합니다. 무엇을 도와드릴까요?</string>
+    <!-- 시설 목록 (요구사항 2.3절) -->
+    <string name="facility_list_search_toggle">다른 장소 찾기</string>
+    <string name="facility_list_search_hint">시설 이름으로 검색</string>
+    <string name="facility_list_empty">등록된 시설이 없습니다.\n관리자에게 문의해 주세요.</string>
+    <string name="facility_list_empty_search">검색 결과가 없습니다.</string>
+    <string name="facility_card_floor_format">%1$d층</string>
 
-    <!-- POI 목록 -->
-    <string name="poi_title">지도에 저장된 위치</string>
-    <string name="poi_count_format">%1$d곳</string>
-    <string name="poi_empty">저장된 위치가 없습니다. temi 지도에서 위치를 먼저 등록해 주세요.</string>
-    <string name="poi_missing_format">\'%1$s\' 위치가 지도에 없습니다.</string>
+    <!-- 시설 상세/안내 방식 (요구사항 2.4절) -->
+    <string name="facility_detail_floor_line">이 시설은 %1$d층에 있습니다.</string>
+    <string name="facility_detail_escort_action">동행 안내</string>
+    <string name="facility_detail_location_action">위치만 보기</string>
+    <string name="facility_detail_invalid">이 시설 정보를 찾을 수 없습니다.</string>
+    <string name="facility_detail_escort_confirm_cancel">취소</string>
+    <string name="facility_detail_escort_reason_sdk_not_ready">로봇 연결을 확인해 주세요.</string>
+    <string name="facility_detail_escort_reason_permission">로봇 권한 승인이 필요합니다.</string>
+    <string name="facility_detail_escort_reason_poi_missing">로봇 지도에서 이 위치를 찾을 수 없습니다.</string>
+    <string name="facility_detail_escort_reason_already_moving">다른 안내가 진행 중입니다.</string>
+    <string name="facility_detail_escort_reason_different_floor">다른 층은 위치 안내만 제공합니다.</string>
 
-    <!-- 권한 -->
-    <string name="permission_title">권한이 필요합니다</string>
-    <string name="permission_description">temi 지도와 저장된 위치를 읽으려면 지도 권한이 필요합니다. 허용하지 않으면 이동 기능을 사용할 수 없습니다.</string>
-    <string name="permission_name_map">지도 데이터</string>
-    <string name="permission_action_allow">권한 허용</string>
-    <string name="permission_requesting">권한 요청 중…</string>
+    <!-- 위치만 보기 (요구사항 2.5절) -->
+    <string name="facility_map_title">위치 안내</string>
+    <string name="facility_map_default_direction">%1$d층에 있습니다. 안내데스크에 문의해 주세요.</string>
 
-    <!-- 이동 결과 안내 -->
-    <string name="nav_arrived_format">\'%1$s\'에 도착했습니다.</string>
-    <string name="nav_issue_user_stopped">이동을 중지했습니다.</string>
-    <string name="nav_issue_external">외부 조작으로 이동이 취소되었습니다.</string>
-    <string name="nav_issue_timeout">로봇이 응답하지 않아 이동을 시작하지 못했습니다.</string>
-    <string name="nav_issue_error">이동에 실패했습니다. 경로를 확인해 주세요.</string>
-    <string name="nav_moving_format">\'%1$s\'(으)로 이동 중입니다.</string>
+    <!-- 동행 이동 진행 (요구사항 2.6절, 로드맵 8장 상태 머신) -->
+    <string name="title_facility_navigation">동행 이동 안내</string>
+    <string name="navigation_confirm_title">동행 안내를 시작할까요?</string>
+    <string name="navigation_confirm_body">%1$s까지 함께 이동해 안내해드릴게요.</string>
+    <string name="navigation_confirm_action">이동 시작</string>
+    <string name="navigation_moving_label">목적지로 이동하고 있어요…</string>
+    <string name="navigation_stop_action">이동 중지</string>
+    <string name="navigation_stopped_by_user">이동을 중지했습니다.</string>
+    <string name="navigation_retry_action">다시 시도</string>
+    <string name="navigation_issue_external">다른 이유로 이동이 중단됐습니다.</string>
+    <string name="navigation_issue_timeout">로봇 응답이 없어 이동을 중단했습니다.</string>
+    <string name="navigation_issue_sdk_error">이동 중 문제가 발생했습니다.</string>
+    <string name="navigation_arrived_body">목적지에 도착했습니다.</string>
+    <string name="navigation_start_speech">목적지로 이동을 시작합니다.</string>
+    <string name="navigation_arrived_speech">목적지에 도착했습니다.</string>
+    <string name="navigation_exit_confirm_title">안내 이동을 중지할까요?</string>
+    <string name="navigation_exit_confirm_body">지금 나가면 이동 중인 안내가 중지됩니다.</string>
+    <string name="navigation_exit_confirm_action">중지하고 나가기</string>
 
-    <!-- 발화 결과 안내 -->
-    <string name="speech_failed">음성 안내에 실패했습니다.</string>
-
-    <!-- 일회성 알림(스낵바) -->
-    <string name="alert_destination_unreachable_format">\'%1$s\'(으)로 갈 수 없습니다. 지도에 등록된 위치가 아닙니다.</string>
-    <string name="alert_robot_not_ready">로봇이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.</string>
-    <string name="alert_permission_required">지도 권한이 없어 이동할 수 없습니다.</string>
-    <string name="alert_permission_denied">권한이 거부되었습니다. 이동 기능을 사용할 수 없습니다.</string>
-    <string name="alert_sdk_error_format">로봇 오류가 발생했습니다. (코드 %1$d)</string>
-    <string name="alert_action_dismiss">확인</string>
-
-    <!-- 접근성 -->
-    <string name="cd_status_indicator">로봇 상태 표시</string>
+    <!-- 개발자 메뉴 (BuildConfig.DEBUG 전용, 로드맵 5단계 "개발자 메뉴에서 재현 가능") -->
+    <string name="dev_menu_entry">DEV</string>
+    <string name="dev_menu_title">개발자 메뉴</string>
+    <string name="dev_menu_use_fake">가짜 로봇 사용(Fake)</string>
+    <string name="dev_menu_outcome_label">다음 동행 결과</string>
+    <string name="dev_menu_outcome_success">성공</string>
+    <string name="dev_menu_outcome_failed">실패</string>
+    <string name="dev_menu_outcome_external">외부 중단</string>
 </resources>
