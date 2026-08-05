@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -25,12 +26,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.ibtech.R
+import com.example.ibtech.ui.theme.CoralAccent
 import com.example.ibtech.ui.theme.LibraryDimens
 
 /**
@@ -51,7 +54,8 @@ fun AdminFormDialog(
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.large
+            // 관리자 화면 모서리는 16~20dp로 통일한다(최종 단계 D) — 방문객 카드의 24dp보다 좁다.
+            shape = RoundedCornerShape(20.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -74,8 +78,13 @@ fun AdminFormDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onDismiss) { Text(cancelLabel) }
-                    TextButton(onClick = onSave, enabled = saveEnabled) { Text(saveLabel) }
+                    // 저장=Teal(주요 색 강조), 취소=보조(중립색 텍스트)로 구분한다.
+                    TextButton(onClick = onDismiss) {
+                        Text(cancelLabel, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    TextButton(onClick = onSave, enabled = saveEnabled) {
+                        Text(saveLabel, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
@@ -145,7 +154,7 @@ fun AdminListRow(
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null
 ) {
-    LibraryCard(modifier = modifier.fillMaxWidth()) {
+    LibraryCard(modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -197,7 +206,9 @@ fun AdminListRow(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
-                        contentDescription = stringResource(R.string.admin_list_delete_action, title)
+                        contentDescription = stringResource(R.string.admin_list_delete_action, title),
+                        // 삭제=Error/Coral로 구분한다(최종 단계 D).
+                        tint = CoralAccent
                     )
                 }
             }

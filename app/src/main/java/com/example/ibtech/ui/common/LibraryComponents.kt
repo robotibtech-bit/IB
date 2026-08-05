@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -150,17 +151,22 @@ fun RobotSpeechBubble(
  * [accentColor]는 전체 UI 디자인 패키지의 "영역별 강조선" 표현을 위한 선택 파라미터다(2단계).
  * 기본값 null이면 기존과 동일하게 강조선 없이 [content]만 그린다 — 기존 호출부는 수정 없이
  * 그대로 빌드/렌더된다. 값을 넘기면 카드 왼쪽에 [LibraryDimens.CardAccentWidth] 폭의 색 띠를
- * 덧그린다. 실제 색 적용은 3단계 이후 화면 작업에서 이 파라미터를 채우는 방식으로 진행한다.
+ * 덧그린다.
+ *
+ * [shape] 기본값은 방문객 화면 기준 24dp([MaterialTheme.shapes.large])다. 관리자 화면은
+ * "16~20dp 모서리로 통일"(최종 단계 D) 요구에 맞춰 호출부에서 [MaterialTheme.shapes.medium]
+ * (20dp)을 넘긴다 — 새 도형을 만들지 않고 기존 [LibraryShapes] 값을 그대로 재사용한다.
  */
 @Composable
 fun LibraryCard(
     modifier: Modifier = Modifier,
     accentColor: Color? = null,
+    shape: Shape = MaterialTheme.shapes.large,
     content: @Composable () -> Unit
 ) {
     Card(
         modifier = modifier,
-        shape = MaterialTheme.shapes.large,
+        shape = shape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)

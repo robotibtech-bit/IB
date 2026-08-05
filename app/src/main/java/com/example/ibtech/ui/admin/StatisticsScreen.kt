@@ -48,7 +48,7 @@ fun StatisticsScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        DecorativeBackground(modifier = Modifier.fillMaxSize())
+        DecorativeBackground(modifier = Modifier.fillMaxSize(), showBookAndPlantDecoration = false)
 
         if (!uiState.isLoaded) return@Box
 
@@ -183,7 +183,8 @@ fun StatisticsScreen(
 
 @Composable
 private fun StatCard(title: String, rows: List<Pair<String, Int>>, emptyMessage: String) {
-    LibraryCard(modifier = Modifier.fillMaxWidth()) {
+    // 관리자 화면 카드 모서리는 16~20dp로 통일한다(최종 단계 D).
+    LibraryCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

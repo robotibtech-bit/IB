@@ -85,7 +85,7 @@ fun KidsContentAdminScreen(
     var pendingDeleteEtiquette by remember { mutableStateOf<LibraryEtiquetteTip?>(null) }
 
     Box(modifier = modifier.fillMaxSize()) {
-        DecorativeBackground(modifier = Modifier.fillMaxSize())
+        DecorativeBackground(modifier = Modifier.fillMaxSize(), showBookAndPlantDecoration = false)
 
         if (!uiState.isLoaded) return@Box
 

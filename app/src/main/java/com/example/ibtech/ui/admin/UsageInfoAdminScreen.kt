@@ -56,7 +56,7 @@ fun UsageInfoAdminScreen(
     var pendingDelete by remember { mutableStateOf<UsageTopic?>(null) }
 
     Box(modifier = modifier.fillMaxSize()) {
-        DecorativeBackground(modifier = Modifier.fillMaxSize())
+        DecorativeBackground(modifier = Modifier.fillMaxSize(), showBookAndPlantDecoration = false)
 
         if (!uiState.isLoaded) return@Box
 

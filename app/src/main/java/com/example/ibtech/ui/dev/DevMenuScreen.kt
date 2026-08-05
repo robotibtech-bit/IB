@@ -36,7 +36,7 @@ fun DevMenuScreen(
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
-        DecorativeBackground(modifier = Modifier.fillMaxSize())
+        DecorativeBackground(modifier = Modifier.fillMaxSize(), showBookAndPlantDecoration = false)
 
         Column(
             modifier = Modifier

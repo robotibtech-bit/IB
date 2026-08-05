@@ -27,9 +27,14 @@ import com.example.ibtech.ui.theme.NavyTitle
  * 도형 크기를 약 1.8배, 불투명도를 0.08~0.14 범위로 올렸다. 카드는 흰색 표면 위에 그려지므로
  * 이 정도 불투명도에서도 카드 안쪽 글자 대비에는 영향이 없다 — 카드가 없는 배경 빈 공간과
  * 화면 가장자리에서만 도드라진다.
+ *
+ * [showBookAndPlantDecoration] 기본값 true는 기존 방문객 호출부를 전부 그대로 둔다. 최종
+ * 단계 D("관리자 화면에 방문객용 책·식물 장식을 적용하지 마")에 따라 관리자·개발자 화면만
+ * false를 넘겨 책/잎 도형을 끈다 — 두 원호는 이번 세션 이전부터 있던 장식이라 관리자 화면에도
+ * 그대로 둔다(민원 대상은 새로 추가한 책·식물 도형뿐이다).
  */
 @Composable
-fun DecorativeBackground(modifier: Modifier = Modifier) {
+fun DecorativeBackground(modifier: Modifier = Modifier, showBookAndPlantDecoration: Boolean = true) {
     val mint = MaterialTheme.colorScheme.primary
     val navy = NavyTitle
 
@@ -58,38 +63,40 @@ fun DecorativeBackground(modifier: Modifier = Modifier) {
             style = Stroke(width = strokeWidth * 0.55f)
         )
 
-        // 좌하단 "책" 더미 — 폭이 다른 둥근 세로 막대 3개, 화면 왼쪽 끝 안쪽에만(기존 대비 약 1.8배).
-        val bookColors = listOf(mint.copy(alpha = 0.13f), navy.copy(alpha = 0.09f), mint.copy(alpha = 0.11f))
-        val bookWidth = size.width * 0.029f
-        val bookGap = size.width * 0.014f
-        val bookBaseY = size.height * 0.995f
-        val bookHeights = listOf(size.height * 0.29f, size.height * 0.38f, size.height * 0.23f)
-        var bookX = size.width * 0.012f
-        bookHeights.forEachIndexed { index, bookHeight ->
-            drawRoundRect(
-                color = bookColors[index % bookColors.size],
-                topLeft = Offset(bookX, bookBaseY - bookHeight),
-                size = Size(bookWidth, bookHeight),
-                cornerRadius = CornerRadius(bookWidth * 0.3f)
-            )
-            bookX += bookWidth + bookGap
-        }
+        if (showBookAndPlantDecoration) {
+            // 좌하단 "책" 더미 — 폭이 다른 둥근 세로 막대 3개, 화면 왼쪽 끝 안쪽에만(기존 대비 약 1.8배).
+            val bookColors = listOf(mint.copy(alpha = 0.13f), navy.copy(alpha = 0.09f), mint.copy(alpha = 0.11f))
+            val bookWidth = size.width * 0.029f
+            val bookGap = size.width * 0.014f
+            val bookBaseY = size.height * 0.995f
+            val bookHeights = listOf(size.height * 0.29f, size.height * 0.38f, size.height * 0.23f)
+            var bookX = size.width * 0.012f
+            bookHeights.forEachIndexed { index, bookHeight ->
+                drawRoundRect(
+                    color = bookColors[index % bookColors.size],
+                    topLeft = Offset(bookX, bookBaseY - bookHeight),
+                    size = Size(bookWidth, bookHeight),
+                    cornerRadius = CornerRadius(bookWidth * 0.3f)
+                )
+                bookX += bookWidth + bookGap
+            }
 
-        // 우상단 "잎" 두 장 — 화면 오른쪽 끝 안쪽, 상단바와 겹치지 않게(기존 대비 약 1.8배).
-        val leafColor = mint.copy(alpha = 0.11f)
-        rotate(degrees = 30f, pivot = Offset(size.width * 0.965f, size.height * 0.05f)) {
-            drawOval(
-                color = leafColor,
-                topLeft = Offset(size.width * 0.905f, size.height * -0.03f),
-                size = Size(size.width * 0.09f, size.height * 0.16f)
-            )
-        }
-        rotate(degrees = -20f, pivot = Offset(size.width * 0.99f, size.height * 0.09f)) {
-            drawOval(
-                color = leafColor,
-                topLeft = Offset(size.width * 0.945f, size.height * 0.02f),
-                size = Size(size.width * 0.08f, size.height * 0.145f)
-            )
+            // 우상단 "잎" 두 장 — 화면 오른쪽 끝 안쪽, 상단바와 겹치지 않게(기존 대비 약 1.8배).
+            val leafColor = mint.copy(alpha = 0.11f)
+            rotate(degrees = 30f, pivot = Offset(size.width * 0.965f, size.height * 0.05f)) {
+                drawOval(
+                    color = leafColor,
+                    topLeft = Offset(size.width * 0.905f, size.height * -0.03f),
+                    size = Size(size.width * 0.09f, size.height * 0.16f)
+                )
+            }
+            rotate(degrees = -20f, pivot = Offset(size.width * 0.99f, size.height * 0.09f)) {
+                drawOval(
+                    color = leafColor,
+                    topLeft = Offset(size.width * 0.945f, size.height * 0.02f),
+                    size = Size(size.width * 0.08f, size.height * 0.145f)
+                )
+            }
         }
     }
 }
