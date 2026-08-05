@@ -26,6 +26,7 @@ object FacilityJsonMapper {
             obj.put("mapImagePath", facility.mapImagePath ?: JSONObject.NULL)
             obj.put("iconKey", facility.iconKey ?: JSONObject.NULL)
             obj.put("isEnabled", facility.isEnabled)
+            obj.put("isFeatured", facility.isFeatured)
             obj.put("sortOrder", facility.sortOrder)
             obj.put("syncStatus", facility.syncStatus.name)
             array.put(obj)
@@ -51,6 +52,7 @@ object FacilityJsonMapper {
                     mapImagePath = obj.optStringOrNull("mapImagePath"),
                     iconKey = obj.optStringOrNull("iconKey"),
                     isEnabled = obj.optBoolean("isEnabled", false),
+                    isFeatured = obj.optBoolean("isFeatured", false),
                     sortOrder = obj.optInt("sortOrder", 0),
                     syncStatus = runCatching { FacilitySyncStatus.valueOf(obj.getString("syncStatus")) }
                         .getOrDefault(FacilitySyncStatus.SYNCED)

@@ -26,6 +26,7 @@ data class SettingsAdminUiState(
     val idleTimeoutText: String = "",
     val baseFloorText: String = "",
     val volume: Int = LibrarySettings.DEFAULT_VOLUME,
+    val featuredFacilityCount: Int = LibrarySettings.DEFAULT_FEATURED_FACILITY_COUNT,
     val idleTimeoutError: String? = null,
     val baseFloorError: String? = null,
     val currentPassword: String = "",
@@ -63,6 +64,7 @@ class SettingsAdminViewModel(application: Application) : AndroidViewModel(applic
                     idleTimeoutText = settings.idleTimeoutSeconds.toString(),
                     baseFloorText = settings.baseFloor.toString(),
                     volume = settings.volume,
+                    featuredFacilityCount = settings.featuredFacilityCount,
                     lastBackupAt = backupRepository.lastBackupAt()
                 )
             }
@@ -83,6 +85,10 @@ class SettingsAdminViewModel(application: Application) : AndroidViewModel(applic
 
     fun onVolumeChange(value: Int) {
         _uiState.update { it.copy(volume = value) }
+    }
+
+    fun onFeaturedFacilityCountChange(value: Int) {
+        _uiState.update { it.copy(featuredFacilityCount = value) }
     }
 
     fun onSaveSettings() {
@@ -107,7 +113,8 @@ class SettingsAdminViewModel(application: Application) : AndroidViewModel(applic
                     welcomeMessage = state.welcomeMessage.ifBlank { LibrarySettings.DEFAULT_WELCOME_MESSAGE },
                     idleTimeoutSeconds = idleTimeout,
                     baseFloor = baseFloor,
-                    volume = state.volume
+                    volume = state.volume,
+                    featuredFacilityCount = state.featuredFacilityCount
                 )
             )
             _events.emit(R.string.admin_save_success)
@@ -174,7 +181,8 @@ class SettingsAdminViewModel(application: Application) : AndroidViewModel(applic
                         welcomeMessage = settings.welcomeMessage,
                         idleTimeoutText = settings.idleTimeoutSeconds.toString(),
                         baseFloorText = settings.baseFloor.toString(),
-                        volume = settings.volume
+                        volume = settings.volume,
+                        featuredFacilityCount = settings.featuredFacilityCount
                     )
                 }
             }

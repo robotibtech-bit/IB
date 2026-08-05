@@ -18,6 +18,9 @@ data class Facility(
     val mapImagePath: String? = null,
     val iconKey: String? = null,
     val isEnabled: Boolean = false,
+    /** 시설 안내 첫 화면에 큰 카드로 노출할지 여부(관리자 설정, 12단계). 노출 개수는
+     * [com.example.ibtech.domain.model.LibrarySettings.featuredFacilityCount]가 정한다. */
+    val isFeatured: Boolean = false,
     val sortOrder: Int = 0,
     val syncStatus: FacilitySyncStatus = FacilitySyncStatus.SYNCED
 ) {

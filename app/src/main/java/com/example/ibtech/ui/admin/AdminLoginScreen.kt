@@ -48,7 +48,7 @@ fun AdminLoginScreen(
                 imageVector = Icons.Filled.Lock,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(LibraryDimens.MinTouchTarget)
             )
             Text(
                 text = stringResource(R.string.admin_login_title),

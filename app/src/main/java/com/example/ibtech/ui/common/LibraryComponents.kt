@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -122,14 +124,15 @@ fun RobotSpeechBubble(
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(LibraryDimens.MinTouchTarget)
                     .background(MaterialTheme.colorScheme.surface, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Filled.SmartToy,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
                 )
             }
             Text(
@@ -141,10 +144,18 @@ fun RobotSpeechBubble(
     }
 }
 
-/** 둥근 모서리 흰 카드. 시설/이용방법/어린이 콘텐츠 등 모든 목록 카드가 공유한다. */
+/**
+ * 둥근 모서리 흰 카드. 시설/이용방법/어린이 콘텐츠 등 모든 목록 카드가 공유한다.
+ *
+ * [accentColor]는 전체 UI 디자인 패키지의 "영역별 강조선" 표현을 위한 선택 파라미터다(2단계).
+ * 기본값 null이면 기존과 동일하게 강조선 없이 [content]만 그린다 — 기존 호출부는 수정 없이
+ * 그대로 빌드/렌더된다. 값을 넘기면 카드 왼쪽에 [LibraryDimens.CardAccentWidth] 폭의 색 띠를
+ * 덧그린다. 실제 색 적용은 3단계 이후 화면 작업에서 이 파라미터를 채우는 방식으로 진행한다.
+ */
 @Composable
 fun LibraryCard(
     modifier: Modifier = Modifier,
+    accentColor: Color? = null,
     content: @Composable () -> Unit
 ) {
     Card(
@@ -154,6 +165,20 @@ fun LibraryCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        content()
+        if (accentColor != null) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(LibraryDimens.CardAccentWidth)
+                        .background(accentColor)
+                )
+                Box(modifier = Modifier.weight(1f)) {
+                    content()
+                }
+            }
+        } else {
+            content()
+        }
     }
 }

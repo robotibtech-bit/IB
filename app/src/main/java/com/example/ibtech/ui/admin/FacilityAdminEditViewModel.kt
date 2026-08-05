@@ -26,6 +26,7 @@ data class FacilityAdminEditUiState(
     val guideMode: GuideMode = GuideMode.LOCATION_ONLY,
     val iconKey: String? = null,
     val isEnabled: Boolean = false,
+    val isFeatured: Boolean = false,
     val sortOrderText: String = "0",
     val nameError: String? = null,
     val floorError: String? = null,
@@ -67,6 +68,7 @@ class FacilityAdminEditViewModel(
                         guideMode = facility.guideMode,
                         iconKey = facility.iconKey,
                         isEnabled = facility.isEnabled,
+                        isFeatured = facility.isFeatured,
                         sortOrderText = facility.sortOrder.toString()
                     )
                 }
@@ -98,6 +100,10 @@ class FacilityAdminEditViewModel(
         _uiState.update { it.copy(isEnabled = value) }
     }
 
+    fun onFeaturedChange(value: Boolean) {
+        _uiState.update { it.copy(isFeatured = value) }
+    }
+
     fun onSortOrderChange(value: String) {
         _uiState.update { it.copy(sortOrderText = value) }
     }
@@ -125,6 +131,7 @@ class FacilityAdminEditViewModel(
                     guideMode = state.guideMode,
                     iconKey = state.iconKey,
                     isEnabled = state.isEnabled,
+                    isFeatured = state.isFeatured,
                     sortOrder = sortOrder
                 )
                 viewModelScope.launch {

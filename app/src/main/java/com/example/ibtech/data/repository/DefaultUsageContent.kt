@@ -8,10 +8,16 @@ import com.example.ibtech.domain.model.UsageTopic
  * 이용방법 안내 최초 시드 콘텐츠 (요구사항 로드맵 2.1절 "관리자 설정 또는 로컬 데이터 파일에서
  * 변경 가능" — 코드에 문구를 직접 박지 않고 `strings.xml`에서 읽어 [UsageTopic]으로 구성한다).
  *
- * "신트리도서관"은 실제 운영 데이터가 없는 예시 도서관이라, 대출 권수·정확한 운영시간처럼
- * 지어내면 사실처럼 보이는 수치는 넣지 않는다 — 답변은 "정확한 내용은 안내데스크에 문의해
- * 주세요"로 안내하고, 실제 값은 10단계 관리자 화면에서 채운다. 같은 이유로 [UsageTopic.qrUrl]/
- * [UsageTopic.relatedFacilityId]도 실존하지 않는 QR/시설을 지어내지 않기 위해 전부 null로 둔다.
+ * 사용자가 제공한 "신트리도서관 종합 이용안내" PDF(개관시간/회원가입/대출·반납/자료실/열람실
+ * 5개 장)를 그대로 옮긴 실제 운영 데이터다. 표 형태 정보([UsageTopic.tableData])는 PDF에서
+ * 표로 제시된 항목(운영시간, 가입 서류, 대출 규정)에만 채우고, 그 외는 안내문 형태로 둔다.
+ * [UsageTopic.qrUrl]/[UsageTopic.relatedFacilityId]는 PDF에 실제 QR·연계 시설 정보가 없어
+ * 지어내지 않고 null로 둔다.
+ *
+ * 참고 프로젝트(TemiRobotApp, 12단계에서 UI 비교에 썼던 그 앱)의 이용방법 안내가 "카테고리
+ * 4개 × 세부 항목 4개"로 균일하게 나뉘어 있어, 이 구조를 그대로 따른다. PDF 5개 장 중
+ * "자료실 상세 안내"는 별도 카테고리로 두지 않고 "열람실 이용"과 합쳐 카테고리 4개를 유지했다
+ * (참고 프로젝트에는 없던 실제 자료실 데이터를 자리표시자 항목 늘리기 없이 편입하기 위함).
  */
 object DefaultUsageContent {
 
@@ -21,59 +27,112 @@ object DefaultUsageContent {
         return listOf(
             UsageTopic(id = "category_loan", parentId = null, title = s(R.string.usage_category_loan), sortOrder = 0),
             UsageTopic(
-                id = "loan_count",
-                parentId = "category_loan",
-                title = s(R.string.usage_topic_loan_count_title),
-                shortAnswer = s(R.string.usage_topic_loan_count_answer),
-                sortOrder = 0
-            ),
-            UsageTopic(
                 id = "loan_period",
                 parentId = "category_loan",
                 title = s(R.string.usage_topic_loan_period_title),
                 shortAnswer = s(R.string.usage_topic_loan_period_answer),
-                sortOrder = 1
+                tableData = s(R.string.usage_topic_loan_period_table),
+                sortOrder = 0
             ),
             UsageTopic(
                 id = "loan_extend",
                 parentId = "category_loan",
                 title = s(R.string.usage_topic_loan_extend_title),
                 shortAnswer = s(R.string.usage_topic_loan_extend_answer),
-                sortOrder = 2
+                tableData = s(R.string.usage_topic_loan_extend_table),
+                sortOrder = 1
             ),
             UsageTopic(
                 id = "loan_return_kiosk",
                 parentId = "category_loan",
                 title = s(R.string.usage_topic_loan_return_kiosk_title),
                 shortAnswer = s(R.string.usage_topic_loan_return_kiosk_answer),
+                sortOrder = 2
+            ),
+            UsageTopic(
+                id = "loan_count",
+                parentId = "category_loan",
+                title = s(R.string.usage_topic_loan_count_title),
+                shortAnswer = s(R.string.usage_topic_loan_count_answer),
                 sortOrder = 3
             ),
 
             UsageTopic(id = "category_membership", parentId = null, title = s(R.string.usage_category_membership), sortOrder = 1),
             UsageTopic(
-                id = "membership_guide",
+                id = "membership_target",
                 parentId = "category_membership",
-                title = s(R.string.usage_topic_membership_title),
-                shortAnswer = s(R.string.usage_topic_membership_answer),
+                title = s(R.string.usage_topic_membership_target_title),
+                shortAnswer = s(R.string.usage_topic_membership_target_answer),
                 sortOrder = 0
             ),
-
-            UsageTopic(id = "category_reading_room", parentId = null, title = s(R.string.usage_category_reading_room), sortOrder = 2),
             UsageTopic(
-                id = "reading_room_guide",
-                parentId = "category_reading_room",
-                title = s(R.string.usage_topic_reading_room_title),
-                shortAnswer = s(R.string.usage_topic_reading_room_answer),
+                id = "membership_documents",
+                parentId = "category_membership",
+                title = s(R.string.usage_topic_membership_documents_title),
+                shortAnswer = s(R.string.usage_topic_membership_documents_answer),
+                tableData = s(R.string.usage_topic_membership_documents_table),
+                sortOrder = 1
+            ),
+            UsageTopic(
+                id = "membership_procedure",
+                parentId = "category_membership",
+                title = s(R.string.usage_topic_membership_procedure_title),
+                shortAnswer = s(R.string.usage_topic_membership_procedure_answer),
+                sortOrder = 2
+            ),
+            UsageTopic(
+                id = "membership_card",
+                parentId = "category_membership",
+                title = s(R.string.usage_topic_membership_card_title),
+                shortAnswer = s(R.string.usage_topic_membership_card_answer),
+                sortOrder = 3
+            ),
+
+            UsageTopic(id = "category_reading_materials", parentId = null, title = s(R.string.usage_category_reading_materials), sortOrder = 2),
+            UsageTopic(
+                id = "reading_seat",
+                parentId = "category_reading_materials",
+                title = s(R.string.usage_topic_reading_seat_title),
+                shortAnswer = s(R.string.usage_topic_reading_seat_answer),
                 sortOrder = 0
+            ),
+            UsageTopic(
+                id = "reading_rules",
+                parentId = "category_reading_materials",
+                title = s(R.string.usage_topic_reading_rules_title),
+                shortAnswer = s(R.string.usage_topic_reading_rules_answer),
+                sortOrder = 1
+            ),
+            UsageTopic(
+                id = "materials_general_kids",
+                parentId = "category_reading_materials",
+                title = s(R.string.usage_topic_materials_general_kids_title),
+                shortAnswer = s(R.string.usage_topic_materials_general_kids_answer),
+                sortOrder = 2
+            ),
+            UsageTopic(
+                id = "materials_digital",
+                parentId = "category_reading_materials",
+                title = s(R.string.usage_topic_materials_digital_title),
+                shortAnswer = s(R.string.usage_topic_materials_digital_answer),
+                sortOrder = 3
             ),
 
             UsageTopic(id = "category_hours", parentId = null, title = s(R.string.usage_category_hours), sortOrder = 3),
+            UsageTopic(
+                id = "hours_operating",
+                parentId = "category_hours",
+                title = s(R.string.usage_topic_hours_operating_title),
+                shortAnswer = s(R.string.usage_topic_hours_operating_answer),
+                tableData = s(R.string.usage_topic_hours_operating_table),
+                sortOrder = 0
+            ),
             UsageTopic(
                 id = "hours_guide",
                 parentId = "category_hours",
                 title = s(R.string.usage_topic_hours_title),
                 shortAnswer = s(R.string.usage_topic_hours_answer),
-                sortOrder = 0
+                sortOrder = 1
             )
         )
     }

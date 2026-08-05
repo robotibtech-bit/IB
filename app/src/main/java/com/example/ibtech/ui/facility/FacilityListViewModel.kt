@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.ibtech.data.repository.FacilityRepository
+import com.example.ibtech.data.repository.SettingsRepository
 import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.robot.TemiConnectionState
 import com.example.ibtech.robot.TemiControllerProvider
@@ -19,15 +20,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
 /**
- * 시설 목록 화면 상태 (요구사항 명세서 2.3절).
+ * 시설 목록 화면 상태 (요구사항 명세서 2.3절, 12단계 개편).
  *
- * [hasAnyFacility]는 검색어와 무관하게 노출 가능한 시설이 하나라도 있는지를 나타낸다 —
- * "등록된 시설이 없습니다"(전체 빈 데이터)와 "검색 결과가 없습니다"(필터링 결과 없음)를
- * 구분하기 위해 둔다.
+ * [featuredFacilities]는 관리자가 "대표 장소"로 표시하고([Facility.isFeatured]) 관리자 설정
+ * 개수만큼([com.example.ibtech.domain.model.LibrarySettings.featuredFacilityCount]) 자른 목록,
+ * [allFacilities]는 검색어로 걸러진 노출 가능한 시설 전체다. [hasAnyFacility]는 검색어와 무관하게
+ * 노출 가능한 시설이 하나라도 있는지를 나타낸다 — "등록된 시설이 없습니다"(전체 빈 데이터)와
+ * "검색 결과가 없습니다"(필터링 결과 없음)를 구분하기 위해 둔다.
  */
 data class FacilityListUiState(
     val isLoaded: Boolean = false,
-    val facilities: List<Facility> = emptyList(),
+    val featuredFacilities: List<Facility> = emptyList(),
+    val allFacilities: List<Facility> = emptyList(),
     val hasAnyFacility: Boolean = false,
     val query: String = "",
     val isSearchVisible: Boolean = false
@@ -39,6 +43,7 @@ class FacilityListViewModel(
 ) : AndroidViewModel(application) {
 
     private val facilityRepository = FacilityRepository.getInstance(application)
+    private val settingsRepository = SettingsRepository.getInstance(application)
     private val temiController = TemiControllerProvider.current
 
     private val initialQuery = savedStateHandle.get<String>("query").orEmpty()
@@ -47,9 +52,14 @@ class FacilityListViewModel(
 
     val uiState: StateFlow<FacilityListUiState> = combine(
         facilityRepository.visibleFacilities,
+        settingsRepository.settings,
         queryState,
         searchVisibleState
-    ) { facilities, query, searchVisible ->
+    ) { facilities, settings, query, searchVisible ->
+        val featured = facilities
+            .filter { it.isFeatured }
+            .sortedBy { it.sortOrder }
+            .take(settings.featuredFacilityCount)
         val filtered = if (query.isBlank()) {
             facilities
         } else {
@@ -57,7 +67,8 @@ class FacilityListViewModel(
         }
         FacilityListUiState(
             isLoaded = true,
-            facilities = filtered,
+            featuredFacilities = featured,
+            allFacilities = filtered,
             hasAnyFacility = facilities.isNotEmpty(),
             query = query,
             isSearchVisible = searchVisible

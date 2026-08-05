@@ -21,6 +21,12 @@
     <string name="home_action_kids_content">로봇과 놀아요</string>
     <string name="home_action_today_events">오늘의 행사</string>
 
+    <!-- 홈 화면 메뉴 카드 부제 (3단계, 전체 UI 디자인 패키지 mockup_home.png 기준 — 화면 표시용
+         문구일 뿐 도메인 데이터가 아니다). -->
+    <string name="home_action_find_facility_subtitle">원하는 시설로 안내해 드려요</string>
+    <string name="home_action_usage_guide_subtitle">대출·회원가입 방법을 알려드려요</string>
+    <string name="home_action_kids_content_subtitle">재미있는 로봇 활동을 시작해요</string>
+
     <!-- 하위 화면 제목 -->
     <string name="title_facility_list">시설 안내</string>
     <string name="title_usage_category">이용방법 안내</string>
@@ -32,6 +38,8 @@
     <string name="facility_list_search_hint">시설 이름으로 검색</string>
     <string name="facility_list_empty">등록된 시설이 없습니다.\n관리자에게 문의해 주세요.</string>
     <string name="facility_list_empty_search">검색 결과가 없습니다.</string>
+    <string name="facility_list_show_featured">대표 장소로 돌아가기</string>
+    <string name="facility_list_no_featured">아직 대표 장소가 설정되지 않았습니다.\n다른 장소 찾기에서 전체 목록을 확인해 주세요.</string>
     <string name="facility_card_floor_format">%1$d층</string>
 
     <!-- 시설 상세/안내 방식 (요구사항 2.4절) -->
@@ -73,29 +81,59 @@
     <!-- 이용방법 안내 공용 -->
     <string name="usage_invalid_content">이 항목을 찾을 수 없습니다.</string>
 
-    <!-- 이용방법 안내 1차 메뉴 (요구사항 2.7절) -->
+    <!-- 이용방법 안내 1차 메뉴 (요구사항 2.7절, 신트리도서관 종합 이용안내 PDF 기준) -->
     <string name="usage_category_loan">책 대출·반납</string>
     <string name="usage_category_membership">회원가입</string>
-    <string name="usage_category_reading_room">열람실 이용</string>
+    <string name="usage_category_reading_materials">열람실·자료실 이용</string>
     <string name="usage_category_hours">운영시간·휴관일</string>
 
-    <!-- 책 대출·반납 세부 항목 (요구사항 2.8절) -->
-    <string name="usage_topic_loan_count_title">대출 가능 권수</string>
-    <string name="usage_topic_loan_count_answer">회원 등급에 따라 대출 가능한 권수가 다릅니다.\n정확한 권수는 안내데스크에 문의해 주세요.</string>
-    <string name="usage_topic_loan_period_title">대출 기간</string>
-    <string name="usage_topic_loan_period_answer">대출 기간은 자료 유형에 따라 다르게 적용됩니다.\n정확한 기간은 안내데스크에 문의해 주세요.</string>
-    <string name="usage_topic_loan_extend_title">연장·예약</string>
-    <string name="usage_topic_loan_extend_answer">대출 연장과 예약은 대출 기간이 끝나기 전에 가능합니다.\n자세한 방법은 안내데스크에 문의해 주세요.</string>
-    <string name="usage_topic_loan_return_kiosk_title">무인반납 방법</string>
-    <string name="usage_topic_loan_return_kiosk_answer">무인반납실에 자료를 넣으면 자동으로 반납 처리됩니다.\n화면 안내에 따라 진행해 주세요.</string>
+    <!-- 이용방법 1차 메뉴 카드 부제 (13단계, 전체 UI 디자인 패키지 3단계 — 화면 표시용 문구,
+         UsageTopic에는 저장하지 않고 UsageCategoryIcons.kt의 id 매핑 함수에서만 사용). -->
+    <string name="usage_category_loan_subtitle">대출, 연장, 예약 방법</string>
+    <string name="usage_category_membership_subtitle">가입 대상과 필요 서류</string>
+    <string name="usage_category_reading_materials_subtitle">좌석과 시설 이용 안내</string>
+    <string name="usage_category_hours_subtitle">시설별 시간과 휴관 안내</string>
+    <string name="usage_category_default_subtitle">자세한 이용방법을 확인해요</string>
 
-    <!-- 하위 항목이 1개뿐인 카테고리(2.7절 "1개면 건너뛴다") -->
-    <string name="usage_topic_membership_title">회원가입 안내</string>
-    <string name="usage_topic_membership_answer">회원증은 안내데스크에서 신분증을 제시하면 발급받을 수 있습니다.\n자세한 절차는 안내데스크에 문의해 주세요.</string>
-    <string name="usage_topic_reading_room_title">열람실 이용 안내</string>
-    <string name="usage_topic_reading_room_answer">열람실은 회원증으로 좌석을 배정받은 뒤 이용할 수 있습니다.\n정숙을 유지해 주세요.</string>
-    <string name="usage_topic_hours_title">운영시간 안내</string>
-    <string name="usage_topic_hours_answer">운영시간과 휴관일은 도서관 사정에 따라 달라질 수 있습니다.\n정확한 일정은 안내데스크에 문의해 주세요.</string>
+    <!-- 책 대출·반납 세부 항목 (요구사항 2.8절, PDF 3장 "대출/반납 안내") -->
+    <string name="usage_topic_loan_period_title">도서관 대출 규정</string>
+    <string name="usage_topic_loan_period_answer">책이음 서비스로 1인당 전국 통합 최대 30권까지 대출할 수 있습니다. (단, 신트리도서관 대출 한도는 10권입니다)\n반납 예정일 전에 방문·전화·홈페이지를 통해 1회(7일) 연기할 수 있습니다. (예약 도서는 연기 불가)</string>
+    <string name="usage_topic_loan_period_table">구분|대출 자료 수|대출 기간|연장 가능|예약 가능 권수|비고\n일반 도서|10권|15일|1회 / 7일|2권|-\n과월호 연속간행물|5권|15일|1회 / 7일|-|어린이자료실은 최대 1권\nDVD (비도서)|5점|15일|-|-|-\n무료택배 회원|10권|29일|-|2권|장애인·소외계층 등 대상</string>
+    <string name="usage_topic_loan_extend_title">전자도서관 대출 규정</string>
+    <string name="usage_topic_loan_extend_answer">인천광역시교육청 통합전자도서관에서 이용할 수 있는 전자책·오디오북 대출 규정입니다.</string>
+    <string name="usage_topic_loan_extend_table">구분|대출 권수|대출 기간·연장·예약|비고\n소장형 전자책|10권|2주(15일), 1회(7일) 연장, 예약 3권|기간 만료 시 자동 반납\n오디오북 (스트리밍·다운로드)|1일 최대 100권|-|모바일 다운로드·바로듣기 무제한\n구독형 전자책·오디오북|매월 5권|-|반납일 자동 반납\n사이버강좌·학술DB|무제한|제한 없음|-</string>
+    <string name="usage_topic_loan_return_kiosk_title">반납 방법 및 연체</string>
+    <string name="usage_topic_loan_return_kiosk_answer">[반납 방법]\n• 자료실 운영시간에는 각 자료실 데스크에 반납\n• 운영시간 외 및 휴관일에는 1층 무인반납함 이용 (연중 상시 운영)\n\n[연체 규정]\n반납이 늦어지면 연체일수만큼 대출이 정지됩니다. (타 도서관에서도 동일하게 적용)</string>
+    <string name="usage_topic_loan_count_title">대출 예약 서비스</string>
+    <string name="usage_topic_loan_count_answer">관외 대출 중인 일반·아동 도서는 1인당 2권까지 예약할 수 있습니다. (도서 1권당 최대 2명 예약 가능)\n예약한 도서가 준비되면 알림톡을 받게 되며, 수신 후 3일 이내에 방문하여 대출해 주세요.</string>
+
+    <!-- 회원가입 (PDF 2장 "회원가입 안내", 참고 프로젝트처럼 4개 항목으로 세분화) -->
+    <string name="usage_topic_membership_target_title">가입 대상</string>
+    <string name="usage_topic_membership_target_answer">『책이음 회원』으로 가입하면 전국 참여 도서관에서 자료를 대출할 수 있습니다.\n\n• 주민등록상 인천광역시에 거주하는 사람\n• 인천광역시 소재 직장 또는 학교에 재직·재학 중인 사람 (재직증명서 또는 재학증명서 지참 필요)</string>
+    <string name="usage_topic_membership_documents_title">가입 연령별 필요 서류</string>
+    <string name="usage_topic_membership_documents_answer">나이와 신분증 발급 여부에 따라 지참해야 하는 서류와 본인 인증 방식이 다릅니다. 아래 표를 확인해 주세요.</string>
+    <string name="usage_topic_membership_documents_table">구분|필수 지참 서류|본인 인증 방식\n만 14세 이상|현주소 확인이 가능한 신분증|휴대폰 인증 또는 I-PIN 인증\n만 14세 미만 (보호자 동행)|주민등록등본 1통 (3개월 이내 발급)|휴대폰 인증 또는 I-PIN 인증\n만 14세 미만 (주민등록증 미발급자)|주민등록등본 1통 (3개월 이내 발급)|휴대폰 인증 또는 I-PIN 인증</string>
+    <string name="usage_topic_membership_procedure_title">발급 절차</string>
+    <string name="usage_topic_membership_procedure_answer">① 홈페이지에서 회원가입\n② 서류 지참 후 도서관(안내데스크/자료실) 방문 및 본인 확인\n③ 회원증 발급</string>
+    <string name="usage_topic_membership_card_title">모바일 회원증 및 재발급</string>
+    <string name="usage_topic_membership_card_answer">[모바일 회원증]\n홈페이지 로그인 후 모바일 회원증 바코드를 사용할 수 있습니다.\n\n[재발급]\n분실 신고 후 신분증을 지참하면 즉시 재발급받을 수 있습니다.</string>
+
+    <!-- 열람실·자료실 이용 (PDF 4장 "자료실 상세 안내" + 5장 "열람실 안내"를 4개 항목으로 병합) -->
+    <string name="usage_topic_reading_seat_title">좌석 발급·반납</string>
+    <string name="usage_topic_reading_seat_answer">[좌석 발급]\n신관 1층 로비의 \'열람실 좌석표 발급기\'에서 지정 좌석을 발급받은 뒤 이용할 수 있습니다. (1인 1좌석)\n\n[좌석 반납]\n퇴실할 때는 1층 \'열람실 좌석표 반납기\'에 좌석표를 인식시켜 반납 처리해야 합니다.</string>
+    <string name="usage_topic_reading_rules_title">대기·이용 수칙</string>
+    <string name="usage_topic_reading_rules_answer">[대기자 알리미]\n만석일 때는 대기표가 발급되며, 호출 문자·전광판을 확인한 후 7분 이내에 좌석표를 발급받아야 합니다.\n\n[이용 수칙]\n2시간 이상 자리를 비우면 퇴실 조치될 수 있습니다. 실내에서는 정숙을 지켜 주시고, 음료·음식물은 휴게실을 이용해 주세요.</string>
+    <string name="usage_topic_materials_general_kids_title">종합자료실·어린이자료실</string>
+    <string name="usage_topic_materials_general_kids_answer">[종합자료실 (3층)]\n전 주제 분야(총류, 철학, 종교, 사회과학, 자연과학, 기술과학, 예술, 언어, 문학, 역사) 일반도서, 연속간행물, 특성화자료를 갖추고 있습니다.\n1일 10권 이내 당일 열람이 가능하며, 소장 자료에 한해 자율 복사도 가능합니다. (A4: 40원 / B4: 50원, 신용·체크카드 결제)\n\n[어린이자료실 (1층)]\n유아·아동 도서, 교과독서 지원도서(학년별 교과연계도서), 유아·아동 잡지, 원서를 갖추고 있습니다.\n만 14세 미만 어린이 회원은 보호자가 회원증을 지참하면 대출할 수 있으며, 도서관체험교실·독서교실 등 프로그램도 운영합니다.</string>
+    <string name="usage_topic_materials_digital_title">디지털자료실</string>
+    <string name="usage_topic_materials_digital_answer">[주요 자료·시설 (2층)]\nPC 좌석, DVD 감상 공간, 원문 검색, 프린터 출력\n\n[운영시간]\n평일 09:00~18:00 / 주말 09:00~17:00</string>
+
+    <!-- 운영시간·휴관일 (PDF 1장 "개관시간 및 휴관일 안내") -->
+    <string name="usage_topic_hours_operating_title">시설별 운영시간</string>
+    <string name="usage_topic_hours_operating_answer">요일과 자료실에 따라 운영시간이 다릅니다. 방문 전 아래 표를 확인해 주세요.</string>
+    <string name="usage_topic_hours_operating_table">시설|평일 (화~금)|주말 (토,일)|위치\n종합자료실|09:00~20:00|09:00~17:00|3층\n어린이자료실|09:00~18:00|09:00~17:00|1층\n디지털자료실|09:00~18:00|09:00~17:00|2층\n일반열람실 (제1~4열람실)|06:00~22:00|06:00~22:00|2층</string>
+    <string name="usage_topic_hours_title">휴관일 안내</string>
+    <string name="usage_topic_hours_answer">정기 휴관일과 임시 휴관일을 안내해 드립니다.\n\n• 매주 월요일 정기 휴관\n• 관공서 공휴일 (일요일과 공휴일이 겹치는 경우 휴관)\n• 특별한 사유로 관장이 지정한 날 (임시 휴관일)</string>
 
     <!-- 이용방법 답변 화면 (요구사항 2.9절) -->
     <string name="usage_answer_more">더 보기</string>
@@ -342,6 +380,7 @@
     <string name="facility_admin_field_guide_mode">안내 방식</string>
     <string name="facility_admin_field_icon">아이콘</string>
     <string name="facility_admin_field_enabled">이용자에게 노출</string>
+    <string name="facility_admin_field_featured">대표 장소로 크게 보여주기</string>
     <string name="facility_admin_field_sort_order">노출 순서</string>
     <string name="facility_admin_save">저장</string>
     <string name="facility_admin_icon_auto">자동</string>
@@ -355,6 +394,7 @@
     <string name="usage_admin_add_action">추가</string>
     <string name="usage_admin_field_title">제목</string>
     <string name="usage_admin_field_answer">답변</string>
+    <string name="usage_admin_field_table">표 데이터 (선택, 형식: 칸1|칸2|칸3, 줄마다 한 행·첫 줄은 헤더)</string>
     <string name="usage_admin_field_qr">QR 링크</string>
     <string name="usage_admin_field_facility">관련 시설</string>
     <string name="usage_admin_facility_none">없음</string>
@@ -399,6 +439,8 @@
     <string name="settings_admin_field_idle_timeout">무입력 자동 복귀 시간(초)</string>
     <string name="settings_admin_field_base_floor">기준층</string>
     <string name="settings_admin_field_volume">음량 (%1$d)</string>
+    <string name="settings_admin_field_featured_count">시설 안내 첫 화면에 크게 보여줄 대표 장소 수</string>
+    <string name="settings_admin_featured_count_option">%1$d개</string>
     <string name="settings_admin_save_action">설정 저장</string>
     <string name="settings_admin_password_section_title">관리자 비밀번호 변경</string>
     <string name="settings_admin_field_current_password">현재 비밀번호</string>

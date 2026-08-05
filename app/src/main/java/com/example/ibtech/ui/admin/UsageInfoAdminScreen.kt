@@ -45,6 +45,7 @@ fun UsageInfoAdminScreen(
     onDismissDialog: () -> Unit,
     onDraftTitleChange: (String) -> Unit,
     onDraftShortAnswerChange: (String) -> Unit,
+    onDraftTableDataChange: (String) -> Unit,
     onDraftQrUrlChange: (String) -> Unit,
     onDraftFacilityChange: (String?) -> Unit,
     onDraftEnabledChange: (Boolean) -> Unit,
@@ -114,6 +115,13 @@ fun UsageInfoAdminScreen(
                     value = draft.shortAnswer,
                     onValueChange = onDraftShortAnswerChange,
                     label = stringResource(R.string.usage_admin_field_answer),
+                    singleLine = false,
+                    minLines = 2
+                )
+                AdminTextField(
+                    value = draft.tableData,
+                    onValueChange = onDraftTableDataChange,
+                    label = stringResource(R.string.usage_admin_field_table),
                     singleLine = false,
                     minLines = 2
                 )

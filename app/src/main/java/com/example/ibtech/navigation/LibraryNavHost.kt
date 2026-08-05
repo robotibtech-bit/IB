@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,6 +55,8 @@ import com.example.ibtech.ui.admin.UsageInfoAdminViewModel
 import com.example.ibtech.ui.common.ConfirmDialog
 import com.example.ibtech.ui.common.IdleTimeoutObserver
 import com.example.ibtech.ui.common.LibraryScaffold
+import com.example.ibtech.ui.theme.AdminTypography
+import com.example.ibtech.ui.theme.SurfaceWhite
 import com.example.ibtech.ui.dev.DevMenuScreen
 import com.example.ibtech.ui.dev.DevMenuViewModel
 import com.example.ibtech.ui.events.EventDetailScreen
@@ -191,12 +194,7 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                             logMenuSelect(menuTodayEvents)
                             navController.navigate(LibraryRoutes.EVENTS)
                         },
-                        onAdminClick = { navController.navigate(LibraryRoutes.ADMIN_LOGIN) },
-                        onDevMenuClick = if (BuildConfig.DEBUG) {
-                            { navController.navigate(LibraryRoutes.DEV_MENU) }
-                        } else {
-                            null
-                        }
+                        onAdminClick = { navController.navigate(LibraryRoutes.ADMIN_LOGIN) }
                     )
                 }
             }
@@ -665,12 +663,14 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
-                    AdminLoginScreen(
-                        uiState = loginUiState,
-                        onPasswordChange = viewModel::onPasswordChange,
-                        onSubmit = viewModel::onSubmit,
-                        modifier = Modifier.padding(padding)
-                    )
+                    MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(background = SurfaceWhite), typography = AdminTypography) {
+                        AdminLoginScreen(
+                            uiState = loginUiState,
+                            onPasswordChange = viewModel::onPasswordChange,
+                            onSubmit = viewModel::onSubmit,
+                            modifier = Modifier.padding(padding)
+                        )
+                    }
                 }
             }
 
@@ -680,15 +680,22 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
-                    AdminHomeScreen(
-                        onFacilityAdmin = { navController.navigate(LibraryRoutes.FACILITY_ADMIN) },
-                        onUsageInfoAdmin = { navController.navigate(LibraryRoutes.USAGE_INFO_ADMIN) },
-                        onKidsContentAdmin = { navController.navigate(LibraryRoutes.KIDS_CONTENT_ADMIN) },
-                        onEventAdmin = { navController.navigate(LibraryRoutes.EVENT_ADMIN) },
-                        onSettingsAdmin = { navController.navigate(LibraryRoutes.SETTINGS_ADMIN) },
-                        onStatistics = { navController.navigate(LibraryRoutes.STATISTICS) },
-                        modifier = Modifier.padding(padding)
-                    )
+                    MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(background = SurfaceWhite), typography = AdminTypography) {
+                        AdminHomeScreen(
+                            onFacilityAdmin = { navController.navigate(LibraryRoutes.FACILITY_ADMIN) },
+                            onUsageInfoAdmin = { navController.navigate(LibraryRoutes.USAGE_INFO_ADMIN) },
+                            onKidsContentAdmin = { navController.navigate(LibraryRoutes.KIDS_CONTENT_ADMIN) },
+                            onEventAdmin = { navController.navigate(LibraryRoutes.EVENT_ADMIN) },
+                            onSettingsAdmin = { navController.navigate(LibraryRoutes.SETTINGS_ADMIN) },
+                            onStatistics = { navController.navigate(LibraryRoutes.STATISTICS) },
+                            onDevMenuClick = if (BuildConfig.DEBUG) {
+                                { navController.navigate(LibraryRoutes.DEV_MENU) }
+                            } else {
+                                null
+                            },
+                            modifier = Modifier.padding(padding)
+                        )
+                    }
                 }
             }
 
@@ -701,15 +708,17 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
-                    FacilityAdminScreen(
-                        uiState = facilityAdminUiState,
-                        onRefresh = viewModel::onRefreshPoi,
-                        onSelectFacility = { facility ->
-                            navController.navigate(LibraryRoutes.facilityAdminEdit(facility.id))
-                        },
-                        onDeleteFacility = { facility -> viewModel.onDeleteFacility(facility.id) },
-                        modifier = Modifier.padding(padding)
-                    )
+                    MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(background = SurfaceWhite), typography = AdminTypography) {
+                        FacilityAdminScreen(
+                            uiState = facilityAdminUiState,
+                            onRefresh = viewModel::onRefreshPoi,
+                            onSelectFacility = { facility ->
+                                navController.navigate(LibraryRoutes.facilityAdminEdit(facility.id))
+                            },
+                            onDeleteFacility = { facility -> viewModel.onDeleteFacility(facility.id) },
+                            modifier = Modifier.padding(padding)
+                        )
+                    }
                 }
             }
 
@@ -725,20 +734,23 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
-                    FacilityAdminEditScreen(
-                        uiState = editUiState,
-                        onNameChange = viewModel::onNameChange,
-                        onFloorChange = viewModel::onFloorChange,
-                        onDescriptionChange = viewModel::onDescriptionChange,
-                        onGuideModeChange = viewModel::onGuideModeChange,
-                        onIconKeyChange = viewModel::onIconKeyChange,
-                        onEnabledChange = viewModel::onEnabledChange,
-                        onSortOrderChange = viewModel::onSortOrderChange,
-                        onSave = viewModel::onSave,
-                        onSaved = { navController.popBackStack() },
-                        onGoHome = { goHome() },
-                        modifier = Modifier.padding(padding)
-                    )
+                    MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(background = SurfaceWhite), typography = AdminTypography) {
+                        FacilityAdminEditScreen(
+                            uiState = editUiState,
+                            onNameChange = viewModel::onNameChange,
+                            onFloorChange = viewModel::onFloorChange,
+                            onDescriptionChange = viewModel::onDescriptionChange,
+                            onGuideModeChange = viewModel::onGuideModeChange,
+                            onIconKeyChange = viewModel::onIconKeyChange,
+                            onEnabledChange = viewModel::onEnabledChange,
+                            onFeaturedChange = viewModel::onFeaturedChange,
+                            onSortOrderChange = viewModel::onSortOrderChange,
+                            onSave = viewModel::onSave,
+                            onSaved = { navController.popBackStack() },
+                            onGoHome = { goHome() },
+                            modifier = Modifier.padding(padding)
+                        )
+                    }
                 }
             }
 
@@ -751,21 +763,24 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
-                    UsageInfoAdminScreen(
-                        uiState = usageAdminUiState,
-                        onAddTopic = viewModel::onAddTopic,
-                        onEditTopic = viewModel::onEditTopic,
-                        onDeleteTopic = viewModel::onDeleteTopic,
-                        onDismissDialog = viewModel::onDismissDialog,
-                        onDraftTitleChange = viewModel::onDraftTitleChange,
-                        onDraftShortAnswerChange = viewModel::onDraftShortAnswerChange,
-                        onDraftQrUrlChange = viewModel::onDraftQrUrlChange,
-                        onDraftFacilityChange = viewModel::onDraftFacilityChange,
-                        onDraftEnabledChange = viewModel::onDraftEnabledChange,
-                        onDraftSortOrderChange = viewModel::onDraftSortOrderChange,
-                        onSaveDraft = viewModel::onSaveDraft,
-                        modifier = Modifier.padding(padding)
-                    )
+                    MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(background = SurfaceWhite), typography = AdminTypography) {
+                        UsageInfoAdminScreen(
+                            uiState = usageAdminUiState,
+                            onAddTopic = viewModel::onAddTopic,
+                            onEditTopic = viewModel::onEditTopic,
+                            onDeleteTopic = viewModel::onDeleteTopic,
+                            onDismissDialog = viewModel::onDismissDialog,
+                            onDraftTitleChange = viewModel::onDraftTitleChange,
+                            onDraftShortAnswerChange = viewModel::onDraftShortAnswerChange,
+                            onDraftTableDataChange = viewModel::onDraftTableDataChange,
+                            onDraftQrUrlChange = viewModel::onDraftQrUrlChange,
+                            onDraftFacilityChange = viewModel::onDraftFacilityChange,
+                            onDraftEnabledChange = viewModel::onDraftEnabledChange,
+                            onDraftSortOrderChange = viewModel::onDraftSortOrderChange,
+                            onSaveDraft = viewModel::onSaveDraft,
+                            modifier = Modifier.padding(padding)
+                        )
+                    }
                 }
             }
 
@@ -778,44 +793,46 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
-                    KidsContentAdminScreen(
-                        uiState = kidsAdminUiState,
-                        onAddQuiz = viewModel::onAddQuiz,
-                        onEditQuiz = viewModel::onEditQuiz,
-                        onDeleteQuiz = viewModel::onDeleteQuiz,
-                        onAddBook = viewModel::onAddBook,
-                        onEditBook = viewModel::onEditBook,
-                        onDeleteBook = viewModel::onDeleteBook,
-                        onAddEtiquette = viewModel::onAddEtiquette,
-                        onEditEtiquette = viewModel::onEditEtiquette,
-                        onDeleteEtiquette = viewModel::onDeleteEtiquette,
-                        onDismissDialog = viewModel::onDismissDialog,
-                        onQuizCategoryChange = viewModel::onQuizCategoryChange,
-                        onQuizQuestionChange = viewModel::onQuizQuestionChange,
-                        onQuizChoice1Change = viewModel::onQuizChoice1Change,
-                        onQuizChoice2Change = viewModel::onQuizChoice2Change,
-                        onQuizChoice3Change = viewModel::onQuizChoice3Change,
-                        onQuizCorrectIndexChange = viewModel::onQuizCorrectIndexChange,
-                        onQuizExplanationChange = viewModel::onQuizExplanationChange,
-                        onQuizToggleRecommendedBook = viewModel::onQuizToggleRecommendedBook,
-                        onQuizEnabledChange = viewModel::onQuizEnabledChange,
-                        onQuizSortOrderChange = viewModel::onQuizSortOrderChange,
-                        onSaveQuizDraft = viewModel::onSaveQuizDraft,
-                        onBookTitleChange = viewModel::onBookTitleChange,
-                        onBookAuthorChange = viewModel::onBookAuthorChange,
-                        onBookAgeGroupChange = viewModel::onBookAgeGroupChange,
-                        onBookTopicChange = viewModel::onBookTopicChange,
-                        onBookDescriptionChange = viewModel::onBookDescriptionChange,
-                        onBookLocationChange = viewModel::onBookLocationChange,
-                        onBookEnabledChange = viewModel::onBookEnabledChange,
-                        onBookSortOrderChange = viewModel::onBookSortOrderChange,
-                        onSaveBookDraft = viewModel::onSaveBookDraft,
-                        onEtiquetteTextChange = viewModel::onEtiquetteTextChange,
-                        onEtiquetteEnabledChange = viewModel::onEtiquetteEnabledChange,
-                        onEtiquetteSortOrderChange = viewModel::onEtiquetteSortOrderChange,
-                        onSaveEtiquetteDraft = viewModel::onSaveEtiquetteDraft,
-                        modifier = Modifier.padding(padding)
-                    )
+                    MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(background = SurfaceWhite), typography = AdminTypography) {
+                        KidsContentAdminScreen(
+                            uiState = kidsAdminUiState,
+                            onAddQuiz = viewModel::onAddQuiz,
+                            onEditQuiz = viewModel::onEditQuiz,
+                            onDeleteQuiz = viewModel::onDeleteQuiz,
+                            onAddBook = viewModel::onAddBook,
+                            onEditBook = viewModel::onEditBook,
+                            onDeleteBook = viewModel::onDeleteBook,
+                            onAddEtiquette = viewModel::onAddEtiquette,
+                            onEditEtiquette = viewModel::onEditEtiquette,
+                            onDeleteEtiquette = viewModel::onDeleteEtiquette,
+                            onDismissDialog = viewModel::onDismissDialog,
+                            onQuizCategoryChange = viewModel::onQuizCategoryChange,
+                            onQuizQuestionChange = viewModel::onQuizQuestionChange,
+                            onQuizChoice1Change = viewModel::onQuizChoice1Change,
+                            onQuizChoice2Change = viewModel::onQuizChoice2Change,
+                            onQuizChoice3Change = viewModel::onQuizChoice3Change,
+                            onQuizCorrectIndexChange = viewModel::onQuizCorrectIndexChange,
+                            onQuizExplanationChange = viewModel::onQuizExplanationChange,
+                            onQuizToggleRecommendedBook = viewModel::onQuizToggleRecommendedBook,
+                            onQuizEnabledChange = viewModel::onQuizEnabledChange,
+                            onQuizSortOrderChange = viewModel::onQuizSortOrderChange,
+                            onSaveQuizDraft = viewModel::onSaveQuizDraft,
+                            onBookTitleChange = viewModel::onBookTitleChange,
+                            onBookAuthorChange = viewModel::onBookAuthorChange,
+                            onBookAgeGroupChange = viewModel::onBookAgeGroupChange,
+                            onBookTopicChange = viewModel::onBookTopicChange,
+                            onBookDescriptionChange = viewModel::onBookDescriptionChange,
+                            onBookLocationChange = viewModel::onBookLocationChange,
+                            onBookEnabledChange = viewModel::onBookEnabledChange,
+                            onBookSortOrderChange = viewModel::onBookSortOrderChange,
+                            onSaveBookDraft = viewModel::onSaveBookDraft,
+                            onEtiquetteTextChange = viewModel::onEtiquetteTextChange,
+                            onEtiquetteEnabledChange = viewModel::onEtiquetteEnabledChange,
+                            onEtiquetteSortOrderChange = viewModel::onEtiquetteSortOrderChange,
+                            onSaveEtiquetteDraft = viewModel::onSaveEtiquetteDraft,
+                            modifier = Modifier.padding(padding)
+                        )
+                    }
                 }
             }
 
@@ -828,33 +845,35 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
-                    EventAdminScreen(
-                        uiState = eventAdminUiState,
-                        onAddEvent = viewModel::onAddEvent,
-                        onEditEvent = viewModel::onEditEvent,
-                        onDeleteEvent = viewModel::onDeleteEvent,
-                        onAddNotice = viewModel::onAddNotice,
-                        onEditNotice = viewModel::onEditNotice,
-                        onDeleteNotice = viewModel::onDeleteNotice,
-                        onDismissDialog = viewModel::onDismissDialog,
-                        onEventTitleChange = viewModel::onEventTitleChange,
-                        onEventStartDateChange = viewModel::onEventStartDateChange,
-                        onEventEndDateChange = viewModel::onEventEndDateChange,
-                        onEventTimeTextChange = viewModel::onEventTimeTextChange,
-                        onEventPlaceChange = viewModel::onEventPlaceChange,
-                        onEventTargetChange = viewModel::onEventTargetChange,
-                        onEventDescriptionChange = viewModel::onEventDescriptionChange,
-                        onEventQrUrlChange = viewModel::onEventQrUrlChange,
-                        onEventFacilityChange = viewModel::onEventFacilityChange,
-                        onEventEnabledChange = viewModel::onEventEnabledChange,
-                        onEventSortOrderChange = viewModel::onEventSortOrderChange,
-                        onSaveEventDraft = viewModel::onSaveEventDraft,
-                        onNoticeTextChange = viewModel::onNoticeTextChange,
-                        onNoticeEnabledChange = viewModel::onNoticeEnabledChange,
-                        onNoticeSortOrderChange = viewModel::onNoticeSortOrderChange,
-                        onSaveNoticeDraft = viewModel::onSaveNoticeDraft,
-                        modifier = Modifier.padding(padding)
-                    )
+                    MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(background = SurfaceWhite), typography = AdminTypography) {
+                        EventAdminScreen(
+                            uiState = eventAdminUiState,
+                            onAddEvent = viewModel::onAddEvent,
+                            onEditEvent = viewModel::onEditEvent,
+                            onDeleteEvent = viewModel::onDeleteEvent,
+                            onAddNotice = viewModel::onAddNotice,
+                            onEditNotice = viewModel::onEditNotice,
+                            onDeleteNotice = viewModel::onDeleteNotice,
+                            onDismissDialog = viewModel::onDismissDialog,
+                            onEventTitleChange = viewModel::onEventTitleChange,
+                            onEventStartDateChange = viewModel::onEventStartDateChange,
+                            onEventEndDateChange = viewModel::onEventEndDateChange,
+                            onEventTimeTextChange = viewModel::onEventTimeTextChange,
+                            onEventPlaceChange = viewModel::onEventPlaceChange,
+                            onEventTargetChange = viewModel::onEventTargetChange,
+                            onEventDescriptionChange = viewModel::onEventDescriptionChange,
+                            onEventQrUrlChange = viewModel::onEventQrUrlChange,
+                            onEventFacilityChange = viewModel::onEventFacilityChange,
+                            onEventEnabledChange = viewModel::onEventEnabledChange,
+                            onEventSortOrderChange = viewModel::onEventSortOrderChange,
+                            onSaveEventDraft = viewModel::onSaveEventDraft,
+                            onNoticeTextChange = viewModel::onNoticeTextChange,
+                            onNoticeEnabledChange = viewModel::onNoticeEnabledChange,
+                            onNoticeSortOrderChange = viewModel::onNoticeSortOrderChange,
+                            onSaveNoticeDraft = viewModel::onSaveNoticeDraft,
+                            modifier = Modifier.padding(padding)
+                        )
+                    }
                 }
             }
 
@@ -867,22 +886,25 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
-                    SettingsAdminScreen(
-                        uiState = settingsAdminUiState,
-                        events = viewModel.events,
-                        onWelcomeMessageChange = viewModel::onWelcomeMessageChange,
-                        onIdleTimeoutChange = viewModel::onIdleTimeoutChange,
-                        onBaseFloorChange = viewModel::onBaseFloorChange,
-                        onVolumeChange = viewModel::onVolumeChange,
-                        onSaveSettings = viewModel::onSaveSettings,
-                        onCurrentPasswordChange = viewModel::onCurrentPasswordChange,
-                        onNewPasswordChange = viewModel::onNewPasswordChange,
-                        onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
-                        onChangePassword = viewModel::onChangePassword,
-                        onExportBackup = viewModel::onExportBackup,
-                        onImportBackup = viewModel::onImportBackup,
-                        modifier = Modifier.padding(padding)
-                    )
+                    MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(background = SurfaceWhite), typography = AdminTypography) {
+                        SettingsAdminScreen(
+                            uiState = settingsAdminUiState,
+                            events = viewModel.events,
+                            onWelcomeMessageChange = viewModel::onWelcomeMessageChange,
+                            onIdleTimeoutChange = viewModel::onIdleTimeoutChange,
+                            onBaseFloorChange = viewModel::onBaseFloorChange,
+                            onVolumeChange = viewModel::onVolumeChange,
+                            onFeaturedFacilityCountChange = viewModel::onFeaturedFacilityCountChange,
+                            onSaveSettings = viewModel::onSaveSettings,
+                            onCurrentPasswordChange = viewModel::onCurrentPasswordChange,
+                            onNewPasswordChange = viewModel::onNewPasswordChange,
+                            onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
+                            onChangePassword = viewModel::onChangePassword,
+                            onExportBackup = viewModel::onExportBackup,
+                            onImportBackup = viewModel::onImportBackup,
+                            modifier = Modifier.padding(padding)
+                        )
+                    }
                 }
             }
 
@@ -895,13 +917,15 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
-                    StatisticsScreen(
-                        uiState = statisticsUiState,
-                        events = viewModel.events,
-                        onSelectPeriod = viewModel::onSelectPeriod,
-                        onExportCsv = viewModel::onExportCsv,
-                        modifier = Modifier.padding(padding)
-                    )
+                    MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(background = SurfaceWhite), typography = AdminTypography) {
+                        StatisticsScreen(
+                            uiState = statisticsUiState,
+                            events = viewModel.events,
+                            onSelectPeriod = viewModel::onSelectPeriod,
+                            onExportCsv = viewModel::onExportCsv,
+                            modifier = Modifier.padding(padding)
+                        )
+                    }
                 }
             }
         }

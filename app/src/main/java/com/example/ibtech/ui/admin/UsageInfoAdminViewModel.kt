@@ -22,6 +22,7 @@ data class UsageTopicDraft(
     val categoryId: String = "",
     val title: String = "",
     val shortAnswer: String = "",
+    val tableData: String = "",
     val qrUrl: String = "",
     val relatedFacilityId: String? = null,
     val isEnabled: Boolean = true,
@@ -77,6 +78,7 @@ class UsageInfoAdminViewModel(application: Application) : AndroidViewModel(appli
             categoryId = topic.parentId.orEmpty(),
             title = topic.title,
             shortAnswer = topic.shortAnswer.orEmpty(),
+            tableData = topic.tableData.orEmpty(),
             qrUrl = topic.qrUrl.orEmpty(),
             relatedFacilityId = topic.relatedFacilityId,
             isEnabled = topic.isEnabled,
@@ -94,6 +96,10 @@ class UsageInfoAdminViewModel(application: Application) : AndroidViewModel(appli
 
     fun onDraftShortAnswerChange(value: String) {
         editingDraft.update { it?.copy(shortAnswer = value) }
+    }
+
+    fun onDraftTableDataChange(value: String) {
+        editingDraft.update { it?.copy(tableData = value) }
     }
 
     fun onDraftQrUrlChange(value: String) {
@@ -124,6 +130,7 @@ class UsageInfoAdminViewModel(application: Application) : AndroidViewModel(appli
             parentId = draft.categoryId,
             title = draft.title.trim(),
             shortAnswer = draft.shortAnswer.trim().ifBlank { null },
+            tableData = draft.tableData.trim().ifBlank { null },
             qrUrl = draft.qrUrl.trim().ifBlank { null },
             relatedFacilityId = draft.relatedFacilityId,
             isEnabled = draft.isEnabled,

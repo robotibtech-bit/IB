@@ -4,11 +4,13 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -19,7 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
+import com.example.ibtech.domain.model.LibrarySettings
 import com.example.ibtech.ui.common.AdminTextField
 import com.example.ibtech.ui.common.DecorativeBackground
 import com.example.ibtech.ui.common.LibraryOutlinedButton
@@ -39,6 +43,7 @@ fun SettingsAdminScreen(
     onIdleTimeoutChange: (String) -> Unit,
     onBaseFloorChange: (String) -> Unit,
     onVolumeChange: (Int) -> Unit,
+    onFeaturedFacilityCountChange: (Int) -> Unit,
     onSaveSettings: () -> Unit,
     onCurrentPasswordChange: (String) -> Unit,
     onNewPasswordChange: (String) -> Unit,
@@ -99,6 +104,20 @@ fun SettingsAdminScreen(
                 onValueChange = { onVolumeChange(it.toInt()) },
                 valueRange = 0f..100f
             )
+
+            Text(
+                text = stringResource(R.string.settings_admin_field_featured_count),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LibrarySettings.FEATURED_FACILITY_COUNT_OPTIONS.forEach { count ->
+                    FilterChip(
+                        selected = uiState.featuredFacilityCount == count,
+                        onClick = { onFeaturedFacilityCountChange(count) },
+                        label = { Text(stringResource(R.string.settings_admin_featured_count_option, count)) }
+                    )
+                }
+            }
 
             LibraryPrimaryButton(
                 text = stringResource(R.string.settings_admin_save_action),

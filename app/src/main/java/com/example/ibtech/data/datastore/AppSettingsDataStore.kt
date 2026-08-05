@@ -21,4 +21,5 @@ object AppSettingsKeys {
     val BASE_FLOOR: Preferences.Key<Int> = intPreferencesKey("base_floor")
     val VOLUME: Preferences.Key<Int> = intPreferencesKey("volume")
     val ADMIN_PASSWORD_HASH: Preferences.Key<String> = stringPreferencesKey("admin_password_hash")
+    val FEATURED_FACILITY_COUNT: Preferences.Key<Int> = intPreferencesKey("featured_facility_count")
 }

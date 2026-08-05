@@ -44,6 +44,7 @@ fun FacilityAdminEditScreen(
     onGuideModeChange: (GuideMode) -> Unit,
     onIconKeyChange: (String?) -> Unit,
     onEnabledChange: (Boolean) -> Unit,
+    onFeaturedChange: (Boolean) -> Unit,
     onSortOrderChange: (String) -> Unit,
     onSave: () -> Unit,
     onSaved: () -> Unit,
@@ -142,6 +143,11 @@ fun FacilityAdminEditScreen(
                     label = stringResource(R.string.facility_admin_field_enabled),
                     checked = uiState.isEnabled,
                     onCheckedChange = onEnabledChange
+                )
+                AdminSwitchRow(
+                    label = stringResource(R.string.facility_admin_field_featured),
+                    checked = uiState.isFeatured,
+                    onCheckedChange = onFeaturedChange
                 )
 
                 AdminTextField(

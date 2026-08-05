@@ -33,6 +33,7 @@ class BackupRepository private constructor(
                 put("idleTimeoutSeconds", settings.idleTimeoutSeconds)
                 put("baseFloor", settings.baseFloor)
                 put("volume", settings.volume)
+                put("featuredFacilityCount", settings.featuredFacilityCount)
                 put("facilitiesJson", FacilityJsonMapper.toJson(facilityRepository.allFacilities.first()))
                 put("usageTopicsJson", UsageJsonMapper.toJson(usageRepository.topics.first()))
                 put("quizQuestionsJson", KidsJsonMapper.quizToJson(kidsContentRepository.quizQuestions.first()))
@@ -56,7 +57,11 @@ class BackupRepository private constructor(
                 welcomeMessage = root.optString("welcomeMessage", LibrarySettings.DEFAULT_WELCOME_MESSAGE),
                 idleTimeoutSeconds = root.optInt("idleTimeoutSeconds", LibrarySettings.DEFAULT_IDLE_TIMEOUT_SECONDS),
                 baseFloor = root.optInt("baseFloor", LibrarySettings.DEFAULT_BASE_FLOOR),
-                volume = root.optInt("volume", LibrarySettings.DEFAULT_VOLUME)
+                volume = root.optInt("volume", LibrarySettings.DEFAULT_VOLUME),
+                featuredFacilityCount = root.optInt(
+                    "featuredFacilityCount",
+                    LibrarySettings.DEFAULT_FEATURED_FACILITY_COUNT
+                )
             )
             settingsRepository.updateSettings(restoredSettings)
             facilityRepository.replaceAll(FacilityJsonMapper.fromJson(root.optString("facilitiesJson", "")))

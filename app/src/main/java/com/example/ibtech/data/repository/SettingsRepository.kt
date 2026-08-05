@@ -31,14 +31,16 @@ class SettingsRepository private constructor(
             baseFloor = prefs[AppSettingsKeys.BASE_FLOOR]
                 ?: LibrarySettings.DEFAULT_BASE_FLOOR,
             volume = prefs[AppSettingsKeys.VOLUME] ?: LibrarySettings.DEFAULT_VOLUME,
-            adminPasswordHash = prefs[AppSettingsKeys.ADMIN_PASSWORD_HASH].orEmpty()
+            adminPasswordHash = prefs[AppSettingsKeys.ADMIN_PASSWORD_HASH].orEmpty(),
+            featuredFacilityCount = prefs[AppSettingsKeys.FEATURED_FACILITY_COUNT]
+                ?: LibrarySettings.DEFAULT_FEATURED_FACILITY_COUNT
         )
     }
 
     /**
-     * 환영문구·무입력시간·기준층·음량을 저장한다. [LibrarySettings.adminPasswordHash]는 의도적으로
-     * 쓰지 않는다 — 비밀번호는 [changeAdminPassword]로만 바꿀 수 있어, 일반 설정 저장이 실수로
-     * 비밀번호를 초기화하는 일이 없다.
+     * 환영문구·무입력시간·기준층·음량·대표 장소 개수를 저장한다. [LibrarySettings.adminPasswordHash]는
+     * 의도적으로 쓰지 않는다 — 비밀번호는 [changeAdminPassword]로만 바꿀 수 있어, 일반 설정 저장이
+     * 실수로 비밀번호를 초기화하는 일이 없다.
      */
     suspend fun updateSettings(settings: LibrarySettings) {
         dataStore.edit { prefs ->
@@ -46,6 +48,7 @@ class SettingsRepository private constructor(
             prefs[AppSettingsKeys.IDLE_TIMEOUT_SECONDS] = settings.idleTimeoutSeconds
             prefs[AppSettingsKeys.BASE_FLOOR] = settings.baseFloor
             prefs[AppSettingsKeys.VOLUME] = settings.volume
+            prefs[AppSettingsKeys.FEATURED_FACILITY_COUNT] = settings.featuredFacilityCount
         }
     }
 

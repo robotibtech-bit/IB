@@ -18,6 +18,7 @@ object UsageJsonMapper {
             obj.put("parentId", topic.parentId ?: JSONObject.NULL)
             obj.put("title", topic.title)
             obj.put("shortAnswer", topic.shortAnswer ?: JSONObject.NULL)
+            obj.put("tableData", topic.tableData ?: JSONObject.NULL)
             obj.put("qrUrl", topic.qrUrl ?: JSONObject.NULL)
             obj.put("relatedFacilityId", topic.relatedFacilityId ?: JSONObject.NULL)
             obj.put("isEnabled", topic.isEnabled)
@@ -38,6 +39,7 @@ object UsageJsonMapper {
                     parentId = obj.optStringOrNull("parentId"),
                     title = obj.getString("title"),
                     shortAnswer = obj.optStringOrNull("shortAnswer"),
+                    tableData = obj.optStringOrNull("tableData"),
                     qrUrl = obj.optStringOrNull("qrUrl"),
                     relatedFacilityId = obj.optStringOrNull("relatedFacilityId"),
                     isEnabled = obj.optBoolean("isEnabled", true),
