@@ -22,10 +22,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
+import androidx.compose.ui.text.style.TextOverflow
 import com.example.ibtech.ui.common.DecorativeBackground
 import com.example.ibtech.ui.common.FillSpaceGrid
 import com.example.ibtech.ui.common.LibraryCard
 import com.example.ibtech.ui.common.debounced
+import com.example.ibtech.ui.theme.LavenderAccent
+import com.example.ibtech.ui.theme.LavenderAccentContainer
 import com.example.ibtech.ui.theme.LibraryDimens
 
 /**
@@ -77,7 +80,10 @@ private fun QuizCategoryCard(item: QuizCategoryItem, onClick: () -> Unit, modifi
                 } else {
                     Modifier
                 }
-            )
+            ),
+        // 열람실·퀴즈 = Lavender(01_DESIGN_SYSTEM.md). 문제가 없는 주제는 클릭 불가 상태를
+        // 그대로 유지해야 하므로 강조색을 넣지 않고 기존 회색 비활성 표시를 그대로 쓴다.
+        accentColor = if (hasQuestions) LavenderAccent else null
     ) {
         Column(
             modifier = Modifier
@@ -91,7 +97,7 @@ private fun QuizCategoryCard(item: QuizCategoryItem, onClick: () -> Unit, modifi
                     .size(LibraryDimens.LargeIconCircle)
                     .background(
                         color = if (hasQuestions) {
-                            MaterialTheme.colorScheme.primaryContainer
+                            LavenderAccentContainer
                         } else {
                             MaterialTheme.colorScheme.surfaceVariant
                         },
@@ -102,7 +108,7 @@ private fun QuizCategoryCard(item: QuizCategoryItem, onClick: () -> Unit, modifi
                 Icon(
                     imageVector = Icons.Filled.Quiz,
                     contentDescription = null,
-                    tint = if (hasQuestions) MaterialTheme.colorScheme.primary else contentColor,
+                    tint = if (hasQuestions) LavenderAccent else contentColor,
                     modifier = Modifier.size(LibraryDimens.LargeIconSize)
                 )
             }
@@ -111,6 +117,8 @@ private fun QuizCategoryCard(item: QuizCategoryItem, onClick: () -> Unit, modifi
                 style = MaterialTheme.typography.titleLarge,
                 color = contentColor,
                 textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 16.dp)
             )
             if (!hasQuestions) {
