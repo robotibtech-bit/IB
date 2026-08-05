@@ -1,29 +1,41 @@
 package com.example.ibtech.ui.facility
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.EscortBlockReason
 import com.example.ibtech.domain.model.EscortGate
 import com.example.ibtech.domain.model.GuideOptionSet
 import com.example.ibtech.ui.common.DecorativeBackground
 import com.example.ibtech.ui.common.EmptyState
+import com.example.ibtech.ui.common.LibraryCard
 import com.example.ibtech.ui.common.LibraryOutlinedButton
 import com.example.ibtech.ui.common.LibraryPrimaryButton
 import com.example.ibtech.ui.common.RobotSpeechBubble
+import com.example.ibtech.ui.theme.CoralAccent
+import com.example.ibtech.ui.theme.CoralAccentContainer
 import com.example.ibtech.ui.theme.LibraryDimens
+import com.example.ibtech.ui.theme.SkyAccent
 
 /**
  * 시설 상세/안내 방식 화면 (요구사항 명세서 2.4절).
@@ -60,25 +72,38 @@ fun FacilityDetailScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
                         .padding(LibraryDimens.ScreenPadding),
                     verticalArrangement = Arrangement.spacedBy(LibraryDimens.CardSpacing)
                 ) {
-                    Text(
-                        text = facility.name,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    if (facility.shortDescription.isNotBlank()) {
-                        Text(
-                            text = facility.shortDescription,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    // 정보 카드: 시설명·설명·안내 로봇 말풍선을 흰 카드 하나로 묶어 아래 행동
+                    // 버튼과 시각적 우선순위를 구분한다(정보 확인 vs 실제 행동). 긴 설명도 이
+                    // Column 전체가 스크롤되므로 잘리지 않는다.
+                    LibraryCard(modifier = Modifier.fillMaxWidth(), accentColor = SkyAccent) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(LibraryDimens.CardPadding),
+                            verticalArrangement = Arrangement.spacedBy(LibraryDimens.CardSpacing)
+                        ) {
+                            Text(
+                                text = facility.name,
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            if (facility.shortDescription.isNotBlank()) {
+                                Text(
+                                    text = facility.shortDescription,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
 
-                    RobotSpeechBubble(
-                        text = stringResource(R.string.facility_detail_floor_line, facility.floor)
-                    )
+                            RobotSpeechBubble(
+                                text = stringResource(R.string.facility_detail_floor_line, facility.floor)
+                            )
+                        }
+                    }
 
                     when (uiState.guideOptions) {
                         GuideOptionSet.EscortAndLocationOnly -> {
@@ -90,11 +115,24 @@ fun FacilityDetailScreen(
                                 enabled = gate is EscortGate.Allowed
                             )
                             if (gate is EscortGate.Blocked) {
-                                Text(
-                                    text = stringResource(gate.reason.toMessageRes()),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.error
-                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(CoralAccentContainer, RoundedCornerShape(16.dp))
+                                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.ErrorOutline,
+                                        contentDescription = null,
+                                        tint = CoralAccent
+                                    )
+                                    Text(
+                                        text = stringResource(gate.reason.toMessageRes()),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = CoralAccent
+                                    )
+                                }
                                 // 권한 부족은 이 화면에서 바로 재시도할 수 있는 유일한 사유라
                                 // 별도 버튼을 둔다(나머지 사유는 SDK/이동 상태가 스스로 바뀌어야 함).
                                 if (gate.reason == EscortBlockReason.PERMISSION) {

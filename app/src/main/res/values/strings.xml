@@ -41,6 +41,7 @@
     <string name="facility_list_show_featured">대표 장소로 돌아가기</string>
     <string name="facility_list_no_featured">아직 대표 장소가 설정되지 않았습니다.\n다른 장소 찾기에서 전체 목록을 확인해 주세요.</string>
     <string name="facility_card_floor_format">%1$d층</string>
+    <string name="facility_card_poi_disconnected">위치 정보 없음</string>
 
     <!-- 시설 상세/안내 방식 (요구사항 2.4절) -->
     <string name="facility_detail_floor_line">이 시설은 %1$d층에 있습니다.</string>

@@ -17,6 +17,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,13 +33,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.Facility
+import com.example.ibtech.domain.model.FacilitySyncStatus
 import com.example.ibtech.ui.common.DecorativeBackground
 import com.example.ibtech.ui.common.EmptyState
 import com.example.ibtech.ui.common.FillSpaceGrid
 import com.example.ibtech.ui.common.LibraryCard
 import com.example.ibtech.ui.common.LibraryOutlinedButton
 import com.example.ibtech.ui.common.debounced
+import com.example.ibtech.ui.theme.CoralAccent
 import com.example.ibtech.ui.theme.LibraryDimens
+import com.example.ibtech.ui.theme.SkyAccent
+import com.example.ibtech.ui.theme.SkyAccentContainer
 
 /**
  * 시설 목록 화면 (요구사항 명세서 2.3절, 12단계 개편).
@@ -143,58 +149,102 @@ fun FacilityListScreen(
     }
 }
 
-/** PDF 목업의 "아이콘 상단 + 라벨 하단" 카드를 재해석한 레이아웃. */
+/**
+ * PDF 목업의 "아이콘 상단 + 라벨 하단" 카드를 재해석한 레이아웃.
+ *
+ * 시설 대표색은 Sky로 통일한다(01_DESIGN_SYSTEM.md "시설 찾기·위치 안내 = Sky"). POI가 Temi
+ * 지도에서 더 이상 조회되지 않는 경우([FacilitySyncStatus.NOT_FOUND_ON_TEMI])는 관리자가 아직
+ * 비활성화하지 않았다면 이용자 화면에도 그대로 노출될 수 있어(FacilityRepository.visibleFacilities는
+ * isEnabled·floor만 거르고 syncStatus는 거르지 않는다), 아이콘 모서리에 작은 Coral 배지로
+ * "위치 정보 없음" 상태를 표시한다 — 텍스트 줄을 추가하면 이 카드(대표 장소 2~8개 격자에서
+ * 이미 세로 여유가 가장 빠듯한 카드)가 다시 잘리므로 배지 하나로만 표현한다.
+ */
 @Composable
 private fun FacilityCard(facility: Facility, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val isDisconnected = facility.syncStatus == FacilitySyncStatus.NOT_FOUND_ON_TEMI
+
     LibraryCard(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = debounced(onClick))
+            .clickable(onClick = debounced(onClick)),
+        accentColor = SkyAccent
     ) {
-        Column(
-            // 이 카드는 이름+층 두 줄을 쓰는 유일한 큰 카드라, 2행 격자(대표 장소 4~8개)에서
-            // 다른 카드보다 여유가 적다 — 안쪽 여백을 CardPadding(28dp)보다 좁게 잡는다.
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                // 이 카드는 이름+층 두 줄을 쓰는 유일한 큰 카드라, 2행 격자(대표 장소 4~8개)에서
+                // 다른 카드보다 여유가 적다 — 안쪽 여백을 CardPadding(28dp)보다 좁게 잡는다.
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .size(LibraryDimens.LargeIconCircle)
+                            .background(color = SkyAccentContainer, shape = CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = facility.resolveIcon(),
+                            contentDescription = null,
+                            tint = SkyAccent,
+                            modifier = Modifier.size(LibraryDimens.LargeIconSize)
+                        )
+                    }
+                    if (isDisconnected) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .size(36.dp)
+                                .background(CoralAccent, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.LocationOff,
+                                contentDescription = stringResource(R.string.facility_card_poi_disconnected),
+                                tint = MaterialTheme.colorScheme.surface,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                // 이름+층 두 줄을 쓰는 유일한 큰 카드라 대표 장소 개수(2/4/8, 관리자 설정)에 따라
+                // 칸이 좁아질 수 있다 — 한 줄로 고정하고 넘치면 말줄임표로 잘라 세로 높이가
+                // 예측 불가능하게 늘어나 카드 밖으로 밀려나는 일을 막는다.
+                Text(
+                    text = facility.name,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = stringResource(R.string.facility_card_floor_format, facility.floor),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
             Box(
                 modifier = Modifier
-                    .size(LibraryDimens.LargeIconCircle)
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = CircleShape
-                    ),
+                    .align(Alignment.BottomEnd)
+                    .padding(10.dp)
+                    .size(LibraryDimens.ArrowCircle)
+                    .background(SkyAccentContainer, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = facility.resolveIcon(),
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(LibraryDimens.LargeIconSize)
+                    tint = SkyAccent
                 )
             }
-            Spacer(modifier = Modifier.height(4.dp))
-            // 이름+층 두 줄을 쓰는 유일한 큰 카드라 대표 장소 개수(2/4/8, 관리자 설정)에 따라
-            // 칸이 좁아질 수 있다 — 한 줄로 고정하고 넘치면 말줄임표로 잘라 세로 높이가
-            // 예측 불가능하게 늘어나 카드 밖으로 밀려나는 일을 막는다.
-            Text(
-                text = facility.name,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = stringResource(R.string.facility_card_floor_format, facility.floor),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
         }
     }
 }

@@ -8,20 +8,27 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.ui.common.DecorativeBackground
 import com.example.ibtech.ui.common.EmptyState
+import com.example.ibtech.ui.common.LibraryCard
 import com.example.ibtech.ui.common.RobotSpeechBubble
 import com.example.ibtech.ui.theme.LibraryDimens
+import com.example.ibtech.ui.theme.SkyAccent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -62,21 +69,41 @@ fun LocationMapScreen(
                         .padding(LibraryDimens.ScreenPadding),
                     verticalArrangement = Arrangement.spacedBy(LibraryDimens.CardSpacing)
                 ) {
-                    Text(
-                        text = facility.name,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    RobotSpeechBubble(
-                        text = facility.directionText?.takeIf { it.isNotBlank() }
-                            ?: stringResource(R.string.facility_map_default_direction, facility.floor)
-                    )
+                    // 위치 요약은 작은 흰 정보 카드로만 두고, 지도 이미지가 있을 때는 남는 세로
+                    // 공간을 전부 그 이미지에 준다(요구사항: "지도 영역은 최대한 크게 유지").
+                    LibraryCard(modifier = Modifier.fillMaxWidth(), accentColor = SkyAccent) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(LibraryDimens.CardPadding),
+                            verticalArrangement = Arrangement.spacedBy(LibraryDimens.CardSpacing)
+                        ) {
+                            Text(
+                                text = facility.name,
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            RobotSpeechBubble(
+                                text = facility.directionText?.takeIf { it.isNotBlank() }
+                                    ?: stringResource(R.string.facility_map_default_direction, facility.floor)
+                            )
+                        }
+                    }
                     if (bitmap != null) {
-                        Image(
-                            bitmap = bitmap,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .clip(RoundedCornerShape(24.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                bitmap = bitmap,
+                                contentDescription = null,
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
             }
