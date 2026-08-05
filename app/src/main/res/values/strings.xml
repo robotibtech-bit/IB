@@ -294,6 +294,9 @@
 
     <!-- 관리자 공통 (로드맵 10단계) -->
     <string name="home_action_admin">관리자</string>
+    <!-- 목록 행 수정/삭제 아이콘 버튼의 스크린리더용 설명 (12단계 접근성 점검, TalkBack) -->
+    <string name="admin_list_edit_action">%1$s 수정</string>
+    <string name="admin_list_delete_action">%1$s 삭제</string>
     <string name="admin_dialog_title_add">새 항목 추가</string>
     <string name="admin_dialog_title_edit">항목 수정</string>
     <string name="admin_dialog_save">저장</string>

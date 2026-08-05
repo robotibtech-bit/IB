@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,11 +24,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.example.ibtech.R
 import com.example.ibtech.ui.theme.LibraryDimens
 
 /**
@@ -177,13 +180,25 @@ fun AdminListRow(
                 }
             }
             if (onEdit != null) {
-                IconButton(onClick = onEdit) {
-                    Icon(imageVector = Icons.Filled.Edit, contentDescription = null)
+                IconButton(
+                    onClick = debounced(onEdit),
+                    modifier = Modifier.size(LibraryDimens.MinTouchTarget)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = stringResource(R.string.admin_list_edit_action, title)
+                    )
                 }
             }
             if (onDelete != null) {
-                IconButton(onClick = onDelete) {
-                    Icon(imageVector = Icons.Filled.Delete, contentDescription = null)
+                IconButton(
+                    onClick = debounced(onDelete),
+                    modifier = Modifier.size(LibraryDimens.MinTouchTarget)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = stringResource(R.string.admin_list_delete_action, title)
+                    )
                 }
             }
         }

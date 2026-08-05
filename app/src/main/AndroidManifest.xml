@@ -31,10 +31,17 @@
             android:name="@string/metadata_permissions"
             android:value="@string/temi_permissions" />
 
+        <!--
+            13.3인치 가로 전용 키오스크(요구사항 3.8절 "13.3인치 가로 화면 기준"). 회전을
+            허용하면 관리자 폼 작성 중 실수로 기기가 기울어질 때 Activity가 재생성되어 저장하지
+            않은 입력을 잃을 수 있다(12단계 접근성·안정화 점검) — 가로로 고정해 이 경로 자체를
+            없앤다.
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.IBTECH">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
