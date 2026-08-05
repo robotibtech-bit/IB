@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.ibtech.data.repository.FacilityRepository
 import com.example.ibtech.data.repository.KidsContentRepository
+import com.example.ibtech.data.repository.StatsRepository
 import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.domain.model.RecommendedBook
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +47,7 @@ class QuizResultViewModel(
 
     private val kidsContentRepository = KidsContentRepository.getInstance(application)
     private val facilityRepository = FacilityRepository.getInstance(application)
+    private val statsRepository = StatsRepository.getInstance(application)
 
     private val _uiState = MutableStateFlow(
         QuizResultUiState(
@@ -62,6 +64,13 @@ class QuizResultViewModel(
             val childrenFacility = facilityRepository.visibleFacilities.first().findChildrenFacility()
             _uiState.update {
                 it.copy(isLoaded = true, recommendedBooks = books, childrenFacility = childrenFacility)
+            }
+            // 퀴즈 완료·정답률 (요구사항 4.3절, 로드맵 11단계). 결과 화면은 이전 세션 결과를
+            // 라우트 인자로만 받으므로(이 파일 상단 설명), 완료 시점 기록도 여기서 한다.
+            val correctCount = _uiState.value.correctCount
+            val totalCount = _uiState.value.totalCount
+            if (totalCount > 0) {
+                statsRepository.logQuizComplete(category, correctCount, totalCount)
             }
         }
     }

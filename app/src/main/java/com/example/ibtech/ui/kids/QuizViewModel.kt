@@ -6,7 +6,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.ibtech.R
 import com.example.ibtech.data.repository.KidsContentRepository
+import com.example.ibtech.data.repository.StatsRepository
 import com.example.ibtech.domain.model.QuizQuestion
+import com.example.ibtech.domain.model.StatEventType
 import com.example.ibtech.domain.usecase.SelectQuizQuestionsUseCase
 import com.example.ibtech.robot.TemiControllerProvider
 import kotlinx.coroutines.delay
@@ -53,6 +55,7 @@ class QuizViewModel(
     }
 
     private val kidsContentRepository = KidsContentRepository.getInstance(application)
+    private val statsRepository = StatsRepository.getInstance(application)
     private val temiController = TemiControllerProvider.current
 
     private val _uiState = MutableStateFlow(QuizUiState(category = category))
@@ -63,6 +66,7 @@ class QuizViewModel(
             val all = kidsContentRepository.quizQuestions.first()
             val selected = SelectQuizQuestionsUseCase(all, category)
             _uiState.update { it.copy(isLoaded = true, questions = selected) }
+            statsRepository.logEvent(StatEventType.QUIZ_START, category)
         }
     }
 

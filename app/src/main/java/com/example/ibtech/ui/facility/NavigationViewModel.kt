@@ -1,13 +1,14 @@
 package com.example.ibtech.ui.facility
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.ibtech.R
 import com.example.ibtech.data.repository.FacilityRepository
+import com.example.ibtech.data.repository.StatsRepository
 import com.example.ibtech.domain.model.Facility
+import com.example.ibtech.domain.model.StatEventType
 import com.example.ibtech.robot.NavigationState
 import com.example.ibtech.robot.TemiController
 import com.example.ibtech.robot.TemiControllerProvider
@@ -44,6 +45,7 @@ class NavigationViewModel(
     }
 
     private val facilityRepository = FacilityRepository.getInstance(application)
+    private val statsRepository = StatsRepository.getInstance(application)
     private val controller: TemiController = TemiControllerProvider.current
 
     private val hasStarted = MutableStateFlow(false)
@@ -67,7 +69,7 @@ class NavigationViewModel(
     )
 
     init {
-        // 도착 음성 안내 + 이동 이벤트 로그(11단계 StatisticsRepository가 이 지점에 훅을 붙인다).
+        // 도착 음성 안내 + 이동 이벤트 통계 기록 (요구사항 4.3절 "이동 성공/중지/실패", 로드맵 11단계).
         viewModelScope.launch {
             controller.navigationState.collect { navState ->
                 when (navState) {
@@ -76,15 +78,15 @@ class NavigationViewModel(
                             hasSpokenArrival = true
                             speak(R.string.navigation_arrived_speech)
                         }
-                        Log.i(TAG, "이동 성공 target=${navState.target}")
+                        statsRepository.logEvent(StatEventType.NAV_SUCCESS, navState.target)
                     }
 
                     is NavigationState.Interrupted -> {
-                        Log.i(TAG, "이동 중지 target=${navState.target} issue=${navState.issue}")
+                        statsRepository.logEvent(StatEventType.NAV_CANCELLED, navState.target)
                     }
 
                     is NavigationState.Failed -> {
-                        Log.i(TAG, "이동 실패 target=${navState.target} issue=${navState.issue}")
+                        statsRepository.logEvent(StatEventType.NAV_FAILED, navState.target)
                     }
 
                     else -> Unit
@@ -122,7 +124,6 @@ class NavigationViewModel(
     }
 
     companion object {
-        private const val TAG = "NavigationViewModel"
         private const val NAVIGATION_TIMEOUT_MILLIS = 10_000L
     }
 }

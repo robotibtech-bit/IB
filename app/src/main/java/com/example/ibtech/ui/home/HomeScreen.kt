@@ -7,8 +7,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Park
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SmartToy
@@ -44,6 +48,7 @@ fun HomeScreen(
     onUsageGuide: () -> Unit,
     onKidsContent: () -> Unit,
     onTodayEvents: () -> Unit,
+    onAdminClick: () -> Unit,
     modifier: Modifier = Modifier,
     onDevMenuClick: (() -> Unit)? = null
 ) {
@@ -100,10 +105,24 @@ fun HomeScreen(
                 onClick = onTodayEvents
             )
 
-            // 개발자 메뉴 진입점. release 빌드에서는 NavHost가 onDevMenuClick을 null로 두므로
-            // 아예 그려지지 않는다(로드맵 5단계 "개발자 메뉴에서 재현 가능").
-            if (onDevMenuClick != null) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            // 관리자 진입점(왼쪽, release 포함)과 개발자 메뉴 진입점(오른쪽, BuildConfig.DEBUG
+            // 전용 — 로드맵 5단계 "개발자 메뉴에서 재현 가능")을 한 줄에 둔다. 눈에 띄지 않게
+            // 작은 텍스트 버튼으로 두되, 비밀번호로 보호되므로(10단계) 이용자가 눌러도 안전하다.
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(onClick = onAdminClick) {
+                    Icon(
+                        imageVector = Icons.Filled.Lock,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = stringResource(R.string.home_action_admin))
+                }
+                if (onDevMenuClick != null) {
                     TextButton(onClick = onDevMenuClick) {
                         Text(text = stringResource(R.string.dev_menu_entry))
                     }
@@ -122,7 +141,8 @@ private fun HomeScreenLargePreview() {
             onFindFacility = {},
             onUsageGuide = {},
             onKidsContent = {},
-            onTodayEvents = {}
+            onTodayEvents = {},
+            onAdminClick = {}
         )
     }
 }
@@ -136,7 +156,8 @@ private fun HomeScreenSmallPreview() {
             onFindFacility = {},
             onUsageGuide = {},
             onKidsContent = {},
-            onTodayEvents = {}
+            onTodayEvents = {},
+            onAdminClick = {}
         )
     }
 }

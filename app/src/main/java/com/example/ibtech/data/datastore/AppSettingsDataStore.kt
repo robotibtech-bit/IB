@@ -19,4 +19,6 @@ object AppSettingsKeys {
     val WELCOME_MESSAGE: Preferences.Key<String> = stringPreferencesKey("welcome_message")
     val IDLE_TIMEOUT_SECONDS: Preferences.Key<Int> = intPreferencesKey("idle_timeout_seconds")
     val BASE_FLOOR: Preferences.Key<Int> = intPreferencesKey("base_floor")
+    val VOLUME: Preferences.Key<Int> = intPreferencesKey("volume")
+    val ADMIN_PASSWORD_HASH: Preferences.Key<String> = stringPreferencesKey("admin_password_hash")
 }

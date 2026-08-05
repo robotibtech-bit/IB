@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -28,15 +29,37 @@ import androidx.navigation.navArgument
 import com.example.ibtech.BuildConfig
 import com.example.ibtech.R
 import com.example.ibtech.data.repository.SettingsRepository
+import com.example.ibtech.data.repository.StatsRepository
 import com.example.ibtech.domain.model.LibrarySettings
+import com.example.ibtech.domain.model.StatEventType
 import com.example.ibtech.robot.TemiConnectionState
 import com.example.ibtech.robot.TemiControllerProvider
+import com.example.ibtech.ui.admin.AdminHomeScreen
+import com.example.ibtech.ui.admin.AdminLoginScreen
+import com.example.ibtech.ui.admin.AdminLoginViewModel
+import com.example.ibtech.ui.admin.FacilityAdminEditScreen
+import com.example.ibtech.ui.admin.FacilityAdminEditViewModel
+import com.example.ibtech.ui.admin.EventAdminScreen
+import com.example.ibtech.ui.admin.EventAdminViewModel
+import com.example.ibtech.ui.admin.FacilityAdminScreen
+import com.example.ibtech.ui.admin.FacilityAdminViewModel
+import com.example.ibtech.ui.admin.KidsContentAdminScreen
+import com.example.ibtech.ui.admin.KidsContentAdminViewModel
+import com.example.ibtech.ui.admin.SettingsAdminScreen
+import com.example.ibtech.ui.admin.SettingsAdminViewModel
+import com.example.ibtech.ui.admin.StatisticsScreen
+import com.example.ibtech.ui.admin.StatisticsViewModel
+import com.example.ibtech.ui.admin.UsageInfoAdminScreen
+import com.example.ibtech.ui.admin.UsageInfoAdminViewModel
 import com.example.ibtech.ui.common.ConfirmDialog
 import com.example.ibtech.ui.common.IdleTimeoutObserver
 import com.example.ibtech.ui.common.LibraryScaffold
-import com.example.ibtech.ui.common.PlaceholderScreen
 import com.example.ibtech.ui.dev.DevMenuScreen
 import com.example.ibtech.ui.dev.DevMenuViewModel
+import com.example.ibtech.ui.events.EventDetailScreen
+import com.example.ibtech.ui.events.EventDetailViewModel
+import com.example.ibtech.ui.events.EventsScreen
+import com.example.ibtech.ui.events.EventsViewModel
 import com.example.ibtech.ui.facility.FacilityDetailScreen
 import com.example.ibtech.ui.facility.FacilityDetailViewModel
 import com.example.ibtech.ui.facility.FacilityListScreen
@@ -65,6 +88,7 @@ import com.example.ibtech.ui.usage.UsageCategoryScreen
 import com.example.ibtech.ui.usage.UsageCategoryViewModel
 import com.example.ibtech.ui.usage.UsageSubcategoryScreen
 import com.example.ibtech.ui.usage.UsageSubcategoryViewModel
+import kotlinx.coroutines.launch
 
 /**
  * 요구사항 명세서 3절의 공통 규칙을 코드로 고정한다.
@@ -80,6 +104,11 @@ import com.example.ibtech.ui.usage.UsageSubcategoryViewModel
 fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
     val context = LocalContext.current
     val settingsRepository = remember { SettingsRepository.getInstance(context) }
+    // 11단계 통계: 순수 클릭/화면전환 지점(메뉴 선택, 시설 요청)은 담당 ViewModel이 없어
+    // 여기서 직접 기록한다. 화면 안에서 상태 전환으로 일어나는 이벤트(이동 성공/실패 등)는
+    // 해당 ViewModel이 기록한다.
+    val statsRepository = remember { StatsRepository.getInstance(context) }
+    val statsScope = rememberCoroutineScope()
     val settings by settingsRepository.settings.collectAsStateWithLifecycle(
         initialValue = LibrarySettings()
     )
@@ -134,14 +163,35 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
             composable(LibraryRoutes.HOME) {
                 val viewModel: HomeViewModel = viewModel()
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val menuFindFacility = stringResource(R.string.home_action_find_facility)
+                val menuUsageGuide = stringResource(R.string.home_action_usage_guide)
+                val menuKidsContent = stringResource(R.string.home_action_kids_content)
+                val menuTodayEvents = stringResource(R.string.home_action_today_events)
+
+                fun logMenuSelect(label: String) {
+                    statsScope.launch { statsRepository.logEvent(StatEventType.MENU_SELECT, label) }
+                }
 
                 if (uiState.isLoaded) {
                     HomeScreen(
                         welcomeMessage = uiState.settings.welcomeMessage,
-                        onFindFacility = { navController.navigate(LibraryRoutes.facilityList()) },
-                        onUsageGuide = { navController.navigate(LibraryRoutes.USAGE_CATEGORY) },
-                        onKidsContent = { navController.navigate(LibraryRoutes.KIDS_MENU) },
-                        onTodayEvents = { navController.navigate(LibraryRoutes.EVENTS) },
+                        onFindFacility = {
+                            logMenuSelect(menuFindFacility)
+                            navController.navigate(LibraryRoutes.facilityList())
+                        },
+                        onUsageGuide = {
+                            logMenuSelect(menuUsageGuide)
+                            navController.navigate(LibraryRoutes.USAGE_CATEGORY)
+                        },
+                        onKidsContent = {
+                            logMenuSelect(menuKidsContent)
+                            navController.navigate(LibraryRoutes.KIDS_MENU)
+                        },
+                        onTodayEvents = {
+                            logMenuSelect(menuTodayEvents)
+                            navController.navigate(LibraryRoutes.EVENTS)
+                        },
+                        onAdminClick = { navController.navigate(LibraryRoutes.ADMIN_LOGIN) },
                         onDevMenuClick = if (BuildConfig.DEBUG) {
                             { navController.navigate(LibraryRoutes.DEV_MENU) }
                         } else {
@@ -198,9 +248,21 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     FacilityDetailScreen(
                         uiState = detailUiState,
                         onEscortClick = {
+                            detailUiState.facility?.name?.let { name ->
+                                statsScope.launch {
+                                    statsRepository.logEvent(StatEventType.FACILITY_REQUEST, name)
+                                    statsRepository.logEvent(StatEventType.ESCORT_START, name)
+                                }
+                            }
                             navController.navigate(LibraryRoutes.facilityNavigation(facilityId))
                         },
                         onLocationOnlyClick = {
+                            detailUiState.facility?.name?.let { name ->
+                                statsScope.launch {
+                                    statsRepository.logEvent(StatEventType.FACILITY_REQUEST, name)
+                                    statsRepository.logEvent(StatEventType.LOCATION_ONLY_START, name)
+                                }
+                            }
                             navController.navigate(LibraryRoutes.facilityMap(facilityId))
                         },
                         onGoHome = { goHome() },
@@ -267,6 +329,12 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                         onStop = viewModel::onStopRequested,
                         onRetry = ::retry,
                         onLocationOnlyClick = {
+                            navUiState.facility?.name?.let { name ->
+                                statsScope.launch {
+                                    statsRepository.logEvent(StatEventType.FACILITY_REQUEST, name)
+                                    statsRepository.logEvent(StatEventType.LOCATION_ONLY_START, name)
+                                }
+                            }
                             navController.navigate(LibraryRoutes.facilityMap(facilityId))
                         },
                         onGoHome = { goHome() },
@@ -536,13 +604,302 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
             }
 
             composable(LibraryRoutes.EVENTS) {
+                val viewModel: EventsViewModel = viewModel()
+                val eventsUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
                 LibraryScaffold(
                     title = stringResource(R.string.title_events),
                     onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
-                    PlaceholderScreen(
-                        description = stringResource(R.string.placeholder_events),
+                    EventsScreen(
+                        uiState = eventsUiState,
+                        onSelectEvent = { eventId ->
+                            navController.navigate(LibraryRoutes.eventDetail(eventId))
+                        },
+                        onGoHome = { goHome() },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(
+                route = LibraryRoutes.EVENT_DETAIL,
+                arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+            ) {
+                val viewModel: EventDetailViewModel = viewModel()
+                val eventDetailUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = eventDetailUiState.event?.title ?: stringResource(R.string.title_events),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    EventDetailScreen(
+                        uiState = eventDetailUiState,
+                        onRelatedFacilityClick = { facilityId ->
+                            navController.navigate(LibraryRoutes.facilityDetail(facilityId))
+                        },
+                        onQrOpened = viewModel::onQrOpened,
+                        onGoHome = { goHome() },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(LibraryRoutes.ADMIN_LOGIN) {
+                val viewModel: AdminLoginViewModel = viewModel()
+                val loginUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LaunchedEffect(loginUiState.loginSuccess) {
+                    if (loginUiState.loginSuccess) {
+                        viewModel.onLoginHandled()
+                        navController.navigate(LibraryRoutes.ADMIN_HOME) {
+                            popUpTo(LibraryRoutes.ADMIN_LOGIN) { inclusive = true }
+                        }
+                    }
+                }
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_admin_login),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    AdminLoginScreen(
+                        uiState = loginUiState,
+                        onPasswordChange = viewModel::onPasswordChange,
+                        onSubmit = viewModel::onSubmit,
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(LibraryRoutes.ADMIN_HOME) {
+                LibraryScaffold(
+                    title = stringResource(R.string.title_admin_home),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    AdminHomeScreen(
+                        onFacilityAdmin = { navController.navigate(LibraryRoutes.FACILITY_ADMIN) },
+                        onUsageInfoAdmin = { navController.navigate(LibraryRoutes.USAGE_INFO_ADMIN) },
+                        onKidsContentAdmin = { navController.navigate(LibraryRoutes.KIDS_CONTENT_ADMIN) },
+                        onEventAdmin = { navController.navigate(LibraryRoutes.EVENT_ADMIN) },
+                        onSettingsAdmin = { navController.navigate(LibraryRoutes.SETTINGS_ADMIN) },
+                        onStatistics = { navController.navigate(LibraryRoutes.STATISTICS) },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(LibraryRoutes.FACILITY_ADMIN) {
+                val viewModel: FacilityAdminViewModel = viewModel()
+                val facilityAdminUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_facility_admin),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    FacilityAdminScreen(
+                        uiState = facilityAdminUiState,
+                        onRefresh = viewModel::onRefreshPoi,
+                        onSelectFacility = { facility ->
+                            navController.navigate(LibraryRoutes.facilityAdminEdit(facility.id))
+                        },
+                        onDeleteFacility = { facility -> viewModel.onDeleteFacility(facility.id) },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(
+                route = LibraryRoutes.FACILITY_ADMIN_EDIT,
+                arguments = listOf(navArgument("facilityId") { type = NavType.StringType })
+            ) {
+                val viewModel: FacilityAdminEditViewModel = viewModel()
+                val editUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = editUiState.name.ifBlank { stringResource(R.string.title_facility_admin) },
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    FacilityAdminEditScreen(
+                        uiState = editUiState,
+                        onNameChange = viewModel::onNameChange,
+                        onFloorChange = viewModel::onFloorChange,
+                        onDescriptionChange = viewModel::onDescriptionChange,
+                        onGuideModeChange = viewModel::onGuideModeChange,
+                        onIconKeyChange = viewModel::onIconKeyChange,
+                        onEnabledChange = viewModel::onEnabledChange,
+                        onSortOrderChange = viewModel::onSortOrderChange,
+                        onSave = viewModel::onSave,
+                        onSaved = { navController.popBackStack() },
+                        onGoHome = { goHome() },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(LibraryRoutes.USAGE_INFO_ADMIN) {
+                val viewModel: UsageInfoAdminViewModel = viewModel()
+                val usageAdminUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_usage_info_admin),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    UsageInfoAdminScreen(
+                        uiState = usageAdminUiState,
+                        onAddTopic = viewModel::onAddTopic,
+                        onEditTopic = viewModel::onEditTopic,
+                        onDeleteTopic = viewModel::onDeleteTopic,
+                        onDismissDialog = viewModel::onDismissDialog,
+                        onDraftTitleChange = viewModel::onDraftTitleChange,
+                        onDraftShortAnswerChange = viewModel::onDraftShortAnswerChange,
+                        onDraftQrUrlChange = viewModel::onDraftQrUrlChange,
+                        onDraftFacilityChange = viewModel::onDraftFacilityChange,
+                        onDraftEnabledChange = viewModel::onDraftEnabledChange,
+                        onDraftSortOrderChange = viewModel::onDraftSortOrderChange,
+                        onSaveDraft = viewModel::onSaveDraft,
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(LibraryRoutes.KIDS_CONTENT_ADMIN) {
+                val viewModel: KidsContentAdminViewModel = viewModel()
+                val kidsAdminUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_kids_content_admin),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    KidsContentAdminScreen(
+                        uiState = kidsAdminUiState,
+                        onAddQuiz = viewModel::onAddQuiz,
+                        onEditQuiz = viewModel::onEditQuiz,
+                        onDeleteQuiz = viewModel::onDeleteQuiz,
+                        onAddBook = viewModel::onAddBook,
+                        onEditBook = viewModel::onEditBook,
+                        onDeleteBook = viewModel::onDeleteBook,
+                        onAddEtiquette = viewModel::onAddEtiquette,
+                        onEditEtiquette = viewModel::onEditEtiquette,
+                        onDeleteEtiquette = viewModel::onDeleteEtiquette,
+                        onDismissDialog = viewModel::onDismissDialog,
+                        onQuizCategoryChange = viewModel::onQuizCategoryChange,
+                        onQuizQuestionChange = viewModel::onQuizQuestionChange,
+                        onQuizChoice1Change = viewModel::onQuizChoice1Change,
+                        onQuizChoice2Change = viewModel::onQuizChoice2Change,
+                        onQuizChoice3Change = viewModel::onQuizChoice3Change,
+                        onQuizCorrectIndexChange = viewModel::onQuizCorrectIndexChange,
+                        onQuizExplanationChange = viewModel::onQuizExplanationChange,
+                        onQuizToggleRecommendedBook = viewModel::onQuizToggleRecommendedBook,
+                        onQuizEnabledChange = viewModel::onQuizEnabledChange,
+                        onQuizSortOrderChange = viewModel::onQuizSortOrderChange,
+                        onSaveQuizDraft = viewModel::onSaveQuizDraft,
+                        onBookTitleChange = viewModel::onBookTitleChange,
+                        onBookAuthorChange = viewModel::onBookAuthorChange,
+                        onBookAgeGroupChange = viewModel::onBookAgeGroupChange,
+                        onBookTopicChange = viewModel::onBookTopicChange,
+                        onBookDescriptionChange = viewModel::onBookDescriptionChange,
+                        onBookLocationChange = viewModel::onBookLocationChange,
+                        onBookEnabledChange = viewModel::onBookEnabledChange,
+                        onBookSortOrderChange = viewModel::onBookSortOrderChange,
+                        onSaveBookDraft = viewModel::onSaveBookDraft,
+                        onEtiquetteTextChange = viewModel::onEtiquetteTextChange,
+                        onEtiquetteEnabledChange = viewModel::onEtiquetteEnabledChange,
+                        onEtiquetteSortOrderChange = viewModel::onEtiquetteSortOrderChange,
+                        onSaveEtiquetteDraft = viewModel::onSaveEtiquetteDraft,
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(LibraryRoutes.EVENT_ADMIN) {
+                val viewModel: EventAdminViewModel = viewModel()
+                val eventAdminUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_event_admin),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    EventAdminScreen(
+                        uiState = eventAdminUiState,
+                        onAddEvent = viewModel::onAddEvent,
+                        onEditEvent = viewModel::onEditEvent,
+                        onDeleteEvent = viewModel::onDeleteEvent,
+                        onAddNotice = viewModel::onAddNotice,
+                        onEditNotice = viewModel::onEditNotice,
+                        onDeleteNotice = viewModel::onDeleteNotice,
+                        onDismissDialog = viewModel::onDismissDialog,
+                        onEventTitleChange = viewModel::onEventTitleChange,
+                        onEventStartDateChange = viewModel::onEventStartDateChange,
+                        onEventEndDateChange = viewModel::onEventEndDateChange,
+                        onEventTimeTextChange = viewModel::onEventTimeTextChange,
+                        onEventPlaceChange = viewModel::onEventPlaceChange,
+                        onEventTargetChange = viewModel::onEventTargetChange,
+                        onEventDescriptionChange = viewModel::onEventDescriptionChange,
+                        onEventQrUrlChange = viewModel::onEventQrUrlChange,
+                        onEventFacilityChange = viewModel::onEventFacilityChange,
+                        onEventEnabledChange = viewModel::onEventEnabledChange,
+                        onEventSortOrderChange = viewModel::onEventSortOrderChange,
+                        onSaveEventDraft = viewModel::onSaveEventDraft,
+                        onNoticeTextChange = viewModel::onNoticeTextChange,
+                        onNoticeEnabledChange = viewModel::onNoticeEnabledChange,
+                        onNoticeSortOrderChange = viewModel::onNoticeSortOrderChange,
+                        onSaveNoticeDraft = viewModel::onSaveNoticeDraft,
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(LibraryRoutes.SETTINGS_ADMIN) {
+                val viewModel: SettingsAdminViewModel = viewModel()
+                val settingsAdminUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_settings_admin),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    SettingsAdminScreen(
+                        uiState = settingsAdminUiState,
+                        events = viewModel.events,
+                        onWelcomeMessageChange = viewModel::onWelcomeMessageChange,
+                        onIdleTimeoutChange = viewModel::onIdleTimeoutChange,
+                        onBaseFloorChange = viewModel::onBaseFloorChange,
+                        onVolumeChange = viewModel::onVolumeChange,
+                        onSaveSettings = viewModel::onSaveSettings,
+                        onCurrentPasswordChange = viewModel::onCurrentPasswordChange,
+                        onNewPasswordChange = viewModel::onNewPasswordChange,
+                        onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
+                        onChangePassword = viewModel::onChangePassword,
+                        onExportBackup = viewModel::onExportBackup,
+                        onImportBackup = viewModel::onImportBackup,
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(LibraryRoutes.STATISTICS) {
+                val viewModel: StatisticsViewModel = viewModel()
+                val statisticsUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_statistics),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    StatisticsScreen(
+                        uiState = statisticsUiState,
+                        events = viewModel.events,
+                        onSelectPeriod = viewModel::onSelectPeriod,
+                        onExportCsv = viewModel::onExportCsv,
                         modifier = Modifier.padding(padding)
                     )
                 }

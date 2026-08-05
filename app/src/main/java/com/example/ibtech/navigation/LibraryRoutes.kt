@@ -6,8 +6,8 @@ import android.net.Uri
  * 라우트 상수 (요구사항 명세서 `docs/01_requirements_spec.md` 1절).
  *
  * 5단계에서 `facility_navigation`을 실제 상태 머신 화면으로 채우고, `BuildConfig.DEBUG`
- * 전용 `dev_menu`를 추가했다. 나머지 라우트(이용방법 세부, 어린이 콘텐츠 하위, 행사 상세,
- * 관리자 등)는 각 기능이 구현되는 단계(7/8/9/10단계)에서 이 파일에 추가한다.
+ * 전용 `dev_menu`를 추가했다. 9단계에서 `event_detail`을 추가했다. 10단계에서 `admin_*` 라우트를
+ * 추가했다.
  */
 object LibraryRoutes {
     const val HOME = "home"
@@ -30,9 +30,21 @@ object LibraryRoutes {
     const val KIDS_BOOK_RECOMMENDATION = "kids_book_recommendation?ageGroup={ageGroup}&topic={topic}"
     const val KIDS_ETIQUETTE = "kids_etiquette"
     const val EVENTS = "events"
+    const val EVENT_DETAIL = "event_detail/{eventId}"
 
     /** 개발자 메뉴(`BuildConfig.DEBUG` 전용). release 빌드에는 진입 버튼 자체가 없다. */
     const val DEV_MENU = "dev_menu"
+
+    /** 관리자 화면(로드맵 10단계). 비밀번호로 보호되며 release 빌드에도 진입 버튼이 있다. */
+    const val ADMIN_LOGIN = "admin_login"
+    const val ADMIN_HOME = "admin_home"
+    const val FACILITY_ADMIN = "facility_admin"
+    const val FACILITY_ADMIN_EDIT = "facility_admin_edit/{facilityId}"
+    const val USAGE_INFO_ADMIN = "usage_info_admin"
+    const val KIDS_CONTENT_ADMIN = "kids_content_admin"
+    const val EVENT_ADMIN = "event_admin"
+    const val SETTINGS_ADMIN = "settings_admin"
+    const val STATISTICS = "statistics"
 
     fun facilityList(query: String? = null): String =
         if (query.isNullOrBlank()) "facility_list" else "facility_list?query=${Uri.encode(query)}"
@@ -62,4 +74,8 @@ object LibraryRoutes {
         }
         return if (params.isEmpty()) "kids_book_recommendation" else "kids_book_recommendation?${params.joinToString("&")}"
     }
+
+    fun eventDetail(eventId: String): String = "event_detail/${Uri.encode(eventId)}"
+
+    fun facilityAdminEdit(facilityId: String): String = "facility_admin_edit/${Uri.encode(facilityId)}"
 }

@@ -51,6 +51,22 @@ class FacilityRepository private constructor(
     suspend fun getFacility(id: String): Facility? =
         allFacilities.first().firstOrNull { it.id == id }
 
+    /** 관리자 화면(10단계)이 표시명·층·설명·안내방식·아이콘·노출여부·순서를 저장할 때 쓴다. */
+    suspend fun updateFacility(facility: Facility) {
+        val current = allFacilities.first()
+        save(current.map { if (it.id == facility.id) facility else it })
+    }
+
+    /** [FacilitySyncStatus.NOT_FOUND_ON_TEMI] 시설을 관리자가 확인 후 제거할 때 쓴다. */
+    suspend fun deleteFacility(id: String) {
+        save(allFacilities.first().filterNot { it.id == id })
+    }
+
+    /** [BackupRepository] 복구 전용: 백업 목록으로 전체를 대체한다. */
+    suspend fun replaceAll(facilities: List<Facility>) {
+        save(facilities)
+    }
+
     /**
      * 개발자 메뉴 전용 (`BuildConfig.DEBUG`, 로드맵 5단계): 관리자 화면(10단계)이 아직 없어
      * Fake 모드 POI가 항상 "미설정" 상태로 숨겨지는 문제를 우회한다. 이미 있는 POI면 관리자

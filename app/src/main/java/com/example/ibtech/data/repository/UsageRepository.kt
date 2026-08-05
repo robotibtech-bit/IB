@@ -35,6 +35,26 @@ class UsageRepository private constructor(
     suspend fun getTopic(id: String): UsageTopic? =
         topics.first().firstOrNull { it.id == id }
 
+    /** 관리자 화면(10단계)의 세부 항목 추가/수정에 쓴다. id가 이미 있으면 갱신, 없으면 추가한다. */
+    suspend fun upsertTopic(topic: UsageTopic) {
+        val current = topics.first()
+        val updated = if (current.any { it.id == topic.id }) {
+            current.map { if (it.id == topic.id) topic else it }
+        } else {
+            current + topic
+        }
+        save(updated)
+    }
+
+    suspend fun deleteTopic(id: String) {
+        save(topics.first().filterNot { it.id == id })
+    }
+
+    /** [BackupRepository] 복구 전용: 백업 목록으로 전체를 대체한다. */
+    suspend fun replaceAll(topics: List<UsageTopic>) {
+        save(topics)
+    }
+
     private suspend fun save(topics: List<UsageTopic>) {
         dataStore.edit { prefs ->
             prefs[UsageDataStoreKeys.TOPICS_JSON] = UsageJsonMapper.toJson(topics)

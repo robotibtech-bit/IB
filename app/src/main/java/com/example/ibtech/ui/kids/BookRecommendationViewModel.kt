@@ -6,13 +6,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.ibtech.data.repository.FacilityRepository
 import com.example.ibtech.data.repository.KidsContentRepository
+import com.example.ibtech.data.repository.StatsRepository
 import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.domain.model.RecommendedBook
+import com.example.ibtech.domain.model.StatEventType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /** 추천도서 화면 상태 (요구사항 명세서 2.14절). */
 data class BookRecommendationUiState(
@@ -32,10 +36,22 @@ class BookRecommendationViewModel(
 
     private val kidsContentRepository = KidsContentRepository.getInstance(application)
     private val facilityRepository = FacilityRepository.getInstance(application)
+    private val statsRepository = StatsRepository.getInstance(application)
 
     // 라우트 쿼리 인자를 초깃값으로만 쓰고, 이후 필터 조작은 화면 안에서 독립적으로 유지한다.
     private val selectedAgeGroup = MutableStateFlow(savedStateHandle.get<String>("ageGroup"))
     private val selectedTopic = MutableStateFlow(savedStateHandle.get<String>("topic"))
+
+    init {
+        // 추천도서 조회수 (요구사항 4.3절, 로드맵 11단계). 화면에 처음 진입했을 때 노출된
+        // 책들만 기록한다 — 필터를 바꿀 때마다 다시 세면 "조회"가 아니라 "필터 조작 횟수"가 된다.
+        viewModelScope.launch {
+            val initialBooks = kidsContentRepository.books.first().filter { it.isEnabled }
+            initialBooks.forEach { book ->
+                statsRepository.logEvent(StatEventType.BOOK_VIEW, book.title)
+            }
+        }
+    }
 
     val uiState: StateFlow<BookRecommendationUiState> = combine(
         kidsContentRepository.books,

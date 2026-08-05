@@ -18,6 +18,11 @@ datastorePreferences = "1.1.1"
 # temi SDK. 문서(temi_SDK.md) 기준 최신은 1.138.0 이지만, 프로젝트 검증 기준선은 1.137.1.
 # 1.138.0 은 별도 검증 브랜치에서 Launcher 138 호환 빌드와 함께 회귀 테스트 후 올린다.
 temiSdk = "1.137.1"
+# 11단계 통계: 시간대별 집계 쿼리가 필요해 이 저장소만 Room을 쓴다(다른 저장소는 전부
+# DataStore+JSON, `data/repository/FacilityRepository.kt` 등 주석 참고). KSP 버전은
+# `<kotlin>-<ksp>` 표기 규칙에 따라 kotlin=2.0.21과 짝을 맞춘다.
+room = "2.6.1"
+ksp = "2.0.21-1.0.28"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,9 +48,13 @@ androidx-compose-material-icons-extended = { group = "androidx.compose.material"
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 temi-sdk = { group = "com.robotemi", name = "sdk", version.ref = "temiSdk" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
