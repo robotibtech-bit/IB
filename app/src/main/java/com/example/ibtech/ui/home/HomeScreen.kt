@@ -116,8 +116,10 @@ fun HomeScreen(
         val compact = maxHeight < 650.dp
         val heroHeight = if (compact) 168.dp else 208.dp
         // 목표 시안(target_home_mockup.png)의 큰 원형 아이콘 배경(120~145dp)에 맞춰 확대했다.
-        val cardIconCircle = if (compact) 112.dp else 136.dp
-        val cardIconSize = if (compact) 76.dp else 92.dp
+        // 카드 아이콘을 더 키워달라는 요청에 따라 한 단계 더 키움 — CardPadding·제목·구분선·
+        // 부제가 남는 세로 공간에서 잘리지 않는지 실기로 재확인 필요.
+        val cardIconCircle = if (compact) 128.dp else 156.dp
+        val cardIconSize = if (compact) 92.dp else 112.dp
         val heroToCardsSpacing = if (compact) 12.dp else 16.dp
         val cardsToEventSpacing = if (compact) 12.dp else LibraryDimens.CardSpacing
         val eventBarHeight = if (compact) 76.dp else 92.dp
@@ -197,7 +199,7 @@ private fun HomeHero(
     compact: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val logoSize = if (compact) 60.dp else 72.dp
+    val logoSize = if (compact) 84.dp else 100.dp
 
     Box(
         modifier = modifier
