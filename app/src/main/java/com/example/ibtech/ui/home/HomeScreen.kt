@@ -1,6 +1,8 @@
 package com.example.ibtech.ui.home
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,12 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Park
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -38,10 +35,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -70,10 +67,11 @@ import com.example.ibtech.ui.theme.YellowAccentContainer
  * [welcomeMessage]는 관리자 설정(DataStore, [HomeViewModel])에서 읽은 값을 그대로 받는다.
  * 도서관명은 더 이상 설정값이 아니므로 `R.string.library_name`을 직접 참조한다.
  *
- * 13단계(전체 UI 디자인 패키지 3단계)에서 참고 시안(mockup_home.png) 기준으로 Hero 영역과
- * 카드별 강조색·부제·화살표를 추가했다. 콜백 5개와 welcomeMessage 파라미터는 그대로다 —
- * 시각 구조만 바뀌었다. [BoxWithConstraints]로 1024×600처럼 낮은 화면에서는 Hero 높이와
- * 카드 아이콘을 줄여 스크롤 없이 한 화면에 들어오게 한다(글자 크기는 줄이지 않는다).
+ * 14단계(Shintree_Android_Image_Assets 적용)에서 Hero 배경과 로고·카드·행사 바 아이콘을
+ * `drawable-nodpi`의 실제 PNG 그래픽으로 교체했다 — 이전엔 Material 아이콘/Canvas 도형으로
+ * 근사했다. 콜백 5개와 welcomeMessage 파라미터, [BoxWithConstraints] 기반 반응형 크기 조절은
+ * 그대로다. PNG는 다색 일러스트라 tint를 걸지 않는다(README "PNG 자체에 색상 tint를 적용하지
+ * 않는다") — 카드 원형 배경·강조선·화살표 색은 이전처럼 Compose에서 계속 관리한다.
  */
 @Composable
 fun HomeScreen(
@@ -87,7 +85,7 @@ fun HomeScreen(
 ) {
     val menus = listOf(
         HomeMenu(
-            icon = Icons.Filled.Search,
+            iconRes = R.drawable.ic_home_facility_search,
             label = stringResource(R.string.home_action_find_facility),
             subtitle = stringResource(R.string.home_action_find_facility_subtitle),
             accent = SkyAccent,
@@ -95,7 +93,7 @@ fun HomeScreen(
             onClick = onFindFacility
         ),
         HomeMenu(
-            icon = Icons.AutoMirrored.Filled.MenuBook,
+            iconRes = R.drawable.ic_home_usage_book,
             label = stringResource(R.string.home_action_usage_guide),
             subtitle = stringResource(R.string.home_action_usage_guide_subtitle),
             // "이용방법" 대표색은 패키지 문서상 Teal이지만, 이 앱의 기존 대표색(MintPrimary)이
@@ -105,7 +103,7 @@ fun HomeScreen(
             onClick = onUsageGuide
         ),
         HomeMenu(
-            icon = Icons.Filled.SmartToy,
+            iconRes = R.drawable.ic_home_robot_play,
             label = stringResource(R.string.home_action_kids_content),
             subtitle = stringResource(R.string.home_action_kids_content_subtitle),
             accent = YellowAccent,
@@ -117,8 +115,9 @@ fun HomeScreen(
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val compact = maxHeight < 650.dp
         val heroHeight = if (compact) 168.dp else 208.dp
-        val cardIconCircle = if (compact) 72.dp else 92.dp
-        val cardIconSize = if (compact) 36.dp else 46.dp
+        // 목표 시안(target_home_mockup.png)의 큰 원형 아이콘 배경(120~145dp)에 맞춰 확대했다.
+        val cardIconCircle = if (compact) 112.dp else 136.dp
+        val cardIconSize = if (compact) 76.dp else 92.dp
         val heroToCardsSpacing = if (compact) 12.dp else 16.dp
         val cardsToEventSpacing = if (compact) 12.dp else LibraryDimens.CardSpacing
         val eventBarHeight = if (compact) 76.dp else 92.dp
@@ -134,7 +133,7 @@ fun HomeScreen(
                 welcomeMessage = welcomeMessage,
                 onAdminClick = onAdminClick,
                 compact = compact,
-                // 인사말이 2줄(관리자가 자유롭게 설정 가능)일 때 고정 height라면 아래쪽 잎 장식
+                // 인사말이 2줄(관리자가 자유롭게 설정 가능)일 때 고정 height라면 아래쪽 그래픽
                 // clip() 경계에 잘리는 문제가 있었다 — heroHeight를 최소값으로만 쓰고, 실제
                 // 내용이 더 필요하면 Hero가 늘어나게 한다(남는 세로 공간은 카드 Row가 weight로
                 // 흡수하므로 전체 레이아웃은 계속 1280×720 안에 들어온다).
@@ -178,7 +177,7 @@ fun HomeScreen(
 }
 
 private data class HomeMenu(
-    val icon: ImageVector,
+    @DrawableRes val iconRes: Int,
     val label: String,
     val subtitle: String,
     val accent: Color,
@@ -188,7 +187,8 @@ private data class HomeMenu(
 
 /**
  * 연한 민트 Hero 영역: 도서관명 + 관리자 잠금 버튼 + 환영 문구.
- * 좌우 모서리에 책·식물 느낌의 낮은 투명도 아이콘 장식을 둔다(이미지 아님, 기존 Material 아이콘).
+ * 배경은 `bg_home_library_decor`(좌우 책장·나무·화분 일러스트, 가운데는 비어 있게 제작됨) —
+ * Hero 뒤 레이어에 놓아 중앙 제목·문구를 가리지 않는다.
  */
 @Composable
 private fun HomeHero(
@@ -197,34 +197,18 @@ private fun HomeHero(
     compact: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val logoCircleSize = if (compact) 60.dp else 72.dp
-    val logoIconSize = if (compact) 30.dp else 36.dp
+    val logoSize = if (compact) 60.dp else 72.dp
 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(bottomStart = 34.dp, bottomEnd = 34.dp))
             .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
-        // 장식용 아이콘 — 스크린리더에는 노출하지 않고, 텍스트/버튼과 겹치지 않는 좌우 바깥쪽에만.
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.MenuBook,
+        Image(
+            painter = painterResource(R.drawable.bg_home_library_decor),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = 4.dp)
-                .size(if (compact) 64.dp else 84.dp)
-                .alpha(0.08f)
-        )
-        Icon(
-            imageVector = Icons.Filled.Park,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 8.dp, bottom = 4.dp)
-                .size(if (compact) 56.dp else 76.dp)
-                .alpha(0.08f)
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.matchParentSize()
         )
 
         Column(
@@ -235,19 +219,13 @@ private fun HomeHero(
             verticalArrangement = Arrangement.Center
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(logoCircleSize)
-                        .background(MaterialTheme.colorScheme.surface, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Park,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(logoIconSize)
-                    )
-                }
+                // ic_library_tree_logo에는 원형 배경이 이미 포함돼 있어 별도 Box/배경 없이 그대로 쓴다.
+                Image(
+                    painter = painterResource(R.drawable.ic_library_tree_logo),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(logoSize)
+                )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = stringResource(R.string.library_name),
@@ -306,16 +284,17 @@ private fun HomeMenuCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                // 카드 원형 배경은 Compose로 유지하고(README), 그 위에 tint 없는 PNG 아이콘을 올린다.
                 Box(
                     modifier = Modifier
                         .size(iconCircleSize)
                         .background(menu.iconBackground, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = menu.icon,
+                    Image(
+                        painter = painterResource(menu.iconRes),
                         contentDescription = null,
-                        tint = menu.accent,
+                        contentScale = ContentScale.Fit,
                         modifier = Modifier.size(iconSize)
                     )
                 }
@@ -393,10 +372,11 @@ private fun TodayEventBar(
                     .background(YellowAccentContainer, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Event,
+                Image(
+                    painter = painterResource(R.drawable.ic_today_calendar),
                     contentDescription = null,
-                    tint = YellowAccent
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(44.dp)
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
