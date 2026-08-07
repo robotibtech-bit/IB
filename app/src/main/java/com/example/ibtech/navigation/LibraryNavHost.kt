@@ -246,10 +246,12 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     FacilityDetailScreen(
                         uiState = detailUiState,
                         onEscortClick = {
+                            // ESCORT_START는 여기서 기록하지 않는다 — 사용자가 확인 팝업에서
+                            // 취소할 수 있으므로, 실제 goTo() 수락 시점(NavigationViewModel.
+                            // onConfirmStart)에 1회만 기록한다(요구사항 4.3절).
                             detailUiState.facility?.name?.let { name ->
                                 statsScope.launch {
                                     statsRepository.logEvent(StatEventType.FACILITY_REQUEST, name)
-                                    statsRepository.logEvent(StatEventType.ESCORT_START, name)
                                 }
                             }
                             navController.navigate(LibraryRoutes.facilityNavigation(facilityId))

@@ -17,7 +17,24 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-private val DATE_FORMAT_REGEX = Regex("""\d{4}-\d{2}-\d{2}""")
+private val DATE_FORMAT_REGEX = Regex("""(\d{4})-(\d{2})-(\d{2})""")
+
+/** [value]가 "yyyy-MM-dd" 모양이면서 실제 존재하는 날짜인지 확인한다(윤년 2월 포함). */
+private fun isValidIsoDate(value: String): Boolean {
+    val match = DATE_FORMAT_REGEX.matchEntire(value) ?: return false
+    val (yearText, monthText, dayText) = match.destructured
+    val year = yearText.toInt()
+    val month = monthText.toInt()
+    val day = dayText.toInt()
+    if (month !in 1..12) return false
+    val isLeapYear = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
+    val daysInMonth = when (month) {
+        1, 3, 5, 7, 8, 10, 12 -> 31
+        4, 6, 9, 11 -> 30
+        else -> if (isLeapYear) 29 else 28
+    }
+    return day in 1..daysInMonth
+}
 
 data class EventDraft(
     val id: String? = null,
@@ -33,7 +50,8 @@ data class EventDraft(
     val isEnabled: Boolean = true,
     val sortOrderText: String = "0",
     val titleError: String? = null,
-    val startDateError: String? = null
+    val startDateError: String? = null,
+    val endDateError: String? = null
 )
 
 data class NoticeDraft(
@@ -118,7 +136,7 @@ class EventAdminViewModel(application: Application) : AndroidViewModel(applicati
 
     fun onEventTitleChange(value: String) = updateEventDraft { it.copy(title = value, titleError = null) }
     fun onEventStartDateChange(value: String) = updateEventDraft { it.copy(startDate = value, startDateError = null) }
-    fun onEventEndDateChange(value: String) = updateEventDraft { it.copy(endDate = value) }
+    fun onEventEndDateChange(value: String) = updateEventDraft { it.copy(endDate = value, endDateError = null) }
     fun onEventTimeTextChange(value: String) = updateEventDraft { it.copy(timeText = value) }
     fun onEventPlaceChange(value: String) = updateEventDraft { it.copy(place = value) }
     fun onEventTargetChange(value: String) = updateEventDraft { it.copy(target = value) }
@@ -135,16 +153,30 @@ class EventAdminViewModel(application: Application) : AndroidViewModel(applicati
             updateEventDraft { it.copy(titleError = app.getString(R.string.admin_error_blank_title)) }
             return
         }
-        if (!DATE_FORMAT_REGEX.matches(draft.startDate.trim())) {
+        val startDate = draft.startDate.trim()
+        if (!isValidIsoDate(startDate)) {
             updateEventDraft { it.copy(startDateError = app.getString(R.string.admin_error_invalid_date)) }
             return
+        }
+        // endDate는 선택 입력이지만, 값이 있다면 startDate와 마찬가지로 비교 가능한 실제 날짜여야
+        // 한다 — ResolveEventListUseCase가 두 값을 "yyyy-MM-dd" 사전순 비교로 다루기 때문이다.
+        val endDate = draft.endDate.trim().ifBlank { null }
+        if (endDate != null) {
+            if (!isValidIsoDate(endDate)) {
+                updateEventDraft { it.copy(endDateError = app.getString(R.string.admin_error_invalid_date)) }
+                return
+            }
+            if (endDate < startDate) {
+                updateEventDraft { it.copy(endDateError = app.getString(R.string.event_admin_error_end_before_start)) }
+                return
+            }
         }
         val sortOrder = draft.sortOrderText.trim().toIntOrNull() ?: 0
         val event = LibraryEvent(
             id = draft.id ?: "event_${System.currentTimeMillis()}",
             title = draft.title.trim(),
-            startDate = draft.startDate.trim(),
-            endDate = draft.endDate.trim().ifBlank { null },
+            startDate = startDate,
+            endDate = endDate,
             timeText = draft.timeText.trim().ifBlank { null },
             place = draft.place.trim(),
             target = draft.target.trim().ifBlank { null },

@@ -41,4 +41,22 @@ class ChildrenFacilityLookupTest {
 
         assertEquals("f1", result?.id)
     }
+
+    @Test
+    fun `prefers 어린이자료실 over a 어린이 restroom listed first`() {
+        val facilities = listOf(facility("f1", "장애인·어린이 화장실"), facility("f2", "어린이자료실"))
+
+        val result = facilities.findChildrenFacility()
+
+        assertEquals("f2", result?.id)
+    }
+
+    @Test
+    fun `falls back to a broad 어린이 match when no 자료실 exists`() {
+        val facilities = listOf(facility("f1", "장애인·어린이 화장실"))
+
+        val result = facilities.findChildrenFacility()
+
+        assertEquals("f1", result?.id)
+    }
 }

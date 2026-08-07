@@ -14,11 +14,13 @@ import com.example.ibtech.domain.usecase.CanStartEscortUseCase
 import com.example.ibtech.domain.usecase.ResolveGuideOptionUseCase
 import com.example.ibtech.domain.usecase.RobotSnapshot
 import com.example.ibtech.robot.TemiControllerProvider
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /**
  * 시설 상세 화면 상태 (요구사항 명세서 2.4절).
@@ -91,6 +93,19 @@ class FacilityDetailViewModel(
 
     /** "권한 요청" 버튼. 결과는 [uiState]가 `TemiController.permissionStatus` 변화로 자동 반영한다. */
     fun onRequestPermission() {
-        temiController.requestMissingPermissions()
+        val sent = temiController.requestMissingPermissions()
+        if (!sent) return
+
+        // 승인/거부 결과 콜백이 유실되면 requestInFlight 가 계속 true 로 남아 버튼이 영구히
+        // 잠긴다. reportPermissionRequestTimeout()은 그 시점에도 여전히 요청 중일 때만
+        // 동작하므로, 정상 콜백이 먼저 도착한 경우에는 아무 효과가 없다.
+        viewModelScope.launch {
+            delay(PERMISSION_REQUEST_TIMEOUT_MILLIS)
+            temiController.reportPermissionRequestTimeout()
+        }
+    }
+
+    companion object {
+        private const val PERMISSION_REQUEST_TIMEOUT_MILLIS = 10_000L
     }
 }

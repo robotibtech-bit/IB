@@ -428,6 +428,7 @@
     <string name="event_admin_tab_notices">공지</string>
     <string name="event_admin_field_start_date">시작일 (yyyy-MM-dd)</string>
     <string name="event_admin_field_end_date">종료일 (선택, yyyy-MM-dd)</string>
+    <string name="event_admin_error_end_before_start">종료일은 시작일보다 앞설 수 없습니다.</string>
     <string name="event_admin_field_time">시간</string>
     <string name="event_admin_field_place">장소</string>
     <string name="event_admin_field_target">대상</string>

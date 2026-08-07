@@ -32,8 +32,14 @@ class FacilityRepository private constructor(
 
     /**
      * 이용자 화면(`facility_list`)이 구독하는 목록.
-     * `isEnabled == true && floor != UNSET_FLOOR`만 노출한다 — 동기화 중간 상태(미설정/신규/
-     * 삭제 확인 대기)는 이용자에게 보이지 않는다(6.2절).
+     * `isEnabled == true && floor != UNSET_FLOOR`만 노출한다 — "미설정"(신규 POI로 아직 관리자가
+     * 층/노출을 설정하지 않은 상태)은 이용자에게 보이지 않는다(6.2절).
+     *
+     * [FacilitySyncStatus.NOT_FOUND_ON_TEMI](Temi 지도에서 더 이상 조회되지 않지만 관리자가 아직
+     * 삭제하지 않은 상태)는 이미 `isEnabled == true`로 설정돼 있었다면 이 필터를 그대로 통과한다
+     * — 의도적으로 그렇다. [com.example.ibtech.ui.facility.FacilityListScreen]의 `FacilityCard`가
+     * 이 상태를 "위치 정보 없음" 배지로 보여주는 것을 전제로 하므로, 여기서 걸러내면 그 배지
+     * 기능이 죽는다.
      */
     val visibleFacilities: Flow<List<Facility>> = allFacilities.map { facilities ->
         facilities
@@ -43,9 +49,7 @@ class FacilityRepository private constructor(
 
     /** temi가 보고한 최신 POI 이름 목록으로 로컬 시설 목록을 동기화한다(6.2절). */
     suspend fun syncWithRobot(remotePois: List<String>) {
-        val current = allFacilities.first()
-        val merged = SyncPoiUseCase(current, remotePois)
-        save(merged)
+        readModifyWrite { current -> SyncPoiUseCase(current, remotePois) }
     }
 
     suspend fun getFacility(id: String): Facility? =
@@ -53,13 +57,14 @@ class FacilityRepository private constructor(
 
     /** 관리자 화면(10단계)이 표시명·층·설명·안내방식·아이콘·노출여부·순서를 저장할 때 쓴다. */
     suspend fun updateFacility(facility: Facility) {
-        val current = allFacilities.first()
-        save(current.map { if (it.id == facility.id) facility else it })
+        readModifyWrite { current ->
+            current.map { if (it.id == facility.id) facility else it }
+        }
     }
 
     /** [FacilitySyncStatus.NOT_FOUND_ON_TEMI] 시설을 관리자가 확인 후 제거할 때 쓴다. */
     suspend fun deleteFacility(id: String) {
-        save(allFacilities.first().filterNot { it.id == id })
+        readModifyWrite { current -> current.filterNot { it.id == id } }
     }
 
     /** [BackupRepository] 복구 전용: 백업 목록으로 전체를 대체한다. */
@@ -74,32 +79,48 @@ class FacilityRepository private constructor(
      * `facility_list`를 열어 동기화를 유도할 필요가 없게 한다.
      */
     suspend fun configureForDevMode(poiName: String, floor: Int, guideMode: GuideMode) {
-        val current = allFacilities.first()
-        val updated = if (current.any { it.sourcePoiName == poiName }) {
-            current.map { facility ->
-                if (facility.sourcePoiName == poiName) {
-                    facility.copy(floor = floor, guideMode = guideMode, isEnabled = true)
-                } else {
-                    facility
+        readModifyWrite { current ->
+            if (current.any { it.sourcePoiName == poiName }) {
+                current.map { facility ->
+                    if (facility.sourcePoiName == poiName) {
+                        facility.copy(floor = floor, guideMode = guideMode, isEnabled = true)
+                    } else {
+                        facility
+                    }
                 }
+            } else {
+                current + Facility(
+                    id = poiName,
+                    sourcePoiName = poiName,
+                    name = poiName,
+                    floor = floor,
+                    guideMode = guideMode,
+                    isEnabled = true,
+                    syncStatus = FacilitySyncStatus.SYNCED
+                )
             }
-        } else {
-            current + Facility(
-                id = poiName,
-                sourcePoiName = poiName,
-                name = poiName,
-                floor = floor,
-                guideMode = guideMode,
-                isEnabled = true,
-                syncStatus = FacilitySyncStatus.SYNCED
-            )
         }
-        save(updated)
     }
 
     private suspend fun save(facilities: List<Facility>) {
         dataStore.edit { prefs ->
             prefs[FacilityDataStoreKeys.FACILITIES_JSON] = FacilityJsonMapper.toJson(facilities)
+        }
+    }
+
+    /**
+     * 읽기→계산→쓰기를 하나의 DataStore 트랜잭션 안에서 수행한다.
+     *
+     * 기존에는 `allFacilities.first()`로 바깥에서 읽은 뒤 별도의 `dataStore.edit{}`로 저장했다.
+     * 관리자 저장과 Temi POI 자동 동기화가 동시에 일어나면 둘 다 같은 옛 목록을 읽고 나중
+     * 저장이 앞 저장을 조용히 덮어쓸 수 있었다. `DataStore.edit{}`의 transform 블록은 항상
+     * 직전까지 커밋된 최신 Preferences를 받고 순차적으로만 실행되므로, 읽기와 쓰기를 같은
+     * 블록 안에 두면 두 저장이 서로의 변경을 덮어쓰지 않는다.
+     */
+    private suspend fun readModifyWrite(transform: (List<Facility>) -> List<Facility>) {
+        dataStore.edit { prefs ->
+            val current = FacilityJsonMapper.fromJson(prefs[FacilityDataStoreKeys.FACILITIES_JSON].orEmpty())
+            prefs[FacilityDataStoreKeys.FACILITIES_JSON] = FacilityJsonMapper.toJson(transform(current))
         }
     }
 

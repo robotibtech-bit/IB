@@ -34,21 +34,33 @@ class KidsContentRepository private constructor(
         KidsJsonMapper.etiquetteFromJson(prefs[KidsContentDataStoreKeys.ETIQUETTE_TIPS_JSON].orEmpty())
     }
 
-    /** 저장된 콘텐츠가 하나도 없으면(최초 실행) 기본 시드로 1회 채운다. */
+    /**
+     * 기본 시드를 아직 한 번도 채우지 않았으면(최초 실행) 채운다.
+     *
+     * "최초 실행 여부"는 [KidsContentDataStoreKeys.DEFAULT_CONTENT_SEEDED] 플래그로만 판단한다
+     * — 목록이 현재 비어있는지로 판단하면, 관리자가 세 목록을 모두 의도적으로 삭제했을 때
+     * `KidsMenu` 재진입마다(이 함수가 다시 호출될 때마다) 기본 데이터가 부활한다.
+     */
     suspend fun ensureSeeded(context: Context) {
-        if (quizQuestions.first().isNotEmpty() ||
+        val alreadySeeded = dataStore.data.first()[KidsContentDataStoreKeys.DEFAULT_CONTENT_SEEDED] ?: false
+        if (alreadySeeded) return
+
+        // 이 플래그가 없는 기존 설치(이 수정 이전 버전에서 이미 정상 시드된 상태)를 위한
+        // 마이그레이션: 이미 콘텐츠가 있으면 덮어쓰지 않고 플래그만 세운다.
+        val hasExistingContent = quizQuestions.first().isNotEmpty() ||
             books.first().isNotEmpty() ||
             etiquetteTips.first().isNotEmpty()
-        ) {
-            return
-        }
+
         dataStore.edit { prefs ->
-            prefs[KidsContentDataStoreKeys.QUIZ_QUESTIONS_JSON] =
-                KidsJsonMapper.quizToJson(DefaultKidsContent.buildQuizQuestions(context))
-            prefs[KidsContentDataStoreKeys.BOOKS_JSON] =
-                KidsJsonMapper.booksToJson(DefaultKidsContent.buildBooks(context))
-            prefs[KidsContentDataStoreKeys.ETIQUETTE_TIPS_JSON] =
-                KidsJsonMapper.etiquetteToJson(DefaultKidsContent.buildEtiquetteTips(context))
+            if (!hasExistingContent) {
+                prefs[KidsContentDataStoreKeys.QUIZ_QUESTIONS_JSON] =
+                    KidsJsonMapper.quizToJson(DefaultKidsContent.buildQuizQuestions(context))
+                prefs[KidsContentDataStoreKeys.BOOKS_JSON] =
+                    KidsJsonMapper.booksToJson(DefaultKidsContent.buildBooks(context))
+                prefs[KidsContentDataStoreKeys.ETIQUETTE_TIPS_JSON] =
+                    KidsJsonMapper.etiquetteToJson(DefaultKidsContent.buildEtiquetteTips(context))
+            }
+            prefs[KidsContentDataStoreKeys.DEFAULT_CONTENT_SEEDED] = true
         }
     }
 

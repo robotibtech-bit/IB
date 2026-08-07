@@ -79,10 +79,13 @@ fun AdminFormDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     // 저장=Teal(주요 색 강조), 취소=보조(중립색 텍스트)로 구분한다.
-                    TextButton(onClick = onDismiss) {
+                    // 저장은 System.currentTimeMillis() 기반 ID 생성 + 비동기 저장이라, 다른 공용
+                    // 버튼처럼 debounced()로 짧은 시간 안의 중복 탭을 막는다 — 안 그러면 두 번째
+                    // 탭이 다이얼로그가 닫히기 전에 새 ID로 같은 내용을 한 번 더 저장할 수 있다.
+                    TextButton(onClick = debounced(onDismiss)) {
                         Text(cancelLabel, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    TextButton(onClick = onSave, enabled = saveEnabled) {
+                    TextButton(onClick = debounced(onSave), enabled = saveEnabled) {
                         Text(saveLabel, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 }

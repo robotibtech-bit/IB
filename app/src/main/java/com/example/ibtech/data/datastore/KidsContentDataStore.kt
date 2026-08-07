@@ -2,6 +2,7 @@ package com.example.ibtech.data.datastore
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 
@@ -17,4 +18,8 @@ object KidsContentDataStoreKeys {
     val QUIZ_QUESTIONS_JSON: Preferences.Key<String> = stringPreferencesKey("quiz_questions_json")
     val BOOKS_JSON: Preferences.Key<String> = stringPreferencesKey("books_json")
     val ETIQUETTE_TIPS_JSON: Preferences.Key<String> = stringPreferencesKey("etiquette_tips_json")
+
+    /** 기본 시드를 이미 채워봤는지. 목록이 현재 비어있는지와 분리해서, 관리자가 의도적으로
+     * 전부 삭제한 뒤에도 기본값이 다시 채워지지 않게 한다. */
+    val DEFAULT_CONTENT_SEEDED: Preferences.Key<Boolean> = booleanPreferencesKey("default_content_seeded")
 }

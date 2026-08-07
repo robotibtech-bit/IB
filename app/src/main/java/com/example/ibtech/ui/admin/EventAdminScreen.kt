@@ -221,7 +221,12 @@ private fun EventDraftDialog(
             label = stringResource(R.string.event_admin_field_start_date),
             errorText = draft.startDateError
         )
-        AdminTextField(value = draft.endDate, onValueChange = onEndDateChange, label = stringResource(R.string.event_admin_field_end_date))
+        AdminTextField(
+            value = draft.endDate,
+            onValueChange = onEndDateChange,
+            label = stringResource(R.string.event_admin_field_end_date),
+            errorText = draft.endDateError
+        )
         AdminTextField(value = draft.timeText, onValueChange = onTimeTextChange, label = stringResource(R.string.event_admin_field_time))
         AdminTextField(value = draft.place, onValueChange = onPlaceChange, label = stringResource(R.string.event_admin_field_place))
         AdminTextField(value = draft.target, onValueChange = onTargetChange, label = stringResource(R.string.event_admin_field_target))

@@ -1,6 +1,7 @@
 package com.example.ibtech.data.repository
 
 import android.content.Context
+import android.util.Log
 import com.example.ibtech.data.stats.StatEventDao
 import com.example.ibtech.data.stats.StatEventEntity
 import com.example.ibtech.data.stats.StatsDatabase
@@ -26,28 +27,37 @@ class StatsRepository private constructor(
     fun observeEventsSince(since: Long): Flow<List<StatEvent>> =
         dao.observeSince(since).map { entities -> entities.map { it.toDomain() } }
 
+    /**
+     * 통계는 부가 기능이므로 DB insert 실패(저장공간 부족·DB 손상 등)가 호출부 coroutine으로
+     * 전파되어 시설 안내·로봇 이동 같은 핵심 기능을 끊는 일이 없어야 한다. 실패는 로그로만
+     * 남기고 삼킨다 — 성공한 것처럼 가짜 값을 만들지는 않는다.
+     */
     suspend fun logEvent(type: StatEventType, label: String? = null) {
-        dao.insert(
-            StatEventEntity(
-                type = type.name,
-                label = label,
-                correctCount = null,
-                totalCount = null,
-                timestamp = System.currentTimeMillis()
+        runCatching {
+            dao.insert(
+                StatEventEntity(
+                    type = type.name,
+                    label = label,
+                    correctCount = null,
+                    totalCount = null,
+                    timestamp = System.currentTimeMillis()
+                )
             )
-        )
+        }.onFailure { Log.e(TAG, "통계 이벤트 기록 실패: type=$type label=$label", it) }
     }
 
     suspend fun logQuizComplete(category: String, correctCount: Int, totalCount: Int) {
-        dao.insert(
-            StatEventEntity(
-                type = StatEventType.QUIZ_COMPLETE.name,
-                label = category,
-                correctCount = correctCount,
-                totalCount = totalCount,
-                timestamp = System.currentTimeMillis()
+        runCatching {
+            dao.insert(
+                StatEventEntity(
+                    type = StatEventType.QUIZ_COMPLETE.name,
+                    label = category,
+                    correctCount = correctCount,
+                    totalCount = totalCount,
+                    timestamp = System.currentTimeMillis()
+                )
             )
-        )
+        }.onFailure { Log.e(TAG, "퀴즈 완료 통계 기록 실패: category=$category", it) }
     }
 
     /** 전체 이벤트 로그를 CSV로 내보낸다. 성공하면 true. */
@@ -89,6 +99,8 @@ class StatsRepository private constructor(
     )
 
     companion object {
+        private const val TAG = "StatsRepository"
+
         @Volatile
         private var instance: StatsRepository? = null
 

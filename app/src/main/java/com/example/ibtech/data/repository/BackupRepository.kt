@@ -53,14 +53,34 @@ class BackupRepository private constructor(
             if (!file.exists()) return@runCatching false
 
             val root = JSONObject(file.readText())
+
+            // 이 앱이 이해하는 버전 범위를 벗어나면(미래 포맷·손상된 값) 복구하지 않는다.
+            // 그대로 진행하면 알 수 없는 필드 구성을 잘못 해석해 설정이 깨질 수 있다.
+            val version = root.optInt("version", UNKNOWN_BACKUP_VERSION)
+            if (version !in MIN_SUPPORTED_BACKUP_VERSION..BACKUP_VERSION) {
+                return@runCatching false
+            }
+
+            // 정상 export()는 이 7개 키를 항상 함께 쓴다. 하나라도 없으면 잘리거나 손상된
+            // 파일이라는 뜻이므로, 있는 항목만 부분 반영해 나머지를 빈 목록으로 지우는 대신
+            // 아무것도 건드리지 않고 실패로 처리한다(부분 백업 복구 위험 최소화).
+            val requiredKeys = listOf(
+                "facilitiesJson", "usageTopicsJson", "quizQuestionsJson",
+                "booksJson", "etiquetteTipsJson", "eventsJson", "noticesJson"
+            )
+            if (requiredKeys.any { !root.has(it) }) {
+                return@runCatching false
+            }
+
             val restoredSettings = settingsRepository.settings.first().copy(
                 welcomeMessage = root.optString("welcomeMessage", LibrarySettings.DEFAULT_WELCOME_MESSAGE),
-                idleTimeoutSeconds = root.optInt("idleTimeoutSeconds", LibrarySettings.DEFAULT_IDLE_TIMEOUT_SECONDS),
+                idleTimeoutSeconds = sanitizedIdleTimeoutSeconds(
+                    root.optInt("idleTimeoutSeconds", LibrarySettings.DEFAULT_IDLE_TIMEOUT_SECONDS)
+                ),
                 baseFloor = root.optInt("baseFloor", LibrarySettings.DEFAULT_BASE_FLOOR),
-                volume = root.optInt("volume", LibrarySettings.DEFAULT_VOLUME),
-                featuredFacilityCount = root.optInt(
-                    "featuredFacilityCount",
-                    LibrarySettings.DEFAULT_FEATURED_FACILITY_COUNT
+                volume = sanitizedVolume(root.optInt("volume", LibrarySettings.DEFAULT_VOLUME)),
+                featuredFacilityCount = sanitizedFeaturedFacilityCount(
+                    root.optInt("featuredFacilityCount", LibrarySettings.DEFAULT_FEATURED_FACILITY_COUNT)
                 )
             )
             settingsRepository.updateSettings(restoredSettings)
@@ -79,6 +99,21 @@ class BackupRepository private constructor(
         }.getOrDefault(false)
     }
 
+    /** 무입력 timeout이 0/음수면 화면 진입 즉시 홈으로 복귀하는 상태가 된다. 관리자 설정 화면의
+     * 수동 저장(`SettingsAdminViewModel.onSaveSettings`)과 같은 기준(`> 0`)으로 막는다. */
+    private fun sanitizedIdleTimeoutSeconds(value: Int): Int =
+        if (value > 0) value else LibrarySettings.DEFAULT_IDLE_TIMEOUT_SECONDS
+
+    private fun sanitizedVolume(value: Int): Int =
+        value.coerceIn(LibrarySettings.MIN_VOLUME, LibrarySettings.MAX_VOLUME)
+
+    private fun sanitizedFeaturedFacilityCount(value: Int): Int =
+        if (value in LibrarySettings.FEATURED_FACILITY_COUNT_OPTIONS) {
+            value
+        } else {
+            LibrarySettings.DEFAULT_FEATURED_FACILITY_COUNT
+        }
+
     /** 마지막 백업 시각(epoch millis). 백업 파일이 없으면 null. */
     fun lastBackupAt(): Long? = backupFile().takeIf { it.exists() }?.lastModified()
 
@@ -86,6 +121,8 @@ class BackupRepository private constructor(
 
     companion object {
         private const val BACKUP_VERSION = 1
+        private const val MIN_SUPPORTED_BACKUP_VERSION = 1
+        private const val UNKNOWN_BACKUP_VERSION = -1
 
         @Volatile
         private var instance: BackupRepository? = null

@@ -332,11 +332,19 @@ class TemiRepository private constructor() :
     // 명령 — 모두 준비 상태를 확인한 뒤 호출한다.
     // ---------------------------------------------------------------------
 
-    /** 저장된 POI 로 이동을 요청한다. 실제 이동 여부는 상태 콜백으로만 확정된다. */
-    override fun goTo(location: String): Boolean = withRobot { robot ->
-        stopRequested = false
-        _navigationState.value = NavigationState.Requested(location)
-        robot.goTo(location)
+    /**
+     * 저장된 POI 로 이동을 요청한다. 실제 이동 여부는 상태 콜백으로만 확정된다.
+     *
+     * 이미 이동이 진행 중(Requested/Moving)이면 거부한다 — [FakeTemiController.goTo] 와
+     * 동일한 계약. 확인 버튼 연속 탭으로 `goTo()`가 Temi 에 중복 전달되는 것을 막는다.
+     */
+    override fun goTo(location: String): Boolean {
+        if (_navigationState.value.isBusy) return false
+        return withRobot { robot ->
+            stopRequested = false
+            _navigationState.value = NavigationState.Requested(location)
+            robot.goTo(location)
+        }
     }
 
     /** 진행 중인 모든 이동을 중지한다. 최종 상태는 콜백에서 정리된다. */
