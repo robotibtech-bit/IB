@@ -145,8 +145,7 @@ class AppUpdateRepository(private val context: Context) {
 
 /** GitHub Releases에 latest.json/APK를 올려두는 배포 방식(원본 [KSH/updater] 프로젝트와 동일)을 그대로 쓴다. */
 object AppUpdateConfig {
-    // TODO: 배포용 latest.json의 실제 raw HTTPS URL로 교체한다.
-    const val LATEST_JSON_URL = "https://raw.githubusercontent.com/hoontemi/updater/main/latest.json"
+    const val LATEST_JSON_URL = "https://raw.githubusercontent.com/robotibtech-bit/IB/main/latest.json"
 }
 
 class HttpStatusException(val statusCode: Int) : IOException("HTTP $statusCode")

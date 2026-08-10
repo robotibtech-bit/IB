@@ -1,8 +1,5 @@
 package com.example.ibtech.ui.events
 
-import android.content.Intent
-import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
@@ -40,6 +36,7 @@ import com.example.ibtech.ui.theme.SkyAccent
 fun EventDetailScreen(
     uiState: EventDetailUiState,
     onRelatedFacilityClick: (String) -> Unit,
+    onOpenUrl: (String) -> Unit,
     onQrOpened: () -> Unit,
     onGoHome: () -> Unit,
     modifier: Modifier = Modifier
@@ -99,7 +96,7 @@ fun EventDetailScreen(
                 }
 
                 if (!event.qrUrl.isNullOrBlank()) {
-                    QrButton(url = event.qrUrl, onOpened = onQrOpened)
+                    QrButton(url = event.qrUrl, onOpenUrl = onOpenUrl, onOpened = onQrOpened)
                 }
 
                 val relatedFacility = uiState.relatedFacility
@@ -131,20 +128,13 @@ private fun DetailLine(icon: ImageVector, text: String) {
 }
 
 @Composable
-private fun QrButton(url: String, onOpened: () -> Unit) {
-    val context = LocalContext.current
-    val errorMessage = stringResource(R.string.usage_answer_qr_error)
+private fun QrButton(url: String, onOpenUrl: (String) -> Unit, onOpened: () -> Unit) {
     LibraryOutlinedButton(
         text = stringResource(R.string.events_qr_action),
         icon = Icons.Filled.QrCode,
         onClick = {
-            runCatching {
-                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-            }.onSuccess {
-                onOpened()
-            }.onFailure {
-                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-            }
+            onOpenUrl(url)
+            onOpened()
         }
     )
 }

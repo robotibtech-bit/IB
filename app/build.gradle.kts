@@ -15,8 +15,8 @@ android {
         applicationId = "com.example.ibtech"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0-20260807.1326"
+        versionCode = 2
+        versionName = "1.0-20260810.1318"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

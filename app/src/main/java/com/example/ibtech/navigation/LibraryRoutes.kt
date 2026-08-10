@@ -47,6 +47,9 @@ object LibraryRoutes {
     const val STATISTICS = "statistics"
     const val APP_UPDATE = "app_update"
 
+    /** 그래프 등록용 패턴. 실제 이동에는 [webView]를 쓴다. */
+    const val WEB_VIEW = "web_view?url={url}&title={title}"
+
     fun facilityList(query: String? = null): String =
         if (query.isNullOrBlank()) "facility_list" else "facility_list?query=${Uri.encode(query)}"
 
@@ -79,4 +82,7 @@ object LibraryRoutes {
     fun eventDetail(eventId: String): String = "event_detail/${Uri.encode(eventId)}"
 
     fun facilityAdminEdit(facilityId: String): String = "facility_admin_edit/${Uri.encode(facilityId)}"
+
+    fun webView(url: String, title: String = ""): String =
+        "web_view?url=${Uri.encode(url)}&title=${Uri.encode(title)}"
 }

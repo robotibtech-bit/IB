@@ -305,7 +305,28 @@
     <string name="kids_book_empty">조건에 맞는 책이 없습니다.</string>
     <string name="kids_book_filter_reset">필터 초기화</string>
 
+    <!-- 나에게 맞는 책 게임 (질문에 답하면 어울리는 책을 추천) -->
+    <string name="kids_book_game_age_question">어떤 나이대 친구가 볼 책을 찾아볼까요?</string>
+    <string name="kids_book_game_topic_question">어떤 이야기가 궁금해요?</string>
+    <string name="kids_book_game_reveal_title">짜잔! 이 책은 어때요?</string>
+    <string name="kids_book_game_reveal_fallback">정확히 맞는 책은 아직 없지만, 이런 책은 어때요?</string>
+    <string name="kids_book_game_restart_action">다시 질문 받기</string>
+    <string name="kids_book_game_browse_all_action">내가 직접 골라볼래요</string>
+    <string name="kids_book_game_back_to_game_action">질문으로 돌아가기</string>
+
     <!-- 도서관 예절 (요구사항 2.15절) -->
+    <!-- 도서관 예절 게임 (카드 뒤집기/상황극 선택/드래그 중 매번 랜덤으로 하나) -->
+    <string name="kids_etiquette_card_flip_hint">카드를 눌러서 확인해보세요!</string>
+    <string name="kids_etiquette_card_flip_reveal_label">이렇게 해봐요!</string>
+    <string name="kids_etiquette_situation_question">도서관에서 지켜야 할 행동은 무엇일까요?</string>
+    <string name="kids_etiquette_drag_hint">옆으로 밀어서 확인해보세요!</string>
+    <string name="kids_etiquette_drag_handle_label">밀어서 열기</string>
+    <string name="kids_etiquette_next_action">다음</string>
+    <string name="kids_etiquette_complete_title">모든 도서관 예절을 확인했어요!</string>
+    <string name="kids_etiquette_complete_subtitle">친구들과 함께 지켜봐요.</string>
+    <string name="kids_etiquette_restart_action">다시 하기</string>
+    <string name="kids_etiquette_empty">등록된 도서관 예절이 없습니다.</string>
+
     <string name="kids_etiquette_tip_1">책을 다 읽은 뒤에는 책 수레에 놓아 주세요.</string>
     <string name="kids_etiquette_tip_2">도서관에서는 작은 목소리로 말해요.</string>
     <string name="kids_etiquette_tip_3">책장을 넘길 때는 손을 깨끗이 씻고 조심히 넘겨요.</string>
@@ -491,6 +512,10 @@
 
     <!-- 앱 업데이트 (KSH/updater 프로젝트 이식) -->
     <string name="title_app_update">앱 업데이트</string>
+
+    <!-- 인앱 웹뷰 (행사 URL 등 외부 링크를 키오스크 안에서 보여준다) -->
+    <string name="web_view_default_title">웹 페이지</string>
+    <string name="web_view_load_error">페이지를 불러올 수 없습니다.</string>
     <string name="stats_last_export_format">마지막 내보내기: %1$s</string>
     <string name="stats_export_action">CSV로 내보내기</string>
     <string name="stats_export_success">통계를 CSV로 저장했습니다.</string>

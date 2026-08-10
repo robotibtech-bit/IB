@@ -1,14 +1,17 @@
 package com.example.ibtech.ui.kids
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -30,6 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
@@ -87,6 +93,9 @@ fun QuizPlayScreen(
                     QuizChoiceButton(
                         label = ('A' + index).toString(),
                         text = choice,
+                        // TODO(이미지 준비되면): 문제별 보기 이미지 매핑이 생기면 여기로 넘긴다.
+                        // 지금은 자리만 마련해 둔 상태라 항상 null이다.
+                        imageRes = null,
                         state = choiceVisualState(index, uiState.selectedChoiceIndex, question.correctIndex),
                         onClick = { onSelectChoice(index) }
                     )
@@ -160,7 +169,13 @@ private fun choiceVisualState(index: Int, selected: Int?, correctIndex: Int): Ch
  * 정답=Success, 오답(선택함)=Coral로 통일한다(01_DESIGN_SYSTEM.md). [label]은 A/B/C/D 원형 번호.
  */
 @Composable
-private fun QuizChoiceButton(label: String, text: String, state: ChoiceVisualState, onClick: () -> Unit) {
+private fun QuizChoiceButton(
+    label: String,
+    text: String,
+    imageRes: Int?,
+    state: ChoiceVisualState,
+    onClick: () -> Unit
+) {
     val containerColor: Color
     val contentColor: Color
     val badgeBackground: Color
@@ -215,9 +230,10 @@ private fun QuizChoiceButton(label: String, text: String, state: ChoiceVisualSta
         ),
         border = border,
         shape = MaterialTheme.shapes.medium,
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(LibraryDimens.SecondaryButtonHeight)
+            .heightIn(min = LibraryDimens.SecondaryButtonHeight)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -232,10 +248,44 @@ private fun QuizChoiceButton(label: String, text: String, state: ChoiceVisualSta
             ) {
                 Text(text = label, style = MaterialTheme.typography.labelLarge, color = contentColor)
             }
+            QuizOptionImageSlot(imageRes = imageRes, tint = contentColor)
+            Text(text = text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             if (icon != null) {
                 Icon(imageVector = icon, contentDescription = null)
             }
-            Text(text = text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+/**
+ * 보기 이미지 자리표시. 도서관 예절 게임의 `OptionImageSlot`과 같은 역할이다 — 실제 이미지가
+ * 준비되면 `Icon` 대신 `Image(painterResource(imageRes), ...)`로 바꿔 끼운다.
+ */
+@Composable
+private fun QuizOptionImageSlot(imageRes: Int?, tint: Color, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(56.dp)
+            .clip(CircleShape)
+            .background(tint.copy(alpha = 0.12f)),
+        contentAlignment = Alignment.Center
+    ) {
+        if (imageRes != null) {
+            Image(
+                painter = painterResource(imageRes),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Filled.Image,
+                contentDescription = null,
+                tint = tint.copy(alpha = 0.6f),
+                modifier = Modifier.size(28.dp)
+            )
         }
     }
 }

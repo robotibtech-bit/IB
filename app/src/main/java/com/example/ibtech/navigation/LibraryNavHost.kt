@@ -1,5 +1,6 @@
 package com.example.ibtech.navigation
 
+import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -59,6 +60,7 @@ import com.example.ibtech.ui.admin.UsageInfoAdminViewModel
 import com.example.ibtech.ui.common.ConfirmDialog
 import com.example.ibtech.ui.common.IdleTimeoutObserver
 import com.example.ibtech.ui.common.LibraryScaffold
+import com.example.ibtech.ui.common.LibraryWebView
 import com.example.ibtech.ui.theme.AdminTypography
 import com.example.ibtech.ui.theme.SurfaceWhite
 import com.example.ibtech.ui.dev.DevMenuScreen
@@ -644,6 +646,11 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                         onRelatedFacilityClick = { facilityId ->
                             navController.navigate(LibraryRoutes.facilityDetail(facilityId))
                         },
+                        onOpenUrl = { url ->
+                            navController.navigate(
+                                LibraryRoutes.webView(url = url, title = eventDetailUiState.event?.title.orEmpty())
+                            )
+                        },
                         onQrOpened = viewModel::onQrOpened,
                         onGoHome = { goHome() },
                         modifier = Modifier.padding(padding)
@@ -958,6 +965,40 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                             modifier = Modifier.padding(padding)
                         )
                     }
+                }
+            }
+
+            composable(
+                route = LibraryRoutes.WEB_VIEW,
+                arguments = listOf(
+                    navArgument("url") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("title") { type = NavType.StringType; defaultValue = "" }
+                )
+            ) { backStackEntry ->
+                val url = backStackEntry.arguments?.getString("url").orEmpty()
+                val webTitle = backStackEntry.arguments?.getString("title").orEmpty()
+                var webView by remember { mutableStateOf<WebView?>(null) }
+                var canGoBack by remember { mutableStateOf(false) }
+
+                // 페이지 안에서 링크를 타고 들어간 경우, 뒤로가기는 앱 화면이 아니라 웹 히스토리부터
+                // 되짚어야 한다 — 시스템 뒤로가기·상단바 뒤로가기 모두 이 규칙을 따른다.
+                BackHandler(enabled = canGoBack) { webView?.goBack() }
+
+                LibraryScaffold(
+                    title = webTitle.ifBlank { stringResource(R.string.web_view_default_title) },
+                    onBack = {
+                        if (canGoBack) webView?.goBack() else navController.popBackStack()
+                    },
+                    onHome = { goHome() }
+                ) { padding ->
+                    LibraryWebView(
+                        url = url,
+                        modifier = Modifier
+                            .padding(padding)
+                            .fillMaxSize(),
+                        onWebViewReady = { webView = it },
+                        onCanGoBackChanged = { canGoBack = it }
+                    )
                 }
             }
         }
