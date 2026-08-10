@@ -6,14 +6,21 @@ import android.util.Log
 import com.robotemi.sdk.BatteryData
 import com.robotemi.sdk.Robot
 import com.robotemi.sdk.TtsRequest
+import com.robotemi.sdk.constants.HardButton
 import com.robotemi.sdk.exception.OnSdkExceptionListener
 import com.robotemi.sdk.exception.SdkException
 import com.robotemi.sdk.listeners.OnBatteryStatusChangedListener
+import com.robotemi.sdk.listeners.OnButtonStatusChangedListener
 import com.robotemi.sdk.listeners.OnGoToLocationStatusChangedListener
 import com.robotemi.sdk.listeners.OnLocationsUpdatedListener
 import com.robotemi.sdk.listeners.OnRobotReadyListener
 import com.robotemi.sdk.permission.OnRequestPermissionResultListener
 import com.robotemi.sdk.permission.Permission
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -21,6 +28,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.util.UUID
 
@@ -44,6 +53,7 @@ class TemiRepository private constructor() :
     OnLocationsUpdatedListener,
     OnBatteryStatusChangedListener,
     OnRequestPermissionResultListener,
+    OnButtonStatusChangedListener,
     Robot.TtsListener {
 
     /**
@@ -102,6 +112,18 @@ class TemiRepository private constructor() :
     /** 우리가 발행한 TTS 만 상태에 반영하기 위한 요청 ID. */
     private var pendingTtsId: UUID? = null
 
+    /** 음량 고정이 켜져 있을 때 되돌릴 목표값(temi 0~10 스케일). 잠금이 꺼져 있으면 null. */
+    private var lockedTemiVolume: Int? = null
+
+    /**
+     * [applyVolumeSettings] 등 명령성 API는 SDK 콜백과 무관하게 독립적으로 동작해야 해서
+     * Activity 생명주기가 아니라 이 저장소(싱글턴) 생명주기를 따르는 스코프를 둔다.
+     */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /** 음량 고정 감시 루프. 잠금이 꺼지거나 로봇이 준비되지 않으면 없앤다. */
+    private var volumeEnforcementJob: Job? = null
+
     /** SDK 가 준비된 상태인지 여부. */
     val isReady: Boolean
         get() = _connectionState.value is TemiConnectionState.Ready
@@ -122,6 +144,7 @@ class TemiRepository private constructor() :
         robot.addOnRequestPermissionResultListener(this)
         robot.addOnSdkExceptionListener(this)
         robot.addTtsListener(this)
+        robot.addOnButtonStatusChangedListener(this)
         listenersRegistered = true
     }
 
@@ -129,6 +152,13 @@ class TemiRepository private constructor() :
         val robot = this.robot ?: return
         if (!listenersRegistered) return
 
+        // volumeEnforcementJob은 여기서 취소하지 않는다 — 로봇 런처가 이동 실패 알림 화면
+        // (GoToAbortedActivity 등)을 우리 액티비티 위에 잠깐 띄우기만 해도 onStop이 불리는데,
+        // 그때마다 감시 루프를 죽이면 화면이 돌아온 뒤 connectionState/설정 값이 실제로
+        // 바뀌지 않는 한 다시 살아나지 않아 음량 고정이 조용히 풀린 채로 남는다(실기로 확인한
+        // 버그). 이 루프는 SDK 리스너 등록과 무관하게 Robot 인스턴스에 직접 걸기 때문에,
+        // Activity 생명주기가 아니라 저장소(싱글턴) 생명주기를 따라가도 안전하다.
+        robot.removeOnButtonStatusChangedListener(this)
         robot.removeTtsListener(this)
         robot.removeOnSdkExceptionListener(this)
         robot.removeOnRequestPermissionResultListener(this)
@@ -229,6 +259,22 @@ class TemiRepository private constructor() :
             percentage = batteryData.level,
             isCharging = batteryData.isCharging
         )
+    }
+
+    /**
+     * 테미 본체 하드 버튼 입력. 음량 버튼을 [applyVolumeSettings]로 잠가 두면 이 콜백 자체가
+     * 잘 안 오지만(버튼 자체가 비활성화됨), SDK 버전에 따라 눌림이 새는 경우를 대비해 잠금
+     * 중에는 항상 고정값으로 즉시 되돌린다(이중 방어).
+     */
+    override fun onButtonStatusChanged(hardButton: HardButton, status: HardButton.Status) {
+        val locked = lockedTemiVolume ?: return
+        if (hardButton != HardButton.VOLUME &&
+            hardButton != HardButton.VOLUME_UP &&
+            hardButton != HardButton.VOLUME_DOWN
+        ) {
+            return
+        }
+        withRobot { it.setVolume(locked, showDrawer = false) }
     }
 
     override fun onRequestPermissionResult(
@@ -384,6 +430,54 @@ class TemiRepository private constructor() :
         }
     }
 
+    /**
+     * 앱 음량(0~100)을 temi 음량(0~10)으로 변환해 적용하고, 잠금 여부에 따라 음량 하드 버튼을
+     * 켜고 끈다. `Robot.setVolume`/`setHardButtonMode` 모두 [Permission.SETTINGS] 권한이
+     * 필요하다 — 미승인 상태면 [withRobot] 내부에서 SDK 예외로 걸러지고 [onSdkError]가 처리한다.
+     *
+     * 본체 하드 버튼 비활성화만으로는 충분하지 않다 — 로봇 화면의 상태바/빠른 설정 음량
+     * 슬라이더처럼 하드 버튼을 거치지 않는 경로로도 음량이 바뀔 수 있는데, SDK에는 "음량이
+     * 바뀌었다"는 푸시 이벤트 자체가 없다(버튼 눌림 이벤트만 있음). 그래서 잠금 중에는
+     * [volumeEnforcementJob]으로 주기적으로 실제 음량을 읽어 고정값과 다르면 즉시 되돌린다 —
+     * 이게 잠금의 실질적인 주 방어선이고, 하드 버튼 비활성화·클릭 리스너 리셋은 보조 수단이다.
+     */
+    override fun applyVolumeSettings(volume: Int, locked: Boolean): Boolean = withRobot { robot ->
+        val temiVolume = toTemiVolume(volume)
+        Log.d(TAG, "applyVolumeSettings appVolume=$volume -> temiVolume=$temiVolume locked=$locked")
+        robot.setVolume(temiVolume, showDrawer = false)
+        robot.setHardButtonMode(
+            HardButton.VOLUME,
+            if (locked) HardButton.Mode.DISABLED else HardButton.Mode.ENABLED
+        )
+        lockedTemiVolume = if (locked) temiVolume else null
+        restartVolumeEnforcement()
+    }
+
+    /** 앱 음량 스케일(0~100)을 temi 음량 스케일(0~10)로 반올림 변환한다. */
+    private fun toTemiVolume(appVolume: Int): Int =
+        Math.round(appVolume.coerceIn(0, 100) / 10f).coerceIn(0, 10)
+
+    /** 기존 감시 루프를 정리하고, 잠금 중이면 새 목표값으로 다시 시작한다. */
+    private fun restartVolumeEnforcement() {
+        volumeEnforcementJob?.cancel()
+        val target = lockedTemiVolume ?: return
+        volumeEnforcementJob = scope.launch {
+            while (isActive) {
+                delay(VOLUME_ENFORCEMENT_INTERVAL_MILLIS)
+                val currentTarget = lockedTemiVolume ?: break
+                val robot = this@TemiRepository.robot ?: continue
+                if (!isReady) continue
+                runCatching {
+                    val actual = robot.volume
+                    if (actual != currentTarget) {
+                        Log.d(TAG, "음량 고정: $actual -> $currentTarget 로 되돌립니다.")
+                        robot.setVolume(currentTarget, showDrawer = false)
+                    }
+                }.onFailure { Log.e(TAG, "음량 고정 감시 중 오류", it) }
+            }
+        }
+    }
+
     // ---------------------------------------------------------------------
     // 권한 — 선언만으로는 부족하고 사용자가 실행 중에 승인해야 한다.
     // ---------------------------------------------------------------------
@@ -449,10 +543,12 @@ class TemiRepository private constructor() :
 
     private fun TemiFeaturePermission.toSdk(): Permission = when (this) {
         TemiFeaturePermission.MAP -> Permission.MAP
+        TemiFeaturePermission.SETTINGS -> Permission.SETTINGS
     }
 
     private fun Permission.toFeature(): TemiFeaturePermission? = when (this) {
         Permission.MAP -> TemiFeaturePermission.MAP
+        Permission.SETTINGS -> TemiFeaturePermission.SETTINGS
         else -> null
     }
 
@@ -524,6 +620,9 @@ class TemiRepository private constructor() :
 
         /** temi 권한 요청 식별 코드. */
         private const val PERMISSION_REQUEST_CODE = 1001
+
+        /** 음량 고정 감시 주기. SDK에 "음량 변경" 푸시 이벤트가 없어 직접 폴링한다. */
+        private const val VOLUME_ENFORCEMENT_INTERVAL_MILLIS = 1_000L
 
         /** SDK 가 읽는 application meta-data 이름. (`@string/metadata_permissions` 와 같은 값) */
         private const val METADATA_PERMISSIONS = "com.robotemi.sdk.metadata.PERMISSIONS"

@@ -2,6 +2,7 @@ package com.example.ibtech.data.datastore
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -20,6 +21,7 @@ object AppSettingsKeys {
     val IDLE_TIMEOUT_SECONDS: Preferences.Key<Int> = intPreferencesKey("idle_timeout_seconds")
     val BASE_FLOOR: Preferences.Key<Int> = intPreferencesKey("base_floor")
     val VOLUME: Preferences.Key<Int> = intPreferencesKey("volume")
+    val VOLUME_LOCKED: Preferences.Key<Boolean> = booleanPreferencesKey("volume_locked")
     val ADMIN_PASSWORD_HASH: Preferences.Key<String> = stringPreferencesKey("admin_password_hash")
     val FEATURED_FACILITY_COUNT: Preferences.Key<Int> = intPreferencesKey("featured_facility_count")
 }

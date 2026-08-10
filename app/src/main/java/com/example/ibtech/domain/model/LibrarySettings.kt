@@ -20,6 +20,8 @@ data class LibrarySettings(
     val baseFloor: Int = DEFAULT_BASE_FLOOR,
     /** 안내 음성 재생 음량, 0~100 (요구사항 3.7절 "음량을 관리자 설정으로 조절"). */
     val volume: Int = DEFAULT_VOLUME,
+    /** 켜져 있으면 [volume]으로 로봇 음량을 고정하고, 테미 본체 음량 버튼 입력을 무시한다. */
+    val volumeLocked: Boolean = DEFAULT_VOLUME_LOCKED,
     val adminPasswordHash: String = "",
     /** 시설 안내 첫 화면에 큰 카드로 보여줄 대표 장소 개수. 2/4/8 중 하나만 유효하다
      * (관리자 화면에서 이 세 값만 고를 수 있게 제한한다). */
@@ -32,6 +34,7 @@ data class LibrarySettings(
         const val DEFAULT_VOLUME = 70
         const val MIN_VOLUME = 0
         const val MAX_VOLUME = 100
+        const val DEFAULT_VOLUME_LOCKED = false
 
         /** 최초 배포 시 기본 관리자 비밀번호 (로드맵 13단계 "관리자 초기 비밀번호 전달 절차"). */
         const val DEFAULT_ADMIN_PASSWORD = "0000"

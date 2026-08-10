@@ -6,7 +6,7 @@
         여기 선언한 권한만 robot.requestPermissions() 로 요청할 수 있다.
         여러 개면 쉼표로 구분한다. TemiFeaturePermission enum 과 항상 함께 수정한다.
     -->
-    <string name="temi_permissions" translatable="false">com.robotemi.permission.map</string>
+    <string name="temi_permissions" translatable="false">com.robotemi.permission.map,com.robotemi.permission.settings</string>
 
     <!-- 공통 상단바 (요구사항 3.6절) -->
     <string name="top_bar_back">뒤로</string>
@@ -463,6 +463,8 @@
     <string name="settings_admin_field_idle_timeout">무입력 자동 복귀 시간(초)</string>
     <string name="settings_admin_field_base_floor">기준층</string>
     <string name="settings_admin_field_volume">음량 (%1$d)</string>
+    <string name="settings_admin_field_volume_locked">음량 고정</string>
+    <string name="settings_admin_field_volume_locked_description">켜면 테미 본체의 음량 버튼을 눌러도 음량이 바뀌지 않아요.</string>
     <string name="settings_admin_field_featured_count">시설 안내 첫 화면에 크게 보여줄 대표 장소 수</string>
     <string name="settings_admin_featured_count_option">%1$d개</string>
     <string name="settings_admin_save_action">설정 저장</string>

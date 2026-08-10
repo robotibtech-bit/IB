@@ -31,6 +31,7 @@ class SettingsRepository private constructor(
             baseFloor = prefs[AppSettingsKeys.BASE_FLOOR]
                 ?: LibrarySettings.DEFAULT_BASE_FLOOR,
             volume = prefs[AppSettingsKeys.VOLUME] ?: LibrarySettings.DEFAULT_VOLUME,
+            volumeLocked = prefs[AppSettingsKeys.VOLUME_LOCKED] ?: LibrarySettings.DEFAULT_VOLUME_LOCKED,
             adminPasswordHash = prefs[AppSettingsKeys.ADMIN_PASSWORD_HASH].orEmpty(),
             featuredFacilityCount = prefs[AppSettingsKeys.FEATURED_FACILITY_COUNT]
                 ?: LibrarySettings.DEFAULT_FEATURED_FACILITY_COUNT
@@ -48,6 +49,7 @@ class SettingsRepository private constructor(
             prefs[AppSettingsKeys.IDLE_TIMEOUT_SECONDS] = settings.idleTimeoutSeconds
             prefs[AppSettingsKeys.BASE_FLOOR] = settings.baseFloor
             prefs[AppSettingsKeys.VOLUME] = settings.volume
+            prefs[AppSettingsKeys.VOLUME_LOCKED] = settings.volumeLocked
             prefs[AppSettingsKeys.FEATURED_FACILITY_COUNT] = settings.featuredFacilityCount
         }
     }

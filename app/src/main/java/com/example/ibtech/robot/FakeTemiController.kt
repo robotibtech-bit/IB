@@ -47,8 +47,17 @@ class FakeTemiController(
     override val locations: StateFlow<List<String>> = _locations.asStateFlow()
 
     private val _permissionStatus = MutableStateFlow(
-        TemiPermissionStatus(granted = setOf(TemiFeaturePermission.MAP), checked = true)
+        TemiPermissionStatus(
+            granted = setOf(TemiFeaturePermission.MAP, TemiFeaturePermission.SETTINGS),
+            checked = true
+        )
     )
+
+    /** 개발자 메뉴/테스트에서 확인할 수 있도록 마지막으로 적용된 값을 기억한다. */
+    var lastAppliedVolume: Int? = null
+        private set
+    var lastAppliedVolumeLocked: Boolean = false
+        private set
     override val permissionStatus: StateFlow<TemiPermissionStatus> = _permissionStatus.asStateFlow()
 
     private val _batteryStatus =
@@ -126,6 +135,12 @@ class FakeTemiController(
     override fun refreshPermissions(): Boolean = true
 
     override fun requestMissingPermissions(): Boolean = false
+
+    override fun applyVolumeSettings(volume: Int, locked: Boolean): Boolean {
+        lastAppliedVolume = volume
+        lastAppliedVolumeLocked = locked
+        return true
+    }
 
     override fun reportNavigationTimeout(target: String) {
         val current = _navigationState.value

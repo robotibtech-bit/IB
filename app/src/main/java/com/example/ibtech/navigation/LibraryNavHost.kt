@@ -149,6 +149,16 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
         }
     }
 
+    // 관리자 설정의 음량/음량 고정을 로봇에 반영한다. 연결 직후(Ready) 한 번, 이후 관리자가
+    // 저장할 때마다(settings.volume/volumeLocked 변경) 다시 적용된다. SETTINGS 권한이 늦게
+    // 승인되는 경우까지 커버하기 위해 permissionStatus도 키로 둔다 — 최초 시도가 권한 미승인으로
+    // 조용히 실패해도, 승인 직후 재구성에서 다시 적용된다.
+    LaunchedEffect(connectionState, permissionStatus, settings.volume, settings.volumeLocked) {
+        if (connectionState is TemiConnectionState.Ready) {
+            temiController.applyVolumeSettings(settings.volume, settings.volumeLocked)
+        }
+    }
+
     fun goHome() {
         navController.navigate(LibraryRoutes.HOME) {
             popUpTo(LibraryRoutes.HOME) { inclusive = true }
@@ -908,6 +918,7 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                             onIdleTimeoutChange = viewModel::onIdleTimeoutChange,
                             onBaseFloorChange = viewModel::onBaseFloorChange,
                             onVolumeChange = viewModel::onVolumeChange,
+                            onVolumeLockedChange = viewModel::onVolumeLockedChange,
                             onFeaturedFacilityCountChange = viewModel::onFeaturedFacilityCountChange,
                             onSaveSettings = viewModel::onSaveSettings,
                             onCurrentPasswordChange = viewModel::onCurrentPasswordChange,

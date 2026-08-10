@@ -30,6 +30,14 @@ interface TemiController {
     fun refreshPermissions(): Boolean
     fun requestMissingPermissions(): Boolean
 
+    /**
+     * 관리자 설정([volume] 0~100, [locked])을 로봇에 반영한다.
+     * [locked]가 true면 로봇 음량을 [volume]으로 고정하고, 테미 본체의 음량 버튼 입력을
+     * 무시하게 만든다 — 이후 버튼을 눌러도 고정값으로 즉시 되돌린다.
+     * [locked]가 false면 음량 버튼을 다시 정상 동작시킨다.
+     */
+    fun applyVolumeSettings(volume: Int, locked: Boolean): Boolean
+
     fun reportNavigationTimeout(target: String)
     fun reportStopTimeout()
 

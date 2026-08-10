@@ -33,6 +33,7 @@ class BackupRepository private constructor(
                 put("idleTimeoutSeconds", settings.idleTimeoutSeconds)
                 put("baseFloor", settings.baseFloor)
                 put("volume", settings.volume)
+                put("volumeLocked", settings.volumeLocked)
                 put("featuredFacilityCount", settings.featuredFacilityCount)
                 put("facilitiesJson", FacilityJsonMapper.toJson(facilityRepository.allFacilities.first()))
                 put("usageTopicsJson", UsageJsonMapper.toJson(usageRepository.topics.first()))
@@ -79,6 +80,7 @@ class BackupRepository private constructor(
                 ),
                 baseFloor = root.optInt("baseFloor", LibrarySettings.DEFAULT_BASE_FLOOR),
                 volume = sanitizedVolume(root.optInt("volume", LibrarySettings.DEFAULT_VOLUME)),
+                volumeLocked = root.optBoolean("volumeLocked", LibrarySettings.DEFAULT_VOLUME_LOCKED),
                 featuredFacilityCount = sanitizedFeaturedFacilityCount(
                     root.optInt("featuredFacilityCount", LibrarySettings.DEFAULT_FEATURED_FACILITY_COUNT)
                 )

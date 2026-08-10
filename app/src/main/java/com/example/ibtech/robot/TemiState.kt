@@ -93,7 +93,10 @@ sealed interface NavigationState {
  */
 enum class TemiFeaturePermission {
     /** 지도 데이터와 POI(저장 위치) 접근. */
-    MAP
+    MAP,
+
+    /** 로봇 음량 조회/설정, 하드 버튼 모드 변경 (관리자 음량 고정 기능에 필요). */
+    SETTINGS
 }
 
 /**

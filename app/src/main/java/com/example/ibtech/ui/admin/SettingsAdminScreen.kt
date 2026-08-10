@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.LibrarySettings
+import com.example.ibtech.ui.common.AdminSwitchRow
 import com.example.ibtech.ui.common.AdminTextField
 import com.example.ibtech.ui.common.DecorativeBackground
 import com.example.ibtech.ui.common.LibraryOutlinedButton
@@ -43,6 +44,7 @@ fun SettingsAdminScreen(
     onIdleTimeoutChange: (String) -> Unit,
     onBaseFloorChange: (String) -> Unit,
     onVolumeChange: (Int) -> Unit,
+    onVolumeLockedChange: (Boolean) -> Unit,
     onFeaturedFacilityCountChange: (Int) -> Unit,
     onSaveSettings: () -> Unit,
     onCurrentPasswordChange: (String) -> Unit,
@@ -103,6 +105,16 @@ fun SettingsAdminScreen(
                 value = uiState.volume.toFloat(),
                 onValueChange = { onVolumeChange(it.toInt()) },
                 valueRange = 0f..100f
+            )
+            AdminSwitchRow(
+                label = stringResource(R.string.settings_admin_field_volume_locked),
+                checked = uiState.volumeLocked,
+                onCheckedChange = onVolumeLockedChange
+            )
+            Text(
+                text = stringResource(R.string.settings_admin_field_volume_locked_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(

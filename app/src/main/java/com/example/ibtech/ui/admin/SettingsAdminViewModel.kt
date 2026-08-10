@@ -26,6 +26,7 @@ data class SettingsAdminUiState(
     val idleTimeoutText: String = "",
     val baseFloorText: String = "",
     val volume: Int = LibrarySettings.DEFAULT_VOLUME,
+    val volumeLocked: Boolean = LibrarySettings.DEFAULT_VOLUME_LOCKED,
     val featuredFacilityCount: Int = LibrarySettings.DEFAULT_FEATURED_FACILITY_COUNT,
     val idleTimeoutError: String? = null,
     val baseFloorError: String? = null,
@@ -64,6 +65,7 @@ class SettingsAdminViewModel(application: Application) : AndroidViewModel(applic
                     idleTimeoutText = settings.idleTimeoutSeconds.toString(),
                     baseFloorText = settings.baseFloor.toString(),
                     volume = settings.volume,
+                    volumeLocked = settings.volumeLocked,
                     featuredFacilityCount = settings.featuredFacilityCount,
                     lastBackupAt = backupRepository.lastBackupAt()
                 )
@@ -85,6 +87,10 @@ class SettingsAdminViewModel(application: Application) : AndroidViewModel(applic
 
     fun onVolumeChange(value: Int) {
         _uiState.update { it.copy(volume = value) }
+    }
+
+    fun onVolumeLockedChange(value: Boolean) {
+        _uiState.update { it.copy(volumeLocked = value) }
     }
 
     fun onFeaturedFacilityCountChange(value: Int) {
@@ -114,6 +120,7 @@ class SettingsAdminViewModel(application: Application) : AndroidViewModel(applic
                     idleTimeoutSeconds = idleTimeout,
                     baseFloor = baseFloor,
                     volume = state.volume,
+                    volumeLocked = state.volumeLocked,
                     featuredFacilityCount = state.featuredFacilityCount
                 )
             )
@@ -182,6 +189,7 @@ class SettingsAdminViewModel(application: Application) : AndroidViewModel(applic
                         idleTimeoutText = settings.idleTimeoutSeconds.toString(),
                         baseFloorText = settings.baseFloor.toString(),
                         volume = settings.volume,
+                        volumeLocked = settings.volumeLocked,
                         featuredFacilityCount = settings.featuredFacilityCount
                     )
                 }

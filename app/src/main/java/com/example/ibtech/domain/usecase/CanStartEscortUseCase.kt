@@ -4,6 +4,7 @@ import com.example.ibtech.domain.model.EscortBlockReason
 import com.example.ibtech.domain.model.EscortGate
 import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.robot.TemiConnectionState
+import com.example.ibtech.robot.TemiFeaturePermission
 import com.example.ibtech.robot.TemiPermissionStatus
 
 /**
@@ -30,7 +31,9 @@ object CanStartEscortUseCase {
         if (robot.connectionState != TemiConnectionState.Ready) {
             return EscortGate.Blocked(EscortBlockReason.SDK_NOT_READY)
         }
-        if (!robot.permissionStatus.allGranted) {
+        // 동행 안내는 지도/POI 접근(MAP)만 있으면 된다 — 음량 고정 등 다른 기능이 쓰는
+        // SETTINGS 권한까지 요구하면 그 권한을 안 받았다고 동행까지 막히는 건 잘못된 커플링이다.
+        if (TemiFeaturePermission.MAP !in robot.permissionStatus.granted) {
             return EscortGate.Blocked(EscortBlockReason.PERMISSION)
         }
         if (!robot.knownLocations.contains(facility.sourcePoiName)) {
