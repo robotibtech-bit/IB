@@ -45,6 +45,7 @@ object LibraryRoutes {
     const val EVENT_ADMIN = "event_admin"
     const val SETTINGS_ADMIN = "settings_admin"
     const val STATISTICS = "statistics"
+    const val APP_UPDATE = "app_update"
 
     fun facilityList(query: String? = null): String =
         if (query.isNullOrBlank()) "facility_list" else "facility_list?query=${Uri.encode(query)}"

@@ -361,6 +361,7 @@
     <string name="admin_menu_event">행사·공지 관리</string>
     <string name="admin_menu_settings">설정</string>
     <string name="admin_menu_statistics">통계</string>
+    <string name="admin_menu_app_update">앱 업데이트</string>
 
     <!-- 시설 관리 -->
     <string name="title_facility_admin">시설 관리</string>
@@ -487,6 +488,9 @@
     <string name="stats_section_event">행사 조회</string>
     <string name="stats_label_event_qr_open">행사 QR 열기</string>
     <string name="stats_last_export_none">내보낸 기록 없음</string>
+
+    <!-- 앱 업데이트 (KSH/updater 프로젝트 이식) -->
+    <string name="title_app_update">앱 업데이트</string>
     <string name="stats_last_export_format">마지막 내보내기: %1$s</string>
     <string name="stats_export_action">CSV로 내보내기</string>
     <string name="stats_export_success">통계를 CSV로 저장했습니다.</string>

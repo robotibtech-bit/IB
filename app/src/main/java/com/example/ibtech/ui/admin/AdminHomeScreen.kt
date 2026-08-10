@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SmartToy
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -39,6 +40,7 @@ fun AdminHomeScreen(
     onEventAdmin: () -> Unit,
     onSettingsAdmin: () -> Unit,
     onStatistics: () -> Unit,
+    onAppUpdate: () -> Unit,
     modifier: Modifier = Modifier,
     onDevMenuClick: (() -> Unit)? = null
 ) {
@@ -81,6 +83,11 @@ fun AdminHomeScreen(
                 text = stringResource(R.string.admin_menu_statistics),
                 icon = Icons.Filled.BarChart,
                 onClick = onStatistics
+            )
+            LibraryPrimaryButton(
+                text = stringResource(R.string.admin_menu_app_update),
+                icon = Icons.Filled.SystemUpdate,
+                onClick = onAppUpdate
             )
             if (onDevMenuClick != null) {
                 LibraryOutlinedButton(

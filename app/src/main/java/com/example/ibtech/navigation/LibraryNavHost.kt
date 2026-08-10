@@ -1,6 +1,8 @@
 package com.example.ibtech.navigation
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -38,6 +40,8 @@ import com.example.ibtech.robot.TemiControllerProvider
 import com.example.ibtech.ui.admin.AdminHomeScreen
 import com.example.ibtech.ui.admin.AdminLoginScreen
 import com.example.ibtech.ui.admin.AdminLoginViewModel
+import com.example.ibtech.ui.admin.AppUpdateScreen
+import com.example.ibtech.ui.admin.AppUpdateViewModel
 import com.example.ibtech.ui.admin.FacilityAdminEditScreen
 import com.example.ibtech.ui.admin.FacilityAdminEditViewModel
 import com.example.ibtech.ui.admin.EventAdminScreen
@@ -690,6 +694,7 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                             onEventAdmin = { navController.navigate(LibraryRoutes.EVENT_ADMIN) },
                             onSettingsAdmin = { navController.navigate(LibraryRoutes.SETTINGS_ADMIN) },
                             onStatistics = { navController.navigate(LibraryRoutes.STATISTICS) },
+                            onAppUpdate = { navController.navigate(LibraryRoutes.APP_UPDATE) },
                             onDevMenuClick = if (BuildConfig.DEBUG) {
                                 { navController.navigate(LibraryRoutes.DEV_MENU) }
                             } else {
@@ -925,6 +930,31 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                             events = viewModel.events,
                             onSelectPeriod = viewModel::onSelectPeriod,
                             onExportCsv = viewModel::onExportCsv,
+                            modifier = Modifier.padding(padding)
+                        )
+                    }
+                }
+            }
+
+            composable(LibraryRoutes.APP_UPDATE) {
+                val viewModel: AppUpdateViewModel = viewModel()
+                val appUpdateUiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val installPermissionLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.StartActivityForResult()
+                ) { viewModel.refreshInstallPermission() }
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_app_update),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(background = SurfaceWhite), typography = AdminTypography) {
+                        AppUpdateScreen(
+                            uiState = appUpdateUiState,
+                            onCheckForUpdate = viewModel::checkForUpdate,
+                            onOpenInstallPermission = { installPermissionLauncher.launch(viewModel.installPermissionIntent()) },
+                            onDownloadAndInstall = viewModel::downloadAndInstall,
+                            onInstallApk = { context.startActivity(it) },
                             modifier = Modifier.padding(padding)
                         )
                     }
