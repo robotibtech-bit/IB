@@ -14,7 +14,11 @@ sealed interface GuideOptionSet {
     /** 층·안내방식이 아직 설정되지 않은 POI. Temi 직접 동행만 제공하거나 화면에서 숨긴다(3.2절). */
     data object TemiEscortOnlyUnconfigured : GuideOptionSet
 
-    /** guideMode가 ESCORT/BOTH. `동행 안내`와 `위치만 보기` 모두 노출 — 기준층이 아니어도
+    /** guideMode가 ESCORT. `동행 안내`만 노출 — `위치만 보기`는 관리자가 명시적으로 BOTH를
+     * 고르지 않는 한 보여주지 않는다. */
+    data object EscortOnly : GuideOptionSet
+
+    /** guideMode가 BOTH. `동행 안내`와 `위치만 보기` 모두 노출 — 기준층이 아니어도
      * sourcePoiName이 엘리베이터 POI를 가리키면 동행이 가능하다. */
     data object EscortAndLocationOnly : GuideOptionSet
 

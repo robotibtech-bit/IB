@@ -18,7 +18,9 @@ fun buildNavigationStartText(context: Context, facility: Facility, baseFloor: In
     }
 
 /** [sameFloorTextRes]는 기준층일 때 쓸 문구 리소스 — 음성용(`navigation_arrived_speech`)과
- * 화면 표시용(`navigation_arrived_body`)이 문구는 같지만 리소스가 분리되어 있어 호출부에서 고른다. */
+ * 화면 표시용(`navigation_arrived_body`)이 문구는 같지만 리소스가 분리되어 있어 호출부에서 고른다.
+ * 기준층이 아니면 [buildFloorDirectionGuideText]와 완전히 같은 문장을 쓴다 — "위치만 보기"
+ * 화면에 표시되는 안내와 로봇이 도착해서 말하는 안내가 서로 달라 보이지 않도록 하기 위함이다. */
 fun buildNavigationArrivedText(
     context: Context,
     facility: Facility,
@@ -26,17 +28,5 @@ fun buildNavigationArrivedText(
     sameFloorTextRes: Int
 ): String {
     if (facility.floor == baseFloor) return context.getString(sameFloorTextRes)
-
-    val direction = facility.direction
-    val goingUp = facility.floor > baseFloor
-    return when {
-        direction != null && goingUp -> context.getString(
-            R.string.navigation_arrived_speech_up_with_direction, facility.floor, context.getString(direction.labelRes())
-        )
-        direction != null && !goingUp -> context.getString(
-            R.string.navigation_arrived_speech_down_with_direction, facility.floor, context.getString(direction.labelRes())
-        )
-        goingUp -> context.getString(R.string.navigation_arrived_speech_up_no_direction, facility.floor)
-        else -> context.getString(R.string.navigation_arrived_speech_down_no_direction, facility.floor)
-    }
+    return buildFloorDirectionGuideText(context, facility, baseFloor)
 }

@@ -353,6 +353,8 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                 ) { padding ->
                     NavigationProgressScreen(
                         uiState = navUiState,
+                        idleTimeoutSeconds = settings.idleTimeoutSeconds,
+                        interactionTick = interactionTick,
                         onConfirmStart = viewModel::onConfirmStart,
                         onCancelStart = { navController.popBackStack() },
                         onStop = viewModel::onStopRequested,
@@ -365,6 +367,11 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                                 }
                             }
                             navController.navigate(LibraryRoutes.facilityMap(facilityId))
+                        },
+                        onFindAnotherFacility = {
+                            navController.navigate(LibraryRoutes.facilityList()) {
+                                popUpTo(LibraryRoutes.HOME)
+                            }
                         },
                         onGoHome = { goHome() },
                         modifier = Modifier.padding(padding)

@@ -18,7 +18,7 @@ object ResolveGuideOptionUseCase {
         // 관리자가 명시적으로 지정한 안내 방식을 그대로 따른다. 타 층 시설도 sourcePoiName이
         // 엘리베이터 POI를 가리키도록 등록되어 있으면 동행이 가능하므로 층으로 분기하지 않는다.
         return when (facility.guideMode) {
-            GuideMode.ESCORT -> GuideOptionSet.EscortAndLocationOnly
+            GuideMode.ESCORT -> GuideOptionSet.EscortOnly
             GuideMode.LOCATION_ONLY -> GuideOptionSet.LocationOnlyWithDirections
             GuideMode.BOTH -> GuideOptionSet.EscortAndLocationOnly
         }

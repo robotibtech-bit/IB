@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
@@ -100,53 +101,26 @@ fun FacilityDetailScreen(
                             }
 
                             RobotSpeechBubble(
-                                text = if (facility.floor == uiState.baseFloor) {
-                                    stringResource(R.string.facility_detail_floor_line, facility.floor)
-                                } else {
-                                    facilityLocationGuideText(facility)
-                                }
+                                text = buildFloorDirectionGuideText(LocalContext.current, facility, uiState.baseFloor)
                             )
                         }
                     }
 
                     when (uiState.guideOptions) {
-                        GuideOptionSet.EscortAndLocationOnly -> {
-                            val gate = uiState.escortGate
-                            LibraryPrimaryButton(
-                                text = stringResource(R.string.facility_detail_escort_action),
-                                icon = Icons.AutoMirrored.Filled.DirectionsWalk,
-                                onClick = onEscortClick,
-                                enabled = gate is EscortGate.Allowed
+                        GuideOptionSet.EscortOnly -> {
+                            EscortButtonBlock(
+                                uiState = uiState,
+                                onEscortClick = onEscortClick,
+                                onRequestPermission = onRequestPermission
                             )
-                            if (gate is EscortGate.Blocked) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(CoralAccentContainer, RoundedCornerShape(16.dp))
-                                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.ErrorOutline,
-                                        contentDescription = null,
-                                        tint = CoralAccent
-                                    )
-                                    Text(
-                                        text = stringResource(gate.reason.toMessageRes()),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = CoralAccent
-                                    )
-                                }
-                                // 권한 부족은 이 화면에서 바로 재시도할 수 있는 유일한 사유라
-                                // 별도 버튼을 둔다(나머지 사유는 SDK/이동 상태가 스스로 바뀌어야 함).
-                                if (gate.reason == EscortBlockReason.PERMISSION) {
-                                    LibraryOutlinedButton(
-                                        text = stringResource(R.string.facility_detail_request_permission_action),
-                                        onClick = onRequestPermission,
-                                        enabled = !uiState.permissionRequestInFlight
-                                    )
-                                }
-                            }
+                        }
+
+                        GuideOptionSet.EscortAndLocationOnly -> {
+                            EscortButtonBlock(
+                                uiState = uiState,
+                                onEscortClick = onEscortClick,
+                                onRequestPermission = onRequestPermission
+                            )
                             LibraryOutlinedButton(
                                 text = stringResource(R.string.facility_detail_location_action),
                                 icon = Icons.Filled.Place,
@@ -168,6 +142,50 @@ fun FacilityDetailScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EscortButtonBlock(
+    uiState: FacilityDetailUiState,
+    onEscortClick: () -> Unit,
+    onRequestPermission: () -> Unit
+) {
+    val gate = uiState.escortGate
+    LibraryPrimaryButton(
+        text = stringResource(R.string.facility_detail_escort_action),
+        icon = Icons.AutoMirrored.Filled.DirectionsWalk,
+        onClick = onEscortClick,
+        enabled = gate is EscortGate.Allowed
+    )
+    if (gate is EscortGate.Blocked) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(CoralAccentContainer, RoundedCornerShape(16.dp))
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.ErrorOutline,
+                contentDescription = null,
+                tint = CoralAccent
+            )
+            Text(
+                text = stringResource(gate.reason.toMessageRes()),
+                style = MaterialTheme.typography.bodyMedium,
+                color = CoralAccent
+            )
+        }
+        // 권한 부족은 이 화면에서 바로 재시도할 수 있는 유일한 사유라 별도 버튼을 둔다
+        // (나머지 사유는 SDK/이동 상태가 스스로 바뀌어야 함).
+        if (gate.reason == EscortBlockReason.PERMISSION) {
+            LibraryOutlinedButton(
+                text = stringResource(R.string.facility_detail_request_permission_action),
+                onClick = onRequestPermission,
+                enabled = !uiState.permissionRequestInFlight
+            )
         }
     }
 }

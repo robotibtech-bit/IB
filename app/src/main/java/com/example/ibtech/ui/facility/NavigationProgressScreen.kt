@@ -21,6 +21,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,11 +62,14 @@ import kotlinx.coroutines.delay
 @Composable
 fun NavigationProgressScreen(
     uiState: NavigationUiState,
+    idleTimeoutSeconds: Int,
+    interactionTick: Int,
     onConfirmStart: () -> Unit,
     onCancelStart: () -> Unit,
     onStop: () -> Unit,
     onRetry: () -> Unit,
     onLocationOnlyClick: () -> Unit,
+    onFindAnotherFacility: () -> Unit,
     onGoHome: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -120,6 +127,9 @@ fun NavigationProgressScreen(
                         is NavigationState.Arrived -> ArrivedContent(
                             facility = facility,
                             baseFloor = uiState.baseFloor,
+                            idleTimeoutSeconds = idleTimeoutSeconds,
+                            interactionTick = interactionTick,
+                            onFindAnotherFacility = onFindAnotherFacility,
                             onGoHome = onGoHome
                         )
 
@@ -211,8 +221,17 @@ private fun FailureContent(
 }
 
 @Composable
-private fun ArrivedContent(facility: Facility, baseFloor: Int, onGoHome: () -> Unit) {
+private fun ArrivedContent(
+    facility: Facility,
+    baseFloor: Int,
+    idleTimeoutSeconds: Int,
+    interactionTick: Int,
+    onFindAnotherFacility: () -> Unit,
+    onGoHome: () -> Unit
+) {
     val context = LocalContext.current
+    var secondsLeft by remember(idleTimeoutSeconds) { mutableIntStateOf(idleTimeoutSeconds) }
+
     Column(verticalArrangement = Arrangement.spacedBy(LibraryDimens.CardSpacing)) {
         NavigationStatusCard(
             icon = Icons.Filled.CheckCircle,
@@ -220,14 +239,27 @@ private fun ArrivedContent(facility: Facility, baseFloor: Int, onGoHome: () -> U
             container = SuccessAccentContainer,
             text = buildNavigationArrivedText(context, facility, baseFloor, R.string.navigation_arrived_body)
         )
-        LibraryPrimaryButton(text = stringResource(R.string.top_bar_home), onClick = onGoHome)
+        Text(
+            text = stringResource(R.string.navigation_arrived_countdown, secondsLeft),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        LibraryPrimaryButton(
+            text = stringResource(R.string.navigation_arrived_continue_action),
+            onClick = onFindAnotherFacility
+        )
+        LibraryOutlinedButton(text = stringResource(R.string.top_bar_home), onClick = onGoHome)
     }
 
-    // 도착 후 일정 시간이 지나면 자동으로 홈으로 돌아간다(명세서 2.6절 "자동 3~5초 후 홈 복귀").
-    // 지연 시간·트리거 조건은 그대로다 — 디자인 변경과 무관한 로직이라 손대지 않았다.
-    LaunchedEffect(Unit) {
-        delay(ARRIVED_AUTO_HOME_DELAY_MILLIS)
-        onGoHome()
+    // 실제 홈 복귀(화면 전환 + "홈" POI로 로봇 이동)는 LibraryNavHost의 IdleTimeoutObserver가
+    // 관리자 설정 무입력시간을 기준으로 단독 수행한다 — 여기서는 같은 값(idleTimeoutSeconds)과
+    // 같은 리셋 신호(interactionTick, 화면 아무 곳이나 터치하면 증가)로 카운트다운 "표시"만
+    // 맞춰서 보여준다. 그래야 화면에 보이는 초와 실제 복귀 시점이 어긋나지 않는다.
+    LaunchedEffect(idleTimeoutSeconds, interactionTick) {
+        for (remaining in idleTimeoutSeconds downTo 0) {
+            secondsLeft = remaining
+            delay(1_000L)
+        }
     }
 }
 
@@ -265,5 +297,3 @@ internal fun NavigationIssue.toMessageRes(): Int = when (this) {
     NavigationIssue.TIMEOUT -> R.string.navigation_issue_timeout
     NavigationIssue.SDK_ERROR -> R.string.navigation_issue_sdk_error
 }
-
-private const val ARRIVED_AUTO_HOME_DELAY_MILLIS = 4_000L

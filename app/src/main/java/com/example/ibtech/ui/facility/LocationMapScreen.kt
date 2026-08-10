@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
@@ -83,7 +84,9 @@ fun LocationMapScreen(
                                 style = MaterialTheme.typography.headlineMedium,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
-                            RobotSpeechBubble(text = facilityLocationGuideText(facility))
+                            RobotSpeechBubble(
+                                text = buildFloorDirectionGuideText(LocalContext.current, facility, uiState.baseFloor)
+                            )
                         }
                     }
                     if (bitmap != null) {

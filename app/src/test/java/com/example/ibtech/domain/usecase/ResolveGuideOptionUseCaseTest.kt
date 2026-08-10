@@ -22,16 +22,17 @@ class ResolveGuideOptionUseCaseTest {
     )
 
     @Test
-    fun `same floor with ESCORT allows escort and location`() {
+    fun `same floor with ESCORT allows escort only, not location`() {
+        // ESCORT는 관리자가 위치 안내를 명시적으로 함께 켜지 않은 것이므로 위치 버튼을 숨긴다.
         val result = ResolveGuideOptionUseCase(facility(floor = 1, guideMode = GuideMode.ESCORT))
-        assertEquals(GuideOptionSet.EscortAndLocationOnly, result)
+        assertEquals(GuideOptionSet.EscortOnly, result)
     }
 
     @Test
-    fun `different floor with ESCORT still allows escort and location`() {
+    fun `different floor with ESCORT still allows escort only`() {
         // sourcePoiName이 엘리베이터 POI를 가리키도록 등록되어 있으면 타 층도 동행이 가능하다.
         val result = ResolveGuideOptionUseCase(facility(floor = 2, guideMode = GuideMode.ESCORT))
-        assertEquals(GuideOptionSet.EscortAndLocationOnly, result)
+        assertEquals(GuideOptionSet.EscortOnly, result)
     }
 
     @Test
@@ -65,6 +66,6 @@ class ResolveGuideOptionUseCaseTest {
     @Test
     fun `works for an arbitrary non-standard floor value without crashing`() {
         val result = ResolveGuideOptionUseCase(facility(floor = -99, guideMode = GuideMode.ESCORT))
-        assertEquals(GuideOptionSet.EscortAndLocationOnly, result)
+        assertEquals(GuideOptionSet.EscortOnly, result)
     }
 }

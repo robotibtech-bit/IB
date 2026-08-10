@@ -55,9 +55,12 @@
     <string name="facility_detail_escort_reason_poi_missing">로봇 지도에서 이 위치를 찾을 수 없습니다.</string>
     <string name="facility_detail_escort_reason_already_moving">다른 안내가 진행 중입니다.</string>
 
-    <!-- 층·방향 안내 문구 (facility.direction) -->
-    <string name="facility_location_guide_with_direction">엘리베이터를 이용해 %1$d층 %2$s로 이동해 주세요.</string>
-    <string name="facility_location_guide_no_direction">엘리베이터를 이용해 %1$d층으로 이동해 주세요.</string>
+    <!-- 층·방향 안내 문구 (facility.direction). 화면 표시(위치만 보기·시설 상세)와 로봇 음성
+         (동행 도착)이 완전히 같은 문구를 쓴다 — buildFloorDirectionGuideText() 참고. -->
+    <string name="location_guide_up_with_direction">엘리베이터를 이용해 %1$d층으로 올라가셔서 %2$s으로 이동하시면 있습니다.</string>
+    <string name="location_guide_up_no_direction">엘리베이터를 이용해 %1$d층으로 올라가시면 있습니다.</string>
+    <string name="location_guide_down_with_direction">엘리베이터를 이용해 %1$d층으로 내려가셔서 %2$s으로 이동하시면 있습니다.</string>
+    <string name="location_guide_down_no_direction">엘리베이터를 이용해 %1$d층으로 내려가시면 있습니다.</string>
     <string name="facility_direction_right">우측</string>
     <string name="facility_direction_front">정면</string>
     <string name="facility_direction_left">좌측</string>
@@ -81,12 +84,11 @@
     <string name="navigation_arrived_body">목적지에 도착했습니다.</string>
     <string name="navigation_start_speech">목적지로 이동을 시작합니다.</string>
     <string name="navigation_arrived_speech">목적지에 도착했습니다.</string>
-    <!-- 기준층이 아닌 시설: 로봇은 엘리베이터 POI까지만 동행하므로 문구를 구분한다 -->
+    <!-- 기준층이 아닌 시설: 로봇은 엘리베이터 POI까지만 동행하므로 시작 문구를 구분한다.
+         도착 문구는 위 location_guide_* 를 그대로 재사용한다(화면·음성 일치). -->
     <string name="navigation_start_speech_other_floor">계단이나 엘리베이터로 안내하겠습니다.</string>
-    <string name="navigation_arrived_speech_up_with_direction">%1$d층으로 올라가서 %2$s에 있습니다.</string>
-    <string name="navigation_arrived_speech_up_no_direction">%1$d층으로 올라가 주세요.</string>
-    <string name="navigation_arrived_speech_down_with_direction">%1$d층으로 내려가서 %2$s에 있습니다.</string>
-    <string name="navigation_arrived_speech_down_no_direction">%1$d층으로 내려가 주세요.</string>
+    <string name="navigation_arrived_countdown">%1$d초 뒤에 홈으로 돌아갑니다.</string>
+    <string name="navigation_arrived_continue_action">다른 시설 안내받기</string>
     <string name="navigation_exit_confirm_title">안내 이동을 중지할까요?</string>
     <string name="navigation_exit_confirm_body">지금 나가면 이동 중인 안내가 중지됩니다.</string>
     <string name="navigation_exit_confirm_action">중지하고 나가기</string>
