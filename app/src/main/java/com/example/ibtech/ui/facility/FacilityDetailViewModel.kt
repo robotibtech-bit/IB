@@ -10,6 +10,7 @@ import com.example.ibtech.domain.model.EscortBlockReason
 import com.example.ibtech.domain.model.EscortGate
 import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.domain.model.GuideOptionSet
+import com.example.ibtech.domain.model.LibrarySettings
 import com.example.ibtech.domain.usecase.CanStartEscortUseCase
 import com.example.ibtech.domain.usecase.ResolveGuideOptionUseCase
 import com.example.ibtech.domain.usecase.RobotSnapshot
@@ -37,7 +38,8 @@ data class FacilityDetailUiState(
     val facility: Facility? = null,
     val guideOptions: GuideOptionSet = GuideOptionSet.Hidden,
     val escortGate: EscortGate = EscortGate.Blocked(EscortBlockReason.SDK_NOT_READY),
-    val permissionRequestInFlight: Boolean = false
+    val permissionRequestInFlight: Boolean = false,
+    val baseFloor: Int = LibrarySettings.DEFAULT_BASE_FLOOR
 )
 
 class FacilityDetailViewModel(
@@ -80,9 +82,10 @@ class FacilityDetailViewModel(
             FacilityDetailUiState(
                 isLoaded = true,
                 facility = facility,
-                guideOptions = ResolveGuideOptionUseCase(facility, settings.baseFloor),
-                escortGate = CanStartEscortUseCase(facility, snapshot, settings.baseFloor),
-                permissionRequestInFlight = snapshot.permissionStatus.requestInFlight
+                guideOptions = ResolveGuideOptionUseCase(facility),
+                escortGate = CanStartEscortUseCase(facility, snapshot),
+                permissionRequestInFlight = snapshot.permissionStatus.requestInFlight,
+                baseFloor = settings.baseFloor
             )
         }
     }.stateIn(

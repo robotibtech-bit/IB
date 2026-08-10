@@ -1,6 +1,7 @@
 package com.example.ibtech.data.repository
 
 import com.example.ibtech.domain.model.Facility
+import com.example.ibtech.domain.model.FacilityDirection
 import com.example.ibtech.domain.model.FacilitySyncStatus
 import com.example.ibtech.domain.model.GuideMode
 import org.json.JSONArray
@@ -22,6 +23,7 @@ object FacilityJsonMapper {
             obj.put("floor", facility.floor)
             obj.put("shortDescription", facility.shortDescription)
             obj.put("guideMode", facility.guideMode.name)
+            obj.put("direction", facility.direction?.name ?: JSONObject.NULL)
             obj.put("directionText", facility.directionText ?: JSONObject.NULL)
             obj.put("mapImagePath", facility.mapImagePath ?: JSONObject.NULL)
             obj.put("iconKey", facility.iconKey ?: JSONObject.NULL)
@@ -48,6 +50,8 @@ object FacilityJsonMapper {
                     shortDescription = obj.optString("shortDescription", ""),
                     guideMode = runCatching { GuideMode.valueOf(obj.getString("guideMode")) }
                         .getOrDefault(GuideMode.LOCATION_ONLY),
+                    direction = obj.optStringOrNull("direction")
+                        ?.let { runCatching { FacilityDirection.valueOf(it) }.getOrNull() },
                     directionText = obj.optStringOrNull("directionText"),
                     mapImagePath = obj.optStringOrNull("mapImagePath"),
                     iconKey = obj.optStringOrNull("iconKey"),

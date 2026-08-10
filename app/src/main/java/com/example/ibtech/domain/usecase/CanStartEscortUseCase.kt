@@ -27,7 +27,7 @@ data class RobotSnapshot(
  */
 object CanStartEscortUseCase {
 
-    operator fun invoke(facility: Facility, robot: RobotSnapshot, baseFloor: Int): EscortGate {
+    operator fun invoke(facility: Facility, robot: RobotSnapshot): EscortGate {
         if (robot.connectionState != TemiConnectionState.Ready) {
             return EscortGate.Blocked(EscortBlockReason.SDK_NOT_READY)
         }
@@ -42,9 +42,8 @@ object CanStartEscortUseCase {
         if (robot.isNavigationBusy) {
             return EscortGate.Blocked(EscortBlockReason.ALREADY_MOVING)
         }
-        if (facility.floor != baseFloor) {
-            return EscortGate.Blocked(EscortBlockReason.DIFFERENT_FLOOR)
-        }
+        // 타 층 시설은 관리자가 sourcePoiName을 엘리베이터 POI로 등록해 두므로(요구사항: 타 층
+        // 안내 고도화), 층 비교로 동행을 막지 않는다 — 도착 가능 여부는 위 POI_MISSING이 이미 검증한다.
         return EscortGate.Allowed
     }
 }

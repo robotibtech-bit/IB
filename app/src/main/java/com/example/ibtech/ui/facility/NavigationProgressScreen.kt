@@ -25,9 +25,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
+import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.robot.NavigationIssue
 import com.example.ibtech.robot.NavigationState
 import com.example.ibtech.ui.common.ConfirmDialog
@@ -115,7 +117,11 @@ fun NavigationProgressScreen(
                             onGoHome = onGoHome
                         )
 
-                        is NavigationState.Arrived -> ArrivedContent(onGoHome = onGoHome)
+                        is NavigationState.Arrived -> ArrivedContent(
+                            facility = facility,
+                            baseFloor = uiState.baseFloor,
+                            onGoHome = onGoHome
+                        )
 
                         NavigationState.Idle -> Unit
                     }
@@ -205,13 +211,14 @@ private fun FailureContent(
 }
 
 @Composable
-private fun ArrivedContent(onGoHome: () -> Unit) {
+private fun ArrivedContent(facility: Facility, baseFloor: Int, onGoHome: () -> Unit) {
+    val context = LocalContext.current
     Column(verticalArrangement = Arrangement.spacedBy(LibraryDimens.CardSpacing)) {
         NavigationStatusCard(
             icon = Icons.Filled.CheckCircle,
             accent = SuccessAccent,
             container = SuccessAccentContainer,
-            text = stringResource(R.string.navigation_arrived_body)
+            text = buildNavigationArrivedText(context, facility, baseFloor, R.string.navigation_arrived_body)
         )
         LibraryPrimaryButton(text = stringResource(R.string.top_bar_home), onClick = onGoHome)
     }

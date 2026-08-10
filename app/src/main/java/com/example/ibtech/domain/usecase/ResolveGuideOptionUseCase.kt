@@ -11,21 +11,16 @@ import com.example.ibtech.domain.model.GuideOptionSet
  */
 object ResolveGuideOptionUseCase {
 
-    operator fun invoke(facility: Facility, baseFloor: Int): GuideOptionSet {
+    operator fun invoke(facility: Facility): GuideOptionSet {
         if (!facility.isEnabled) return GuideOptionSet.Hidden
         if (facility.floor == Facility.UNSET_FLOOR) return GuideOptionSet.TemiEscortOnlyUnconfigured
 
-        // 관리자가 명시적으로 지정한 안내 방식이 최우선이며, 타 층 동행은 항상 차단한다(안전장치).
+        // 관리자가 명시적으로 지정한 안내 방식을 그대로 따른다. 타 층 시설도 sourcePoiName이
+        // 엘리베이터 POI를 가리키도록 등록되어 있으면 동행이 가능하므로 층으로 분기하지 않는다.
         return when (facility.guideMode) {
-            GuideMode.ESCORT ->
-                if (facility.floor == baseFloor) GuideOptionSet.EscortAndLocationOnly
-                else GuideOptionSet.LocationOnlyWithDirections
-
+            GuideMode.ESCORT -> GuideOptionSet.EscortAndLocationOnly
             GuideMode.LOCATION_ONLY -> GuideOptionSet.LocationOnlyWithDirections
-
-            GuideMode.BOTH ->
-                if (facility.floor == baseFloor) GuideOptionSet.EscortAndLocationOnly
-                else GuideOptionSet.LocationOnlyWithDirections
+            GuideMode.BOTH -> GuideOptionSet.EscortAndLocationOnly
         }
     }
 }

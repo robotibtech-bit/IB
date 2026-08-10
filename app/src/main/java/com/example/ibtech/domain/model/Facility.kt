@@ -14,6 +14,9 @@ data class Facility(
     val floor: Int = UNSET_FLOOR,
     val shortDescription: String = "",
     val guideMode: GuideMode = GuideMode.LOCATION_ONLY,
+    /** 기준층(baseFloor)이 아닌 시설에서 "엘리베이터 기준 좌/우/정면 어디인지"를 관리자가
+     * 고정된 3개 값 중에서 고른다(요구사항: 타 층 안내 고도화). */
+    val direction: FacilityDirection? = null,
     val directionText: String? = null,
     val mapImagePath: String? = null,
     val iconKey: String? = null,
@@ -32,6 +35,9 @@ data class Facility(
 
 /** 안내 방식. 관리자가 POI별로 지정한다(요구사항 2.1/3.2절). */
 enum class GuideMode { ESCORT, LOCATION_ONLY, BOTH }
+
+/** 기준층이 아닌 시설의 실제 위치가 엘리베이터를 기준으로 어느 방향인지. */
+enum class FacilityDirection { RIGHT, FRONT, LEFT }
 
 /**
  * Temi POI 동기화 상태 (요구사항 명세서 6.2절).

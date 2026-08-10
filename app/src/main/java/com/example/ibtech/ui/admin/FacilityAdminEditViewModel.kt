@@ -6,13 +6,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.ibtech.R
 import com.example.ibtech.data.repository.FacilityRepository
+import com.example.ibtech.data.repository.SettingsRepository
 import com.example.ibtech.domain.model.Facility
+import com.example.ibtech.domain.model.FacilityDirection
 import com.example.ibtech.domain.model.GuideMode
+import com.example.ibtech.domain.model.LibrarySettings
 import com.example.ibtech.domain.usecase.FacilityAdminValidation
 import com.example.ibtech.domain.usecase.ValidateFacilityAdminInputUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -24,6 +28,8 @@ data class FacilityAdminEditUiState(
     val floorText: String = "",
     val description: String = "",
     val guideMode: GuideMode = GuideMode.LOCATION_ONLY,
+    val direction: FacilityDirection? = null,
+    val baseFloor: Int = LibrarySettings.DEFAULT_BASE_FLOOR,
     val iconKey: String? = null,
     val isEnabled: Boolean = false,
     val isFeatured: Boolean = false,
@@ -43,6 +49,7 @@ class FacilityAdminEditViewModel(
     }
 
     private val facilityRepository = FacilityRepository.getInstance(application)
+    private val settingsRepository = SettingsRepository.getInstance(application)
 
     /** 저장 시 여기 담긴 원본에 `.copy(...)`만 해서 [Facility.sourcePoiName]/[Facility.syncStatus]
      * 등 이 화면이 다루지 않는 필드를 그대로 보존한다. */
@@ -53,11 +60,12 @@ class FacilityAdminEditViewModel(
 
     init {
         viewModelScope.launch {
+            val baseFloor = settingsRepository.settings.first().baseFloor
             val facility = facilityRepository.getFacility(facilityId)
             loadedFacility = facility
             _uiState.update {
                 if (facility == null) {
-                    it.copy(isLoaded = true, found = false)
+                    it.copy(isLoaded = true, found = false, baseFloor = baseFloor)
                 } else {
                     it.copy(
                         isLoaded = true,
@@ -66,6 +74,8 @@ class FacilityAdminEditViewModel(
                         floorText = if (facility.floor == Facility.UNSET_FLOOR) "" else facility.floor.toString(),
                         description = facility.shortDescription,
                         guideMode = facility.guideMode,
+                        direction = facility.direction,
+                        baseFloor = baseFloor,
                         iconKey = facility.iconKey,
                         isEnabled = facility.isEnabled,
                         isFeatured = facility.isFeatured,
@@ -90,6 +100,10 @@ class FacilityAdminEditViewModel(
 
     fun onGuideModeChange(mode: GuideMode) {
         _uiState.update { it.copy(guideMode = mode) }
+    }
+
+    fun onDirectionChange(direction: FacilityDirection?) {
+        _uiState.update { it.copy(direction = direction) }
     }
 
     fun onIconKeyChange(key: String?) {
@@ -129,6 +143,8 @@ class FacilityAdminEditViewModel(
                     floor = validation.floor,
                     shortDescription = state.description.trim(),
                     guideMode = state.guideMode,
+                    // 기준층으로 되돌리면 방향 값은 의미가 없어지므로 함께 지운다.
+                    direction = state.direction.takeIf { validation.floor != state.baseFloor },
                     iconKey = state.iconKey,
                     isEnabled = state.isEnabled,
                     isFeatured = state.isFeatured,

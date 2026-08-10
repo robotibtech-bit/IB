@@ -22,8 +22,5 @@ enum class EscortBlockReason {
     POI_MISSING,
 
     /** 이미 다른 이동이 진행 중(`NavigationState.isBusy`). */
-    ALREADY_MOVING,
-
-    /** 시설 층이 기준층(baseFloor)과 다름 — 타 층 동행은 항상 차단(안전장치). */
-    DIFFERENT_FLOOR
+    ALREADY_MOVING
 }

@@ -13,6 +13,10 @@ import kotlinx.coroutines.delay
  * 않는다 — 두 값이 바뀌면 이 effect가 다시 시작되며 타이머가 그 시점부터 새로 시작된다.
  * [interactionTick]은 사용자가 화면을 터치할 때마다 증가하는 값으로, 매 터치마다 effect를
  * 취소·재시작시켜 카운트다운을 초기화하는 용도로만 쓴다.
+ *
+ * 화면은 항상 홈으로 돌아간다. [onIdleTimeout]은 그와 별개로 로봇 자체를 물리적으로 "홈" POI로
+ * 보내고 싶을 때 호출부(LibraryNavHost)가 넘기는 콜백이다 — 이 컴포저블은 그 POI가 실제로
+ * 지도에 있는지는 모르므로 존재 여부 확인은 호출부 책임이다.
  */
 @Composable
 fun IdleTimeoutObserver(
@@ -21,7 +25,8 @@ fun IdleTimeoutObserver(
     idleTimeoutSeconds: Int,
     isRobotBusy: Boolean,
     isCharging: Boolean,
-    interactionTick: Int
+    interactionTick: Int,
+    onIdleTimeout: () -> Unit = {}
 ) {
     LaunchedEffect(currentRoute, isRobotBusy, isCharging, interactionTick, idleTimeoutSeconds) {
         if (currentRoute == null || currentRoute == LibraryRoutes.HOME) return@LaunchedEffect
@@ -33,5 +38,6 @@ fun IdleTimeoutObserver(
             popUpTo(LibraryRoutes.HOME) { inclusive = true }
             launchSingleTop = true
         }
+        onIdleTimeout()
     }
 }

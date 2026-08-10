@@ -8,10 +8,8 @@ import org.junit.Test
 
 class ResolveGuideOptionUseCaseTest {
 
-    private val baseFloor = 1
-
     private fun facility(
-        floor: Int = baseFloor,
+        floor: Int = 1,
         guideMode: GuideMode = GuideMode.ESCORT,
         isEnabled: Boolean = true
     ) = Facility(
@@ -25,47 +23,48 @@ class ResolveGuideOptionUseCaseTest {
 
     @Test
     fun `same floor with ESCORT allows escort and location`() {
-        val result = ResolveGuideOptionUseCase(facility(floor = 1, guideMode = GuideMode.ESCORT), baseFloor)
+        val result = ResolveGuideOptionUseCase(facility(floor = 1, guideMode = GuideMode.ESCORT))
         assertEquals(GuideOptionSet.EscortAndLocationOnly, result)
     }
 
     @Test
-    fun `different floor with ESCORT falls back to location only`() {
-        val result = ResolveGuideOptionUseCase(facility(floor = 2, guideMode = GuideMode.ESCORT), baseFloor)
-        assertEquals(GuideOptionSet.LocationOnlyWithDirections, result)
+    fun `different floor with ESCORT still allows escort and location`() {
+        // sourcePoiName이 엘리베이터 POI를 가리키도록 등록되어 있으면 타 층도 동행이 가능하다.
+        val result = ResolveGuideOptionUseCase(facility(floor = 2, guideMode = GuideMode.ESCORT))
+        assertEquals(GuideOptionSet.EscortAndLocationOnly, result)
     }
 
     @Test
     fun `LOCATION_ONLY is always location only regardless of floor`() {
-        val sameFloor = ResolveGuideOptionUseCase(facility(floor = 1, guideMode = GuideMode.LOCATION_ONLY), baseFloor)
-        val otherFloor = ResolveGuideOptionUseCase(facility(floor = 3, guideMode = GuideMode.LOCATION_ONLY), baseFloor)
+        val sameFloor = ResolveGuideOptionUseCase(facility(floor = 1, guideMode = GuideMode.LOCATION_ONLY))
+        val otherFloor = ResolveGuideOptionUseCase(facility(floor = 3, guideMode = GuideMode.LOCATION_ONLY))
         assertEquals(GuideOptionSet.LocationOnlyWithDirections, sameFloor)
         assertEquals(GuideOptionSet.LocationOnlyWithDirections, otherFloor)
     }
 
     @Test
-    fun `BOTH behaves like ESCORT for floor comparison`() {
-        val sameFloor = ResolveGuideOptionUseCase(facility(floor = 1, guideMode = GuideMode.BOTH), baseFloor)
-        val otherFloor = ResolveGuideOptionUseCase(facility(floor = 4, guideMode = GuideMode.BOTH), baseFloor)
+    fun `BOTH allows escort and location regardless of floor`() {
+        val sameFloor = ResolveGuideOptionUseCase(facility(floor = 1, guideMode = GuideMode.BOTH))
+        val otherFloor = ResolveGuideOptionUseCase(facility(floor = 4, guideMode = GuideMode.BOTH))
         assertEquals(GuideOptionSet.EscortAndLocationOnly, sameFloor)
-        assertEquals(GuideOptionSet.LocationOnlyWithDirections, otherFloor)
+        assertEquals(GuideOptionSet.EscortAndLocationOnly, otherFloor)
     }
 
     @Test
     fun `unset floor is unconfigured regardless of guide mode`() {
-        val result = ResolveGuideOptionUseCase(facility(floor = Facility.UNSET_FLOOR), baseFloor)
+        val result = ResolveGuideOptionUseCase(facility(floor = Facility.UNSET_FLOOR))
         assertEquals(GuideOptionSet.TemiEscortOnlyUnconfigured, result)
     }
 
     @Test
     fun `disabled facility is hidden even if floor and mode are valid`() {
-        val result = ResolveGuideOptionUseCase(facility(floor = 1, isEnabled = false), baseFloor)
+        val result = ResolveGuideOptionUseCase(facility(floor = 1, isEnabled = false))
         assertEquals(GuideOptionSet.Hidden, result)
     }
 
     @Test
     fun `works for an arbitrary non-standard floor value without crashing`() {
-        val result = ResolveGuideOptionUseCase(facility(floor = -99, guideMode = GuideMode.ESCORT), baseFloor)
-        assertEquals(GuideOptionSet.LocationOnlyWithDirections, result)
+        val result = ResolveGuideOptionUseCase(facility(floor = -99, guideMode = GuideMode.ESCORT))
+        assertEquals(GuideOptionSet.EscortAndLocationOnly, result)
     }
 }

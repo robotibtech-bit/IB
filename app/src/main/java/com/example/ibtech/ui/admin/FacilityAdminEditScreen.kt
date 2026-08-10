@@ -24,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
+import com.example.ibtech.domain.model.FacilityDirection
 import com.example.ibtech.domain.model.GuideMode
 import com.example.ibtech.ui.common.AdminSwitchRow
 import com.example.ibtech.ui.common.AdminTextField
@@ -33,6 +34,7 @@ import com.example.ibtech.ui.common.LibraryPrimaryButton
 import com.example.ibtech.ui.theme.LibraryDimens
 
 private val ICON_KEYS = listOf(null, "child_care", "computer", "library_books", "groups")
+private val DIRECTION_KEYS = listOf(null, FacilityDirection.RIGHT, FacilityDirection.FRONT, FacilityDirection.LEFT)
 
 /** 시설 편집 화면 (로드맵 10단계): 표시명·층·설명·안내방식·아이콘·노출여부·순서. */
 @Composable
@@ -42,6 +44,7 @@ fun FacilityAdminEditScreen(
     onFloorChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onGuideModeChange: (GuideMode) -> Unit,
+    onDirectionChange: (FacilityDirection?) -> Unit,
     onIconKeyChange: (String?) -> Unit,
     onEnabledChange: (Boolean) -> Unit,
     onFeaturedChange: (Boolean) -> Unit,
@@ -122,6 +125,26 @@ fun FacilityAdminEditScreen(
                     onClick = { onGuideModeChange(GuideMode.BOTH) }
                 )
 
+                // 기준층(baseFloor)과 다른 층일 때만 의미가 있으므로 그때만 보여준다.
+                if (uiState.floorText.trim().toIntOrNull() != uiState.baseFloor) {
+                    Text(
+                        text = stringResource(R.string.facility_admin_field_direction),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        DIRECTION_KEYS.forEach { key ->
+                            FilterChip(
+                                selected = uiState.direction == key,
+                                onClick = { onDirectionChange(key) },
+                                label = { Text(directionLabel(key)) }
+                            )
+                        }
+                    }
+                }
+
                 Text(
                     text = stringResource(R.string.facility_admin_field_icon),
                     style = MaterialTheme.typography.titleMedium
@@ -178,6 +201,14 @@ private fun GuideModeOption(label: String, selected: Boolean, onClick: () -> Uni
         RadioButton(selected = selected, onClick = onClick)
         Text(text = label, style = MaterialTheme.typography.bodyLarge)
     }
+}
+
+@Composable
+private fun directionLabel(key: FacilityDirection?): String = when (key) {
+    FacilityDirection.RIGHT -> stringResource(R.string.facility_direction_right)
+    FacilityDirection.FRONT -> stringResource(R.string.facility_direction_front)
+    FacilityDirection.LEFT -> stringResource(R.string.facility_direction_left)
+    null -> stringResource(R.string.facility_direction_none)
 }
 
 @Composable

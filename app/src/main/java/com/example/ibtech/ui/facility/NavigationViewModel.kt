@@ -6,8 +6,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.ibtech.R
 import com.example.ibtech.data.repository.FacilityRepository
+import com.example.ibtech.data.repository.SettingsRepository
 import com.example.ibtech.data.repository.StatsRepository
 import com.example.ibtech.domain.model.Facility
+import com.example.ibtech.domain.model.LibrarySettings
 import com.example.ibtech.domain.model.StatEventType
 import com.example.ibtech.robot.NavigationState
 import com.example.ibtech.robot.TemiController
@@ -33,7 +35,8 @@ data class NavigationUiState(
     val isLoaded: Boolean = false,
     val facility: Facility? = null,
     val hasStarted: Boolean = false,
-    val navigationState: NavigationState = NavigationState.Idle
+    val navigationState: NavigationState = NavigationState.Idle,
+    val baseFloor: Int = LibrarySettings.DEFAULT_BASE_FLOOR
 )
 
 class NavigationViewModel(
@@ -46,6 +49,7 @@ class NavigationViewModel(
     }
 
     private val facilityRepository = FacilityRepository.getInstance(application)
+    private val settingsRepository = SettingsRepository.getInstance(application)
     private val statsRepository = StatsRepository.getInstance(application)
     private val controller: TemiController = TemiControllerProvider.current
 
@@ -55,13 +59,15 @@ class NavigationViewModel(
     val uiState: StateFlow<NavigationUiState> = combine(
         facilityRepository.allFacilities.map { list -> list.firstOrNull { it.id == facilityId } },
         hasStarted,
-        controller.navigationState
-    ) { facility, started, navState ->
+        controller.navigationState,
+        settingsRepository.settings
+    ) { facility, started, navState, settings ->
         NavigationUiState(
             isLoaded = true,
             facility = facility,
             hasStarted = started,
-            navigationState = navState
+            navigationState = navState,
+            baseFloor = settings.baseFloor
         )
     }.stateIn(
         scope = viewModelScope,
@@ -77,7 +83,16 @@ class NavigationViewModel(
                     is NavigationState.Arrived -> {
                         if (!hasSpokenArrival) {
                             hasSpokenArrival = true
-                            speak(R.string.navigation_arrived_speech)
+                            val facility = uiState.value.facility
+                            if (facility != null) {
+                                val text = buildNavigationArrivedText(
+                                    context = getApplication(),
+                                    facility = facility,
+                                    baseFloor = uiState.value.baseFloor,
+                                    sameFloorTextRes = R.string.navigation_arrived_speech
+                                )
+                                controller.speak(text)
+                            }
                         }
                         statsRepository.logEvent(StatEventType.NAV_SUCCESS, navState.target)
                     }
@@ -137,7 +152,7 @@ class NavigationViewModel(
         // 시점에 1회만 기록한다(요구사항 4.3절). FACILITY_REQUEST는 시설 상세 화면에서
         // "동행 안내" 클릭 시점에 이미 기록됐다.
         viewModelScope.launch { statsRepository.logEvent(StatEventType.ESCORT_START, facility.name) }
-        speak(R.string.navigation_start_speech)
+        controller.speak(buildNavigationStartText(getApplication(), facility, uiState.value.baseFloor))
     }
 
     fun onStopRequested() {
@@ -151,11 +166,6 @@ class NavigationViewModel(
             delay(STOP_TIMEOUT_MILLIS)
             controller.reportStopTimeout()
         }
-    }
-
-    private fun speak(resId: Int, vararg args: Any) {
-        val text = getApplication<Application>().getString(resId, *args)
-        controller.speak(text)
     }
 
     companion object {

@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -129,6 +131,7 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
     val batteryStatus by temiController.batteryStatus.collectAsStateWithLifecycle()
     val connectionState by temiController.connectionState.collectAsStateWithLifecycle()
     val permissionStatus by temiController.permissionStatus.collectAsStateWithLifecycle()
+    val knownLocations by temiController.locations.collectAsStateWithLifecycle()
 
     var interactionTick by remember { mutableIntStateOf(0) }
     val currentRoute by navController.currentBackStackEntryAsState()
@@ -166,14 +169,24 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
         }
     }
 
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
-                        awaitPointerEvent(PointerEventPass.Initial)
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
                         interactionTick++
+                        // 화면 아무 곳이나 터치하면 소프트 키보드를 닫는다. 텍스트 필드 자체를
+                        // 눌렀을 때도 여기서 먼저 닫힌 뒤 해당 필드의 Main 패스 처리에서 포커스를
+                        // 다시 얻으며 키보드가 재표시되므로 정상적으로 입력 가능하다.
+                        if (event.changes.any { it.pressed }) {
+                            focusManager.clearFocus(force = true)
+                            keyboardController?.hide()
+                        }
                     }
                 }
             }
@@ -765,6 +778,7 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                             onFloorChange = viewModel::onFloorChange,
                             onDescriptionChange = viewModel::onDescriptionChange,
                             onGuideModeChange = viewModel::onGuideModeChange,
+                            onDirectionChange = viewModel::onDirectionChange,
                             onIconKeyChange = viewModel::onIconKeyChange,
                             onEnabledChange = viewModel::onEnabledChange,
                             onFeaturedChange = viewModel::onFeaturedChange,
@@ -1021,9 +1035,20 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
         idleTimeoutSeconds = settings.idleTimeoutSeconds,
         isRobotBusy = navigationState.isBusy,
         isCharging = batteryStatus?.isCharging == true,
-        interactionTick = interactionTick
+        interactionTick = interactionTick,
+        onIdleTimeout = {
+            // 지도에 "홈" POI가 아직 없는 현장에서는 조용히 건너뛴다 — 화면 홈 복귀는 이미
+            // 위에서 처리했으므로 이 콜백이 아무 것도 안 해도 사용자에게 문제가 되지 않는다.
+            if (HOME_POI_NAME in knownLocations) {
+                temiController.goTo(HOME_POI_NAME)
+            }
+        }
     )
 }
+
+/** 무입력 자동 복귀 시 로봇이 실제로 이동해 갈 POI 이름. 현장에서 이 이름으로 지도에 위치를
+ * 등록해 두어야 동작한다(관리자 시설 등록과 무관한, 로봇 자체의 대기 위치). */
+private const val HOME_POI_NAME = "홈"
 
 /** `facility_navigation`에서 이동 중 뒤로/홈을 눌렀을 때 확인 후 수행할 동작. */
 private enum class PendingExit { BACK, HOME }

@@ -83,10 +83,7 @@ fun LocationMapScreen(
                                 style = MaterialTheme.typography.headlineMedium,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
-                            RobotSpeechBubble(
-                                text = facility.directionText?.takeIf { it.isNotBlank() }
-                                    ?: stringResource(R.string.facility_map_default_direction, facility.floor)
-                            )
+                            RobotSpeechBubble(text = facilityLocationGuideText(facility))
                         }
                     }
                     if (bitmap != null) {

@@ -100,7 +100,11 @@ fun FacilityDetailScreen(
                             }
 
                             RobotSpeechBubble(
-                                text = stringResource(R.string.facility_detail_floor_line, facility.floor)
+                                text = if (facility.floor == uiState.baseFloor) {
+                                    stringResource(R.string.facility_detail_floor_line, facility.floor)
+                                } else {
+                                    facilityLocationGuideText(facility)
+                                }
                             )
                         }
                     }
@@ -173,5 +177,4 @@ private fun EscortBlockReason.toMessageRes(): Int = when (this) {
     EscortBlockReason.PERMISSION -> R.string.facility_detail_escort_reason_permission
     EscortBlockReason.POI_MISSING -> R.string.facility_detail_escort_reason_poi_missing
     EscortBlockReason.ALREADY_MOVING -> R.string.facility_detail_escort_reason_already_moving
-    EscortBlockReason.DIFFERENT_FLOOR -> R.string.facility_detail_escort_reason_different_floor
 }
