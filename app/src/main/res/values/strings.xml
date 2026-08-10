@@ -136,9 +136,6 @@
     <string name="usage_topic_hours_title">휴관일 안내</string>
     <string name="usage_topic_hours_answer">정기 휴관일과 임시 휴관일을 안내해 드립니다.\n\n• 매주 월요일 정기 휴관\n• 관공서 공휴일 (일요일과 공휴일이 겹치는 경우 휴관)\n• 특별한 사유로 관장이 지정한 날 (임시 휴관일)</string>
 
-    <!-- 이용방법 답변 화면 (요구사항 2.9절) -->
-    <string name="usage_answer_more">더 보기</string>
-    <string name="usage_answer_less">접기</string>
     <string name="usage_answer_qr_action">QR 코드 보기</string>
     <string name="usage_answer_qr_error">QR을 열 수 없습니다.</string>
     <string name="usage_answer_related_facility_action">관련 시설 안내</string>

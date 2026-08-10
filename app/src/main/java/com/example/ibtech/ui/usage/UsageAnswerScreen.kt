@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,10 +26,7 @@ import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,7 +34,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -51,13 +46,8 @@ import com.example.ibtech.ui.common.InfoDialog
 import com.example.ibtech.ui.common.LibraryCard
 import com.example.ibtech.ui.common.LibraryOutlinedButton
 import com.example.ibtech.ui.common.LibraryPrimaryButton
-import com.example.ibtech.ui.common.debounced
 import com.example.ibtech.ui.theme.IBTECHTheme
 import com.example.ibtech.ui.theme.LibraryDimens
-
-// 본문(bodyLarge)이 44sp라 2줄로는 "짧은 두세 문장"도 곧바로 넘쳐 더 보기가 불필요하게
-// 뜬다는 실기 피드백에 따라 4줄로 늘렸다 — 실제로 4줄을 넘는 긴 답변에서만 더 보기가 뜬다.
-private const val COLLAPSED_MAX_LINES = 4
 
 /** 이용방법 답변 화면 (요구사항 명세서 2.9절). */
 @Composable
@@ -111,7 +101,11 @@ fun UsageAnswerScreen(
                         }
 
                         if (!topic.shortAnswer.isNullOrBlank()) {
-                            ExpandableAnswer(text = topic.shortAnswer)
+                            Text(
+                                text = topic.shortAnswer,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
@@ -144,34 +138,6 @@ fun UsageAnswerScreen(
                     onDismiss = onDismissStaffHelp
                 )
             }
-        }
-    }
-}
-
-/** "더 보기"/"접기"로 확장하는 답변 텍스트(요구사항 2.9절 "긴 답변은 더 보기로 확장"). */
-@Composable
-private fun ExpandableAnswer(text: String) {
-    var expanded by remember { mutableStateOf(false) }
-    var isOverflowing by remember { mutableStateOf(false) }
-
-    Column {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = if (expanded) Int.MAX_VALUE else COLLAPSED_MAX_LINES,
-            overflow = TextOverflow.Ellipsis,
-            onTextLayout = { result ->
-                if (!expanded) isOverflowing = result.hasVisualOverflow
-            }
-        )
-        if (isOverflowing || expanded) {
-            Text(
-                text = stringResource(if (expanded) R.string.usage_answer_less else R.string.usage_answer_more),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable(onClick = debounced { expanded = !expanded })
-            )
         }
     }
 }
