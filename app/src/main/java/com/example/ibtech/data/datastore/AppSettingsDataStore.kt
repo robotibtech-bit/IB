@@ -24,4 +24,5 @@ object AppSettingsKeys {
     val VOLUME_LOCKED: Preferences.Key<Boolean> = booleanPreferencesKey("volume_locked")
     val ADMIN_PASSWORD_HASH: Preferences.Key<String> = stringPreferencesKey("admin_password_hash")
     val FEATURED_FACILITY_COUNT: Preferences.Key<Int> = intPreferencesKey("featured_facility_count")
+    val EVENT_NOTICE_URL: Preferences.Key<String> = stringPreferencesKey("event_notice_url")
 }

@@ -22,10 +22,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -103,13 +105,17 @@ fun AdminTextField(
     errorText: String? = null,
     singleLine: Boolean = true,
     minLines: Int = 1,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    /** 이 필드만 글자를 키우고 싶을 때 쓴다(예: 행사 안내 URL) — 지정 안 하면 기존 크기 그대로다. */
+    textStyle: TextStyle = LocalTextStyle.current,
+    labelStyle: TextStyle = textStyle
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            label = { Text(label) },
+            label = { Text(label, style = labelStyle) },
+            textStyle = textStyle,
             singleLine = singleLine,
             minLines = minLines,
             isError = errorText != null,

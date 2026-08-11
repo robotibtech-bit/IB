@@ -221,7 +221,9 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                         },
                         onTodayEvents = {
                             logMenuSelect(menuTodayEvents)
-                            navController.navigate(LibraryRoutes.EVENTS)
+                            navController.navigate(
+                                LibraryRoutes.webView(url = settings.eventNoticeUrl, title = menuTodayEvents)
+                            )
                         },
                         onAdminClick = { navController.navigate(LibraryRoutes.ADMIN_LOGIN) }
                     )
@@ -896,29 +898,10 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(background = SurfaceWhite), typography = AdminTypography) {
                         EventAdminScreen(
                             uiState = eventAdminUiState,
-                            onAddEvent = viewModel::onAddEvent,
-                            onEditEvent = viewModel::onEditEvent,
-                            onDeleteEvent = viewModel::onDeleteEvent,
-                            onAddNotice = viewModel::onAddNotice,
-                            onEditNotice = viewModel::onEditNotice,
-                            onDeleteNotice = viewModel::onDeleteNotice,
-                            onDismissDialog = viewModel::onDismissDialog,
-                            onEventTitleChange = viewModel::onEventTitleChange,
-                            onEventStartDateChange = viewModel::onEventStartDateChange,
-                            onEventEndDateChange = viewModel::onEventEndDateChange,
-                            onEventTimeTextChange = viewModel::onEventTimeTextChange,
-                            onEventPlaceChange = viewModel::onEventPlaceChange,
-                            onEventTargetChange = viewModel::onEventTargetChange,
-                            onEventDescriptionChange = viewModel::onEventDescriptionChange,
-                            onEventQrUrlChange = viewModel::onEventQrUrlChange,
-                            onEventFacilityChange = viewModel::onEventFacilityChange,
-                            onEventEnabledChange = viewModel::onEventEnabledChange,
-                            onEventSortOrderChange = viewModel::onEventSortOrderChange,
-                            onSaveEventDraft = viewModel::onSaveEventDraft,
-                            onNoticeTextChange = viewModel::onNoticeTextChange,
-                            onNoticeEnabledChange = viewModel::onNoticeEnabledChange,
-                            onNoticeSortOrderChange = viewModel::onNoticeSortOrderChange,
-                            onSaveNoticeDraft = viewModel::onSaveNoticeDraft,
+                            events = viewModel.events,
+                            onNoticeUrlChange = viewModel::onNoticeUrlChange,
+                            onSaveNoticeUrl = viewModel::onSaveNoticeUrl,
+                            onResetNoticeUrl = viewModel::onResetNoticeUrl,
                             modifier = Modifier.padding(padding)
                         )
                     }
