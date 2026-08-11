@@ -4,243 +4,63 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ibtech.R
-import com.example.ibtech.data.repository.EventRepository
-import com.example.ibtech.data.repository.FacilityRepository
-import com.example.ibtech.domain.model.Facility
-import com.example.ibtech.domain.model.LibraryEvent
-import com.example.ibtech.domain.model.LibraryNotice
+import com.example.ibtech.data.repository.SettingsRepository
+import com.example.ibtech.domain.model.LibrarySettings
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-private val DATE_FORMAT_REGEX = Regex("""(\d{4})-(\d{2})-(\d{2})""")
-
-/** [value]가 "yyyy-MM-dd" 모양이면서 실제 존재하는 날짜인지 확인한다(윤년 2월 포함). */
-private fun isValidIsoDate(value: String): Boolean {
-    val match = DATE_FORMAT_REGEX.matchEntire(value) ?: return false
-    val (yearText, monthText, dayText) = match.destructured
-    val year = yearText.toInt()
-    val month = monthText.toInt()
-    val day = dayText.toInt()
-    if (month !in 1..12) return false
-    val isLeapYear = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
-    val daysInMonth = when (month) {
-        1, 3, 5, 7, 8, 10, 12 -> 31
-        4, 6, 9, 11 -> 30
-        else -> if (isLeapYear) 29 else 28
-    }
-    return day in 1..daysInMonth
-}
-
-data class EventDraft(
-    val id: String? = null,
-    val title: String = "",
-    val startDate: String = "",
-    val endDate: String = "",
-    val timeText: String = "",
-    val place: String = "",
-    val target: String = "",
-    val description: String = "",
-    val qrUrl: String = "",
-    val relatedFacilityId: String? = null,
-    val isEnabled: Boolean = true,
-    val sortOrderText: String = "0",
-    val titleError: String? = null,
-    val startDateError: String? = null,
-    val endDateError: String? = null
-)
-
-data class NoticeDraft(
-    val id: String? = null,
-    val text: String = "",
-    val isEnabled: Boolean = true,
-    val sortOrderText: String = "0",
-    val textError: String? = null
-)
-
-sealed interface EventAdminDraft {
-    data class Event(val draft: EventDraft) : EventAdminDraft
-    data class Notice(val draft: NoticeDraft) : EventAdminDraft
-}
 
 data class EventAdminUiState(
     val isLoaded: Boolean = false,
-    val events: List<LibraryEvent> = emptyList(),
-    val notices: List<LibraryNotice> = emptyList(),
-    val facilities: List<Facility> = emptyList(),
-    val editingDraft: EventAdminDraft? = null
+    val noticeUrl: String = ""
 )
 
-/** 행사/공지 관리 화면 (로드맵 10단계). */
+/** 행사·공지 관리 화면 — 홈 "행사 안내" 버튼이 여는 웹페이지 주소만 관리한다. */
 class EventAdminViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val eventRepository = EventRepository.getInstance(application)
-    private val facilityRepository = FacilityRepository.getInstance(application)
-    private val editingDraft = MutableStateFlow<EventAdminDraft?>(null)
+    private val settingsRepository = SettingsRepository.getInstance(application)
+    /** 홈 화면 "행사 안내" 버튼이 여는 URL — [LibrarySettings.eventNoticeUrl]의 편집 중 값. */
+    private val noticeUrlText = MutableStateFlow<String?>(null)
 
-    val uiState: StateFlow<EventAdminUiState> = combine(
-        eventRepository.events,
-        eventRepository.notices,
-        facilityRepository.visibleFacilities,
-        editingDraft
-    ) { events, notices, facilities, draft ->
-        EventAdminUiState(
-            isLoaded = true,
-            events = events.sortedBy { it.sortOrder },
-            notices = notices.sortedBy { it.sortOrder },
-            facilities = facilities,
-            editingDraft = draft
-        )
+    private val _events = MutableSharedFlow<Int>()
+    val events: SharedFlow<Int> = _events.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            noticeUrlText.value = settingsRepository.settings.first().eventNoticeUrl
+        }
+    }
+
+    val uiState: StateFlow<EventAdminUiState> = noticeUrlText.map { noticeUrl ->
+        EventAdminUiState(isLoaded = noticeUrl != null, noticeUrl = noticeUrl.orEmpty())
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = EventAdminUiState()
     )
 
-    fun onDismissDialog() {
-        editingDraft.value = null
+    fun onNoticeUrlChange(value: String) {
+        noticeUrlText.value = value
     }
 
-    // ---- 행사 ----
-
-    private fun updateEventDraft(transform: (EventDraft) -> EventDraft) {
-        editingDraft.update { current -> (current as? EventAdminDraft.Event)?.copy(draft = transform(current.draft)) }
+    fun onResetNoticeUrl() {
+        noticeUrlText.value = LibrarySettings.DEFAULT_EVENT_NOTICE_URL
     }
 
-    fun onAddEvent() {
-        editingDraft.value = EventAdminDraft.Event(EventDraft())
-    }
-
-    fun onEditEvent(event: LibraryEvent) {
-        editingDraft.value = EventAdminDraft.Event(
-            EventDraft(
-                id = event.id,
-                title = event.title,
-                startDate = event.startDate,
-                endDate = event.endDate.orEmpty(),
-                timeText = event.timeText.orEmpty(),
-                place = event.place,
-                target = event.target.orEmpty(),
-                description = event.description,
-                qrUrl = event.qrUrl.orEmpty(),
-                relatedFacilityId = event.relatedFacilityId,
-                isEnabled = event.isEnabled,
-                sortOrderText = event.sortOrder.toString()
-            )
-        )
-    }
-
-    fun onEventTitleChange(value: String) = updateEventDraft { it.copy(title = value, titleError = null) }
-    fun onEventStartDateChange(value: String) = updateEventDraft { it.copy(startDate = value, startDateError = null) }
-    fun onEventEndDateChange(value: String) = updateEventDraft { it.copy(endDate = value, endDateError = null) }
-    fun onEventTimeTextChange(value: String) = updateEventDraft { it.copy(timeText = value) }
-    fun onEventPlaceChange(value: String) = updateEventDraft { it.copy(place = value) }
-    fun onEventTargetChange(value: String) = updateEventDraft { it.copy(target = value) }
-    fun onEventDescriptionChange(value: String) = updateEventDraft { it.copy(description = value) }
-    fun onEventQrUrlChange(value: String) = updateEventDraft { it.copy(qrUrl = value) }
-    fun onEventFacilityChange(facilityId: String?) = updateEventDraft { it.copy(relatedFacilityId = facilityId) }
-    fun onEventEnabledChange(value: Boolean) = updateEventDraft { it.copy(isEnabled = value) }
-    fun onEventSortOrderChange(value: String) = updateEventDraft { it.copy(sortOrderText = value) }
-
-    fun onSaveEventDraft() {
-        val draft = (editingDraft.value as? EventAdminDraft.Event)?.draft ?: return
-        val app = getApplication<Application>()
-        if (draft.title.isBlank()) {
-            updateEventDraft { it.copy(titleError = app.getString(R.string.admin_error_blank_title)) }
-            return
-        }
-        val startDate = draft.startDate.trim()
-        if (!isValidIsoDate(startDate)) {
-            updateEventDraft { it.copy(startDateError = app.getString(R.string.admin_error_invalid_date)) }
-            return
-        }
-        // endDate는 선택 입력이지만, 값이 있다면 startDate와 마찬가지로 비교 가능한 실제 날짜여야
-        // 한다 — ResolveEventListUseCase가 두 값을 "yyyy-MM-dd" 사전순 비교로 다루기 때문이다.
-        val endDate = draft.endDate.trim().ifBlank { null }
-        if (endDate != null) {
-            if (!isValidIsoDate(endDate)) {
-                updateEventDraft { it.copy(endDateError = app.getString(R.string.admin_error_invalid_date)) }
-                return
-            }
-            if (endDate < startDate) {
-                updateEventDraft { it.copy(endDateError = app.getString(R.string.event_admin_error_end_before_start)) }
-                return
-            }
-        }
-        val sortOrder = draft.sortOrderText.trim().toIntOrNull() ?: 0
-        val event = LibraryEvent(
-            id = draft.id ?: "event_${System.currentTimeMillis()}",
-            title = draft.title.trim(),
-            startDate = startDate,
-            endDate = endDate,
-            timeText = draft.timeText.trim().ifBlank { null },
-            place = draft.place.trim(),
-            target = draft.target.trim().ifBlank { null },
-            description = draft.description.trim(),
-            qrUrl = draft.qrUrl.trim().ifBlank { null },
-            relatedFacilityId = draft.relatedFacilityId,
-            isEnabled = draft.isEnabled,
-            sortOrder = sortOrder
-        )
+    fun onSaveNoticeUrl() {
+        val url = noticeUrlText.value.orEmpty().trim().ifBlank { LibrarySettings.DEFAULT_EVENT_NOTICE_URL }
         viewModelScope.launch {
-            eventRepository.upsertEvent(event)
-            editingDraft.value = null
+            val current = settingsRepository.settings.first()
+            settingsRepository.updateSettings(current.copy(eventNoticeUrl = url))
+            noticeUrlText.value = url
+            _events.emit(R.string.admin_save_success)
         }
-    }
-
-    fun onDeleteEvent(id: String) {
-        viewModelScope.launch { eventRepository.deleteEvent(id) }
-    }
-
-    // ---- 공지 ----
-
-    private fun updateNoticeDraft(transform: (NoticeDraft) -> NoticeDraft) {
-        editingDraft.update { current -> (current as? EventAdminDraft.Notice)?.copy(draft = transform(current.draft)) }
-    }
-
-    fun onAddNotice() {
-        editingDraft.value = EventAdminDraft.Notice(NoticeDraft())
-    }
-
-    fun onEditNotice(notice: LibraryNotice) {
-        editingDraft.value = EventAdminDraft.Notice(
-            NoticeDraft(
-                id = notice.id,
-                text = notice.text,
-                isEnabled = notice.isEnabled,
-                sortOrderText = notice.sortOrder.toString()
-            )
-        )
-    }
-
-    fun onNoticeTextChange(value: String) = updateNoticeDraft { it.copy(text = value, textError = null) }
-    fun onNoticeEnabledChange(value: Boolean) = updateNoticeDraft { it.copy(isEnabled = value) }
-    fun onNoticeSortOrderChange(value: String) = updateNoticeDraft { it.copy(sortOrderText = value) }
-
-    fun onSaveNoticeDraft() {
-        val draft = (editingDraft.value as? EventAdminDraft.Notice)?.draft ?: return
-        if (draft.text.isBlank()) {
-            updateNoticeDraft { it.copy(textError = getApplication<Application>().getString(R.string.admin_error_blank_title)) }
-            return
-        }
-        val sortOrder = draft.sortOrderText.trim().toIntOrNull() ?: 0
-        val notice = LibraryNotice(
-            id = draft.id ?: "notice_${System.currentTimeMillis()}",
-            text = draft.text.trim(),
-            isEnabled = draft.isEnabled,
-            sortOrder = sortOrder
-        )
-        viewModelScope.launch {
-            eventRepository.upsertNotice(notice)
-            editingDraft.value = null
-        }
-    }
-
-    fun onDeleteNotice(id: String) {
-        viewModelScope.launch { eventRepository.deleteNotice(id) }
     }
 }

@@ -25,7 +25,9 @@ data class LibrarySettings(
     val adminPasswordHash: String = "",
     /** 시설 안내 첫 화면에 큰 카드로 보여줄 대표 장소 개수. 2/4/8 중 하나만 유효하다
      * (관리자 화면에서 이 세 값만 고를 수 있게 제한한다). */
-    val featuredFacilityCount: Int = DEFAULT_FEATURED_FACILITY_COUNT
+    val featuredFacilityCount: Int = DEFAULT_FEATURED_FACILITY_COUNT,
+    /** 홈 화면 "행사 안내" 버튼이 여는 웹페이지 주소. */
+    val eventNoticeUrl: String = DEFAULT_EVENT_NOTICE_URL
 ) {
     companion object {
         const val DEFAULT_WELCOME_MESSAGE = "안녕하세요\n무엇을 도와드릴까요?"
@@ -41,5 +43,6 @@ data class LibrarySettings(
 
         val FEATURED_FACILITY_COUNT_OPTIONS = listOf(2, 4, 8)
         const val DEFAULT_FEATURED_FACILITY_COUNT = 4
+        const val DEFAULT_EVENT_NOTICE_URL = "https://lib.ice.go.kr/shintree/index.do"
     }
 }

@@ -19,7 +19,7 @@
     <string name="home_action_find_facility">시설을 찾고 있어요</string>
     <string name="home_action_usage_guide">이용방법이 궁금해요</string>
     <string name="home_action_kids_content">로봇과 놀아요</string>
-    <string name="home_action_today_events">오늘의 행사</string>
+    <string name="home_action_today_events">행사 안내</string>
 
     <!-- 홈 화면 메뉴 카드 부제 (3단계, 전체 UI 디자인 패키지 mockup_home.png 기준 — 화면 표시용
          문구일 뿐 도메인 데이터가 아니다). -->
@@ -468,6 +468,9 @@
     <string name="event_admin_field_target">대상</string>
     <string name="event_admin_field_description">설명</string>
     <string name="event_admin_field_notice_text">공지 문구</string>
+    <string name="event_admin_field_notice_url">행사 안내 웹페이지 주소</string>
+    <string name="event_admin_notice_url_save_action">저장</string>
+    <string name="event_admin_notice_url_reset_action">초기화</string>
 
     <!-- 설정 관리 -->
     <string name="title_settings_admin">설정</string>
