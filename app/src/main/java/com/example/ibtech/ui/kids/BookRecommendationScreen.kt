@@ -17,15 +17,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,29 +41,35 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
+import com.example.ibtech.domain.model.BookTasteOption
+import com.example.ibtech.domain.model.BookTasteQuestion
+import com.example.ibtech.domain.model.RecommendedBook
 import com.example.ibtech.ui.common.DecorativeBackground
 import com.example.ibtech.ui.common.EmptyState
 import com.example.ibtech.ui.common.LibraryCard
 import com.example.ibtech.ui.common.LibraryOutlinedButton
 import com.example.ibtech.ui.common.LibraryPrimaryButton
 import com.example.ibtech.ui.common.debounced
+import com.example.ibtech.ui.theme.LavenderAccent
 import com.example.ibtech.ui.theme.LibraryDimens
 import com.example.ibtech.ui.theme.SkyAccent
 import com.example.ibtech.ui.theme.SkyAccentContainer
 
 /**
- * 추천도서 화면 (요구사항 명세서 2.14절)을 "몇 가지 질문 → 어울리는 책 추천" 게임으로 바꿨다.
+ * 추천도서 화면 (요구사항 명세서 2.14절) — "몇 가지 질문 → 어울리는 책 추천" 게임.
  *
- * [RecommendedBook]에는 연령대([RecommendedBook.ageGroup])·주제([RecommendedBook.topic]) 두
- * 항목만 있어(요구사항 명세서 2.14절), 스무고개처럼 20문항을 묻는 게 아니라 이 두 가지만 차례로
- * 물어보고 바로 결과를 보여준다. 필터 자체(연령/주제 선택, [onSelectAgeGroup]/[onSelectTopic])는
- * 기존 [BookRecommendationViewModel] 로직을 그대로 재사용하고, 화면 쪽만 "질문 → 결과" 흐름으로
- * 감싼다 — 원래 있던 필터-목록 탐색 화면은 [BookGameStep.BROWSE_ALL]로 남겨 "내가 직접
- * 골라볼래요"를 누르면 볼 수 있다.
+ * 기획 문서 "2. 나에게 맞는 책" 절에 따라 고정 6문항(연령대/주제 2문항짜리 예전 버전 대신
+ * [BookTasteQuestion] 취향 퀴즈)에 답하면 [com.example.ibtech.domain.usecase.BookTasteEngine]이
+ * 점수를 매겨 3권을 추천한다. 원래 있던 연령/주제 필터-목록 탐색 화면은 그대로 남겨
+ * [BookGameStep.BROWSE_ALL]로 "내가 직접 골라볼래요"를 누르면 볼 수 있다 — 관리자가 태그 없이
+ * 추가한 책도 그 화면에서는 기존과 동일하게 보인다.
  */
 @Composable
 fun BookRecommendationScreen(
     uiState: BookRecommendationUiState,
+    onAnswerTasteQuestion: (BookTasteOption) -> Unit,
+    onShowMoreBooks: () -> Unit,
+    onRestartTaste: () -> Unit,
     onSelectAgeGroup: (String?) -> Unit,
     onSelectTopic: (String?) -> Unit,
     onResetFilters: () -> Unit,
@@ -71,37 +81,38 @@ fun BookRecommendationScreen(
 
         if (!uiState.isLoaded) return@Box
 
-        // isLoaded는 최초 한 번만 false→true로 바뀌므로, 이 remember는 데이터가 처음 들어왔을 때
-        // 딱 한 번만 시작 단계를 계산한다 — 이후 필터 목록이 다시 방출돼도 진행 중인 게임
-        // 단계(step)는 유지된다.
-        var step by remember(uiState.isLoaded) {
-            mutableStateOf(initialBookGameStep(uiState.ageGroupOptions, uiState.topicOptions))
+        var step by remember { mutableStateOf(BookGameStep.TASTE_QUESTION) }
+
+        // 마지막 문항에 답해 ViewModel이 결과를 계산해 내놓으면(tasteQuestionIndex가 전체 문항
+        // 수에 도달) 결과 화면으로 자동 전환한다.
+        LaunchedEffect(uiState.tasteQuestionIndex, uiState.tasteQuestions.size) {
+            if (step == BookGameStep.TASTE_QUESTION &&
+                uiState.tasteQuestions.isNotEmpty() &&
+                uiState.tasteQuestionIndex >= uiState.tasteQuestions.size
+            ) {
+                step = BookGameStep.REVEAL
+            }
         }
 
         when (step) {
-            BookGameStep.AGE_QUESTION -> BookGameQuestion(
-                title = stringResource(R.string.kids_book_game_age_question),
-                options = uiState.ageGroupOptions,
-                onSelect = { option ->
-                    onSelectAgeGroup(option)
-                    step = if (uiState.topicOptions.isNotEmpty()) BookGameStep.TOPIC_QUESTION else BookGameStep.REVEAL
+            BookGameStep.TASTE_QUESTION -> {
+                val question = uiState.tasteQuestions.getOrNull(uiState.tasteQuestionIndex)
+                if (question != null) {
+                    BookTasteQuestionContent(
+                        question = question,
+                        current = uiState.tasteQuestionIndex + 1,
+                        total = uiState.tasteQuestions.size,
+                        onSelect = onAnswerTasteQuestion
+                    )
                 }
-            )
-
-            BookGameStep.TOPIC_QUESTION -> BookGameQuestion(
-                title = stringResource(R.string.kids_book_game_topic_question),
-                options = uiState.topicOptions,
-                onSelect = { option ->
-                    onSelectTopic(option)
-                    step = BookGameStep.REVEAL
-                }
-            )
+            }
 
             BookGameStep.REVEAL -> BookGameReveal(
                 uiState = uiState,
+                onShowMoreBooks = onShowMoreBooks,
                 onRestart = {
-                    onResetFilters()
-                    step = initialBookGameStep(uiState.ageGroupOptions, uiState.topicOptions)
+                    onRestartTaste()
+                    step = BookGameStep.TASTE_QUESTION
                 },
                 onBrowseAll = { step = BookGameStep.BROWSE_ALL },
                 onGoToChildrenFacility = onGoToChildrenFacility
@@ -115,20 +126,50 @@ fun BookRecommendationScreen(
                 onGoToChildrenFacility = onGoToChildrenFacility,
                 onBackToGame = {
                     onResetFilters()
-                    step = initialBookGameStep(uiState.ageGroupOptions, uiState.topicOptions)
+                    onRestartTaste()
+                    step = BookGameStep.TASTE_QUESTION
                 }
             )
         }
     }
 }
 
-private enum class BookGameStep { AGE_QUESTION, TOPIC_QUESTION, REVEAL, BROWSE_ALL }
+private enum class BookGameStep { TASTE_QUESTION, REVEAL, BROWSE_ALL }
 
-/** 등록된 연령/주제 값이 아예 없으면 그 질문 단계는 건너뛴다(관리자가 데이터를 안 채웠을 때). */
-private fun initialBookGameStep(ageGroupOptions: List<String>, topicOptions: List<String>): BookGameStep = when {
-    ageGroupOptions.isNotEmpty() -> BookGameStep.AGE_QUESTION
-    topicOptions.isNotEmpty() -> BookGameStep.TOPIC_QUESTION
-    else -> BookGameStep.REVEAL
+@Composable
+private fun BookTasteQuestionContent(
+    question: BookTasteQuestion,
+    current: Int,
+    total: Int,
+    onSelect: (BookTasteOption) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(LibraryDimens.ScreenPadding),
+        verticalArrangement = Arrangement.spacedBy(LibraryDimens.CardSpacing)
+    ) {
+        Box(
+            modifier = Modifier
+                .background(SkyAccentContainer, RoundedCornerShape(50))
+                .padding(horizontal = 20.dp, vertical = 10.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.quiz_progress_format, current, total),
+                style = MaterialTheme.typography.labelLarge,
+                color = SkyAccent
+            )
+        }
+        Text(
+            text = question.question,
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        question.options.forEach { option ->
+            BookGameOptionCard(label = option.label, onClick = { onSelect(option) })
+        }
+    }
 }
 
 // FillSpaceGrid(고정 카드 격자)는 각 행에 화면 높이를 나눠 주는 방식이라, 이 화면처럼 질문
@@ -202,6 +243,7 @@ private fun BookGameOptionCard(label: String, onClick: () -> Unit, modifier: Mod
 @Composable
 private fun BookGameReveal(
     uiState: BookRecommendationUiState,
+    onShowMoreBooks: () -> Unit,
     onRestart: () -> Unit,
     onBrowseAll: () -> Unit,
     onGoToChildrenFacility: (String) -> Unit
@@ -211,10 +253,15 @@ private fun BookGameReveal(
         verticalArrangement = Arrangement.spacedBy(LibraryDimens.CardSpacing),
         modifier = Modifier.fillMaxSize()
     ) {
+        val characterKey = uiState.resultCharacterKey
+        if (characterKey != null && uiState.recommendedBooks.isNotEmpty()) {
+            item { BookResultCharacterBanner(characterKey = characterKey) }
+        }
+
         item {
             Text(
-                text = if (uiState.books.isNotEmpty()) {
-                    stringResource(R.string.kids_book_game_reveal_title)
+                text = if (uiState.recommendedBooks.isNotEmpty()) {
+                    stringResource(R.string.kids_book_taste_result_heading)
                 } else {
                     stringResource(R.string.kids_book_game_reveal_fallback)
                 },
@@ -223,8 +270,14 @@ private fun BookGameReveal(
             )
         }
 
-        if (uiState.books.isNotEmpty()) {
-            items(uiState.books, key = { it.id }) { book -> RecommendedBookCard(book = book) }
+        if (uiState.recommendedBooks.isNotEmpty()) {
+            items(uiState.recommendedBooks, key = { it.id }) { book -> BookTasteResultCard(book = book) }
+            item {
+                LibraryOutlinedButton(
+                    text = stringResource(R.string.kids_book_taste_show_more_action),
+                    onClick = onShowMoreBooks
+                )
+            }
         } else {
             item {
                 LibraryOutlinedButton(
@@ -246,10 +299,119 @@ private fun BookGameReveal(
 
         item {
             LibraryOutlinedButton(
-                text = stringResource(R.string.kids_book_game_restart_action),
+                text = stringResource(R.string.kids_book_taste_restart_action),
                 onClick = onRestart
             )
         }
+    }
+}
+
+@Composable
+private fun BookResultCharacterBanner(characterKey: String) {
+    val (titleRes, taglineRes) = characterResources(characterKey)
+    LibraryCard(modifier = Modifier.fillMaxWidth(), accentColor = LavenderAccent) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(LibraryDimens.CardPadding),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(text = stringResource(titleRes), style = MaterialTheme.typography.headlineSmall)
+            Text(
+                text = stringResource(taglineRes),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+private fun characterResources(key: String): Pair<Int, Int> = when (key) {
+    "wizard" -> R.string.kids_book_character_wizard to R.string.kids_book_character_wizard_tagline
+    "explorer" -> R.string.kids_book_character_explorer to R.string.kids_book_character_explorer_tagline
+    "comedian" -> R.string.kids_book_character_comedian to R.string.kids_book_character_comedian_tagline
+    "animal_friend" -> R.string.kids_book_character_animal_friend to R.string.kids_book_character_animal_friend_tagline
+    "scientist" -> R.string.kids_book_character_scientist to R.string.kids_book_character_scientist_tagline
+    "time_traveler" -> R.string.kids_book_character_time_traveler to R.string.kids_book_character_time_traveler_tagline
+    "adventurer" -> R.string.kids_book_character_adventurer to R.string.kids_book_character_adventurer_tagline
+    else -> R.string.kids_book_character_warm_collector to R.string.kids_book_character_warm_collector_tagline
+}
+
+/** 추천 이유 한 줄 + 책 카드 + 재미/호기심/감동 별점 + 난이도 (기획 문서 "4. 책 추천 결과" 절). */
+@Composable
+private fun BookTasteResultCard(book: RecommendedBook) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(reasonRes(book)),
+            style = MaterialTheme.typography.bodyMedium,
+            color = SkyAccent
+        )
+        RecommendedBookCard(book = book)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            StarStat(label = stringResource(R.string.kids_book_star_fun), filled = starCount(book, MOOD_FUN))
+            StarStat(label = stringResource(R.string.kids_book_star_curious), filled = starCount(book, MOOD_CURIOUS))
+            StarStat(label = stringResource(R.string.kids_book_star_touching), filled = starCount(book, MOOD_TOUCHING))
+            Text(
+                text = difficultyLabel(book),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+private val MOOD_FUN = setOf("mood:exciting", "mood:funny")
+private val MOOD_CURIOUS = setOf("mood:curious")
+private val MOOD_TOUCHING = setOf("mood:touching", "mood:warm")
+
+private fun starCount(book: RecommendedBook, matchTags: Set<String>): Int =
+    if (book.tags.any { it in matchTags }) 3 else 1
+
+@Composable
+private fun StarStat(label: String, filled: Int, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Row {
+            repeat(3) { index ->
+                Icon(
+                    imageVector = if (index < filled) Icons.Filled.Star else Icons.Filled.StarBorder,
+                    contentDescription = null,
+                    tint = LavenderAccent,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+private fun reasonRes(book: RecommendedBook): Int {
+    val genre = book.tags.firstOrNull { it.startsWith("genre:") }?.removePrefix("genre:")
+    return when (genre) {
+        "fantasy" -> R.string.kids_book_reason_fantasy
+        "mystery" -> R.string.kids_book_reason_mystery
+        "humor" -> R.string.kids_book_reason_humor
+        "animal" -> R.string.kids_book_reason_animal
+        "science" -> R.string.kids_book_reason_science
+        "history" -> R.string.kids_book_reason_history
+        "friendship" -> R.string.kids_book_reason_friendship
+        "emotion" -> R.string.kids_book_reason_emotion
+        "adventure" -> R.string.kids_book_reason_adventure
+        "daily" -> R.string.kids_book_reason_daily
+        else -> R.string.kids_book_reason_default
+    }
+}
+
+@Composable
+private fun difficultyLabel(book: RecommendedBook): String {
+    val ageTag = book.tags.firstOrNull { it.startsWith("age:") }?.removePrefix("age:")
+    return when (ageTag) {
+        "lower" -> stringResource(R.string.kids_book_level_lower)
+        "upper" -> stringResource(R.string.kids_book_level_upper)
+        else -> stringResource(R.string.kids_book_level_middle)
     }
 }
 

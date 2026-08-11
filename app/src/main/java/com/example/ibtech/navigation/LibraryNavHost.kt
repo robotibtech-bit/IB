@@ -612,6 +612,9 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                 ) { padding ->
                     BookRecommendationScreen(
                         uiState = bookUiState,
+                        onAnswerTasteQuestion = viewModel::onAnswerTasteQuestion,
+                        onShowMoreBooks = viewModel::onShowMoreBooks,
+                        onRestartTaste = viewModel::onRestartTaste,
                         onSelectAgeGroup = viewModel::onSelectAgeGroup,
                         onSelectTopic = viewModel::onSelectTopic,
                         onResetFilters = viewModel::onResetFilters,

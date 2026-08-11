@@ -17,8 +17,9 @@ object LibraryDimens {
     val ScreenPadding = 32.dp
     val CardPadding = 28.dp
     val CardSpacing = 28.dp
-    /** 글자 크기가 2배로 커지면서(headlineSmall 64sp) 상단바도 그만큼 여유 있게 키웠다. */
-    val TopBarHeight = 220.dp
+    /** 상단바 안쪽 콘텐츠(버튼 90dp/제목 headlineSmall 54sp)에 맞춘 높이 — 이전 220dp는 글자
+     * 크기를 15% 낮추기 전 기준이라 위아래 여백이 과하게 남았다(사용자 피드백). */
+    val TopBarHeight = 140.dp
 
     /**
      * 목적지/메뉴 카드의 원형 아이콘 배경 지름과 아이콘 크기.

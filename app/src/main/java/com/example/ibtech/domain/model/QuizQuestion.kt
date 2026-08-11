@@ -16,5 +16,9 @@ data class QuizQuestion(
     val explanation: String,
     val recommendedBookIds: List<String> = emptyList(),
     val isEnabled: Boolean = true,
-    val sortOrder: Int = 0
+    val sortOrder: Int = 0,
+    /** `res/drawable`의 리소스 이름(확장자 제외, 예: "dinosaur_01"). 해당 이름의 PNG가 아직
+     * 없으면(200문제 시드 중 88개는 의도적으로 비어 있음) 화면에서 공통 기본 이미지로 대체한다
+     * — 나중에 같은 이름의 PNG를 `res/drawable`에 추가하기만 하면 코드 수정 없이 반영된다. */
+    val imageKey: String? = null
 )

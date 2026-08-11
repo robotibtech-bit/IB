@@ -17,105 +17,25 @@ import com.example.ibtech.domain.model.RecommendedBook
  */
 object DefaultKidsContent {
 
+    /** 200문제 시드(공룡/과학/동물/동화 각 50문제)의 자산 파일명. [KidsJsonMapper.quizToJson]과
+     * 동일한 JSON 모양이라 그대로 [KidsJsonMapper.quizFromJson]으로 읽는다 — 200개를 Kotlin
+     * 코드나 `strings.xml`에 직접 박지 않고 자산으로 분리했다(문서
+     * `docs/CLAUDE_QUIZ_IMAGE_HANDOFF_OPTIMIZED_112_OF_200` 인계본 기준). */
+    private const val QUIZ_SEED_ASSET = "quiz_seed_200.json"
+
+    /** 60권 이상 추천도서 풀(기획 문서 "3. 초기 추천 도서 풀") 자산 파일명. 기존 시드 4권 중
+     * 3권(구름빵/무지개 물고기/달샤베트)은 같은 id로 이 안에 포함되어 있어 마이그레이션 시
+     * 병합돼도 중복되지 않는다 — "강아지똥"만 새 풀의 동일 도서(취향 태그 포함)로 대체됐다. */
+    private const val BOOK_POOL_ASSET = "book_pool_60.json"
+
     fun buildQuizQuestions(context: Context): List<QuizQuestion> {
-        fun s(resId: Int) = context.getString(resId)
-        fun choices(arrayResId: Int) = context.resources.getStringArray(arrayResId).toList()
-
-        fun question(
-            id: String,
-            category: String,
-            textRes: Int,
-            choicesArrayRes: Int,
-            correctIndex: Int,
-            explanationRes: Int,
-            sortOrder: Int,
-            recommendedBookIds: List<String> = emptyList()
-        ) = QuizQuestion(
-            id = id,
-            category = category,
-            question = s(textRes),
-            choices = choices(choicesArrayRes),
-            correctIndex = correctIndex,
-            explanation = s(explanationRes),
-            recommendedBookIds = recommendedBookIds,
-            sortOrder = sortOrder
-        )
-
-        val animal = s(R.string.quiz_category_animal)
-        val dinosaur = s(R.string.quiz_category_dinosaur)
-        val science = s(R.string.quiz_category_science)
-        val fairytale = s(R.string.quiz_category_fairytale)
-
-        // 퀴즈 주제와 실제로 어울리는 책만 연결한다(공룡·과학은 시드 도서 중 어울리는 책이
-        // 없어 비워 둔다 — 억지로 끼워 맞춘 추천을 하지 않는다).
-        val animalBooks = listOf("book_rainbow_fish", "book_dog_poop")
-        val fairytaleBooks = listOf("book_cloud_bread", "book_moon_sherbet")
-
-        return listOf(
-            question("quiz_animal_1", animal, R.string.quiz_q_animal_1_text, R.array.quiz_q_animal_1_choices, 0, R.string.quiz_q_animal_1_explanation, 0, animalBooks),
-            question("quiz_animal_2", animal, R.string.quiz_q_animal_2_text, R.array.quiz_q_animal_2_choices, 0, R.string.quiz_q_animal_2_explanation, 1, animalBooks),
-            question("quiz_animal_3", animal, R.string.quiz_q_animal_3_text, R.array.quiz_q_animal_3_choices, 0, R.string.quiz_q_animal_3_explanation, 2, animalBooks),
-
-            question("quiz_dinosaur_1", dinosaur, R.string.quiz_q_dinosaur_1_text, R.array.quiz_q_dinosaur_1_choices, 0, R.string.quiz_q_dinosaur_1_explanation, 0),
-            question("quiz_dinosaur_2", dinosaur, R.string.quiz_q_dinosaur_2_text, R.array.quiz_q_dinosaur_2_choices, 0, R.string.quiz_q_dinosaur_2_explanation, 1),
-            question("quiz_dinosaur_3", dinosaur, R.string.quiz_q_dinosaur_3_text, R.array.quiz_q_dinosaur_3_choices, 0, R.string.quiz_q_dinosaur_3_explanation, 2),
-
-            question("quiz_science_1", science, R.string.quiz_q_science_1_text, R.array.quiz_q_science_1_choices, 0, R.string.quiz_q_science_1_explanation, 0),
-            question("quiz_science_2", science, R.string.quiz_q_science_2_text, R.array.quiz_q_science_2_choices, 0, R.string.quiz_q_science_2_explanation, 1),
-            question("quiz_science_3", science, R.string.quiz_q_science_3_text, R.array.quiz_q_science_3_choices, 0, R.string.quiz_q_science_3_explanation, 2),
-
-            question("quiz_fairytale_1", fairytale, R.string.quiz_q_fairytale_1_text, R.array.quiz_q_fairytale_1_choices, 0, R.string.quiz_q_fairytale_1_explanation, 0, fairytaleBooks),
-            question("quiz_fairytale_2", fairytale, R.string.quiz_q_fairytale_2_text, R.array.quiz_q_fairytale_2_choices, 0, R.string.quiz_q_fairytale_2_explanation, 1, fairytaleBooks),
-            question("quiz_fairytale_3", fairytale, R.string.quiz_q_fairytale_3_text, R.array.quiz_q_fairytale_3_choices, 0, R.string.quiz_q_fairytale_3_explanation, 2, fairytaleBooks)
-        )
+        val json = context.assets.open(QUIZ_SEED_ASSET).bufferedReader().use { it.readText() }
+        return KidsJsonMapper.quizFromJson(json)
     }
 
     fun buildBooks(context: Context): List<RecommendedBook> {
-        fun s(resId: Int) = context.getString(resId)
-        val location = s(R.string.kids_book_location_generic)
-
-        return listOf(
-            RecommendedBook(
-                id = "book_cloud_bread",
-                title = s(R.string.kids_book_title_cloud_bread),
-                author = s(R.string.kids_book_author_cloud_bread),
-                ageGroup = s(R.string.kids_book_age_cloud_bread),
-                topic = s(R.string.kids_book_topic_cloud_bread),
-                description = s(R.string.kids_book_desc_cloud_bread),
-                locationText = location,
-                sortOrder = 0
-            ),
-            RecommendedBook(
-                id = "book_dog_poop",
-                title = s(R.string.kids_book_title_dog_poop),
-                author = s(R.string.kids_book_author_dog_poop),
-                ageGroup = s(R.string.kids_book_age_dog_poop),
-                topic = s(R.string.kids_book_topic_dog_poop),
-                description = s(R.string.kids_book_desc_dog_poop),
-                locationText = location,
-                sortOrder = 1
-            ),
-            RecommendedBook(
-                id = "book_rainbow_fish",
-                title = s(R.string.kids_book_title_rainbow_fish),
-                author = s(R.string.kids_book_author_rainbow_fish),
-                ageGroup = s(R.string.kids_book_age_rainbow_fish),
-                topic = s(R.string.kids_book_topic_rainbow_fish),
-                description = s(R.string.kids_book_desc_rainbow_fish),
-                locationText = location,
-                sortOrder = 2
-            ),
-            RecommendedBook(
-                id = "book_moon_sherbet",
-                title = s(R.string.kids_book_title_moon_sherbet),
-                author = s(R.string.kids_book_author_moon_sherbet),
-                ageGroup = s(R.string.kids_book_age_moon_sherbet),
-                topic = s(R.string.kids_book_topic_moon_sherbet),
-                description = s(R.string.kids_book_desc_moon_sherbet),
-                locationText = location,
-                sortOrder = 3
-            )
-        )
+        val json = context.assets.open(BOOK_POOL_ASSET).bufferedReader().use { it.readText() }
+        return KidsJsonMapper.booksFromJson(json)
     }
 
     fun buildEtiquetteTips(context: Context): List<LibraryEtiquetteTip> {

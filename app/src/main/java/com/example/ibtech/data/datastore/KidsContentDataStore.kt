@@ -22,4 +22,13 @@ object KidsContentDataStoreKeys {
     /** 기본 시드를 이미 채워봤는지. 목록이 현재 비어있는지와 분리해서, 관리자가 의도적으로
      * 전부 삭제한 뒤에도 기본값이 다시 채워지지 않게 한다. */
     val DEFAULT_CONTENT_SEEDED: Preferences.Key<Boolean> = booleanPreferencesKey("default_content_seeded")
+
+    /** 200문제 문제은행을 이미 병합해봤는지(1회성 마이그레이션). [DEFAULT_CONTENT_SEEDED]와
+     * 별개다 — 이미 시드가 끝난(구버전 12문제) 기존 설치에도 한 번만 200문제를 추가하기
+     * 위해서다. 그 뒤로는 관리자가 지우거나 고쳐도 다시 채우지 않는다. */
+    val QUIZ_BANK_200_MERGED: Preferences.Key<Boolean> = booleanPreferencesKey("quiz_bank_200_merged")
+
+    /** 60권 이상 추천도서 풀을 이미 병합해봤는지(1회성 마이그레이션). [QUIZ_BANK_200_MERGED]와
+     * 같은 이유로 별개 플래그를 쓴다. */
+    val BOOK_POOL_60_MERGED: Preferences.Key<Boolean> = booleanPreferencesKey("book_pool_60_merged")
 }

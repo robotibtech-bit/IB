@@ -285,58 +285,116 @@
     <string name="quiz_result_books_heading">추천 도서</string>
     <string name="quiz_result_retry">다른 퀴즈 하기</string>
 
-    <!-- 추천도서 (요구사항 2.14절) -->
-    <string name="kids_book_title_cloud_bread">구름빵</string>
-    <string name="kids_book_author_cloud_bread">백희나</string>
-    <string name="kids_book_age_cloud_bread">4~7세</string>
-    <string name="kids_book_topic_cloud_bread">상상력</string>
-    <string name="kids_book_desc_cloud_bread">비 오는 날 아빠가 만들어 준 신기한 구름빵을 먹고 하늘을 나는 이야기예요.</string>
-
-    <string name="kids_book_title_dog_poop">강아지똥</string>
-    <string name="kids_book_author_dog_poop">권정생</string>
-    <string name="kids_book_age_dog_poop">5~8세</string>
-    <string name="kids_book_topic_dog_poop">자연·생명</string>
-    <string name="kids_book_desc_dog_poop">작고 보잘것없어 보이던 강아지똥이 민들레꽃을 피우는 데 도움을 주는 이야기예요.</string>
-
-    <string name="kids_book_title_rainbow_fish">무지개 물고기</string>
-    <string name="kids_book_author_rainbow_fish">마르쿠스 피스터</string>
-    <string name="kids_book_age_rainbow_fish">4~7세</string>
-    <string name="kids_book_topic_rainbow_fish">우정·나눔</string>
-    <string name="kids_book_desc_rainbow_fish">반짝이는 비늘을 친구들과 나누며 진짜 친구를 사귀게 되는 물고기 이야기예요.</string>
-
-    <string name="kids_book_title_moon_sherbet">달샤베트</string>
-    <string name="kids_book_author_moon_sherbet">백희나</string>
-    <string name="kids_book_age_moon_sherbet">5~8세</string>
-    <string name="kids_book_topic_moon_sherbet">상상력</string>
-    <string name="kids_book_desc_moon_sherbet">더운 여름밤 녹아내린 달을 시원한 샤베트로 만들어 이웃과 나누는 이야기예요.</string>
-
-    <string name="kids_book_location_generic">어린이자료실</string>
+    <!-- 추천도서 (요구사항 2.14절). 60권 이상 시드는 assets/book_pool_60.json에서 읽으므로
+         (DefaultKidsContent.buildBooks) 책 제목/설명 문자열은 여기 두지 않는다. -->
     <string name="kids_book_filter_age_all">전체 연령</string>
     <string name="kids_book_filter_topic_all">전체 주제</string>
     <string name="kids_book_empty">조건에 맞는 책이 없습니다.</string>
     <string name="kids_book_filter_reset">필터 초기화</string>
 
-    <!-- 나에게 맞는 책 게임 (질문에 답하면 어울리는 책을 추천) -->
-    <string name="kids_book_game_age_question">어떤 나이대 친구가 볼 책을 찾아볼까요?</string>
-    <string name="kids_book_game_topic_question">어떤 이야기가 궁금해요?</string>
-    <string name="kids_book_game_reveal_title">짜잔! 이 책은 어때요?</string>
+    <!-- 나에게 맞는 책 취향 퀴즈 (기획 문서 "2. 나에게 맞는 책" 절, 6문항 고정) -->
+    <string name="kids_book_taste_q1_title">오늘 어떤 세계로 떠나고 싶어?</string>
+    <string name="kids_book_taste_q1_opt_fantasy">🐉 신기한 상상 세계</string>
+    <string name="kids_book_taste_q1_opt_mystery">🔍 사건을 해결하는 세계</string>
+    <string name="kids_book_taste_q1_opt_humor">😂 웃음이 가득한 세계</string>
+    <string name="kids_book_taste_q1_opt_animal">🐶 동물 친구들의 세계</string>
+    <string name="kids_book_taste_q1_opt_science">🚀 과학과 우주의 세계</string>
+    <string name="kids_book_taste_q1_opt_history">🏰 옛날 역사 속 세계</string>
+
+    <string name="kids_book_taste_q2_title">책을 읽을 때 어떤 기분이 들면 좋겠어?</string>
+    <string name="kids_book_taste_q2_opt_exciting">두근두근!</string>
+    <string name="kids_book_taste_q2_opt_curious">계속 궁금하게!</string>
+    <string name="kids_book_taste_q2_opt_funny">빵빵 웃기게!</string>
+    <string name="kids_book_taste_q2_opt_warm">마음이 따뜻하게!</string>
+
+    <string name="kids_book_taste_q3_title">어떤 주인공과 함께하고 싶어?</string>
+    <string name="kids_book_taste_q3_opt_adventure">용감한 어린이</string>
+    <string name="kids_book_taste_q3_opt_humor">엉뚱한 친구</string>
+    <string name="kids_book_taste_q3_opt_animal">동물</string>
+    <string name="kids_book_taste_q3_opt_fantasy">마법사/판타지 캐릭터</string>
+    <string name="kids_book_taste_q3_opt_mystery">탐정</string>
+    <string name="kids_book_taste_q3_opt_science">과학자/탐험가</string>
+
+    <string name="kids_book_taste_q4_title">오늘은 얼마나 읽고 싶어?</string>
+    <string name="kids_book_taste_q4_opt_short">금방 읽는 책</string>
+    <string name="kids_book_taste_q4_opt_medium">적당한 길이</string>
+    <string name="kids_book_taste_q4_opt_long">길어도 푹 빠지는 책</string>
+
+    <string name="kids_book_taste_q5_title">그림이 많은 책이 좋아?</string>
+    <string name="kids_book_taste_q5_opt_many">그림이 많으면 좋아</string>
+    <string name="kids_book_taste_q5_opt_medium">적당히 있으면 좋아</string>
+    <string name="kids_book_taste_q5_opt_few">글이 많아도 괜찮아</string>
+
+    <string name="kids_book_taste_q6_title">현실 이야기와 상상 이야기 중 어느 쪽이 좋아?</string>
+    <string name="kids_book_taste_q6_opt_realistic">현실 이야기</string>
+    <string name="kids_book_taste_q6_opt_imaginative">상상 이야기</string>
+
+    <!-- 결과 캐릭터 (기획 문서 "4. 책 추천 결과" 절) -->
+    <string name="kids_book_character_wizard">🧙 상상력 만렙 마법사</string>
+    <string name="kids_book_character_wizard_tagline">새로운 세계를 상상하는 걸 좋아하는구나!</string>
+    <string name="kids_book_character_explorer">🔍 호기심 폭발 탐험가</string>
+    <string name="kids_book_character_explorer_tagline">새로운 걸 발견하고 비밀을 찾아내는 걸 좋아하는구나!</string>
+    <string name="kids_book_character_comedian">😂 웃음 충전 개그왕</string>
+    <string name="kids_book_character_comedian_tagline">웃고 즐기는 이야기를 좋아하는구나!</string>
+    <string name="kids_book_character_animal_friend">🐾 동물 사랑 친구</string>
+    <string name="kids_book_character_animal_friend_tagline">동물 친구들 이야기를 좋아하는구나!</string>
+    <string name="kids_book_character_scientist">🚀 과학 탐험대장</string>
+    <string name="kids_book_character_scientist_tagline">과학과 우주 이야기를 좋아하는구나!</string>
+    <string name="kids_book_character_time_traveler">🏰 역사 시간여행자</string>
+    <string name="kids_book_character_time_traveler_tagline">옛이야기 속으로 떠나는 걸 좋아하는구나!</string>
+    <string name="kids_book_character_warm_collector">💛 마음 따뜻한 이야기 수집가</string>
+    <string name="kids_book_character_warm_collector_tagline">마음이 따뜻해지는 이야기를 좋아하는구나!</string>
+    <string name="kids_book_character_adventurer">⚔️ 두근두근 모험가</string>
+    <string name="kids_book_character_adventurer_tagline">짜릿한 모험 이야기를 좋아하는구나!</string>
+
+    <!-- 추천 이유 한 줄 (책의 대표 장르 태그 기준) -->
+    <string name="kids_book_reason_fantasy">상상 속 세계를 좋아하는 너에게 딱이야!</string>
+    <string name="kids_book_reason_mystery">사건을 파헤치는 걸 좋아하는 너에게 딱이야!</string>
+    <string name="kids_book_reason_humor">웃음이 가득한 이야기를 좋아하는 너에게 딱이야!</string>
+    <string name="kids_book_reason_animal">동물 이야기를 좋아하는 너에게 딱이야!</string>
+    <string name="kids_book_reason_science">과학과 우주를 좋아하는 너에게 딱이야!</string>
+    <string name="kids_book_reason_history">역사 이야기를 좋아하는 너에게 딱이야!</string>
+    <string name="kids_book_reason_friendship">우정 이야기를 좋아하는 너에게 딱이야!</string>
+    <string name="kids_book_reason_emotion">마음이 따뜻해지는 이야기를 좋아하는 너에게 딱이야!</string>
+    <string name="kids_book_reason_adventure">짜릿한 모험을 좋아하는 너에게 딱이야!</string>
+    <string name="kids_book_reason_daily">우리 주변 이야기를 좋아하는 너에게 딱이야!</string>
+    <string name="kids_book_reason_default">오늘 너에게 추천하고 싶은 책이야!</string>
+
+    <string name="kids_book_level_lower">쉬워요</string>
+    <string name="kids_book_level_middle">보통이에요</string>
+    <string name="kids_book_level_upper">몰입해서 읽어요</string>
+
+    <string name="kids_book_star_fun">재미</string>
+    <string name="kids_book_star_curious">호기심</string>
+    <string name="kids_book_star_touching">감동</string>
+
+    <string name="kids_book_taste_result_heading">오늘의 추천 BEST 3</string>
+    <string name="kids_book_taste_show_more_action">다른 책도 보여줘!</string>
+    <string name="kids_book_taste_restart_action">다시 테스트하기</string>
+
+    <!-- 나에게 맞는 책 게임 -->
     <string name="kids_book_game_reveal_fallback">정확히 맞는 책은 아직 없지만, 이런 책은 어때요?</string>
-    <string name="kids_book_game_restart_action">다시 질문 받기</string>
     <string name="kids_book_game_browse_all_action">내가 직접 골라볼래요</string>
     <string name="kids_book_game_back_to_game_action">질문으로 돌아가기</string>
 
-    <!-- 도서관 예절 (요구사항 2.15절) -->
-    <!-- 도서관 예절 게임 (카드 뒤집기/상황극 선택/드래그 중 매번 랜덤으로 하나) -->
-    <string name="kids_etiquette_card_flip_hint">카드를 눌러서 확인해보세요!</string>
-    <string name="kids_etiquette_card_flip_reveal_label">이렇게 해봐요!</string>
+    <!-- 도서관 예절 (요구사항 2.15절) — 상황극 선택/좋아요?안돼요!/예절왕 찾기/책을 구해줘!
+         중 매번 랜덤으로 하나, 한 판에 랜덤 5~7라운드 -->
     <string name="kids_etiquette_situation_question">도서관에서 지켜야 할 행동은 무엇일까요?</string>
-    <string name="kids_etiquette_drag_hint">옆으로 밀어서 확인해보세요!</string>
-    <string name="kids_etiquette_drag_handle_label">밀어서 열기</string>
     <string name="kids_etiquette_next_action">다음</string>
     <string name="kids_etiquette_complete_title">모든 도서관 예절을 확인했어요!</string>
     <string name="kids_etiquette_complete_subtitle">친구들과 함께 지켜봐요.</string>
     <string name="kids_etiquette_restart_action">다시 하기</string>
     <string name="kids_etiquette_empty">등록된 도서관 예절이 없습니다.</string>
+
+    <string name="kids_etiquette_like_or_not_question">앗! 도서관에서 이렇게 해도 될까?</string>
+    <string name="kids_etiquette_like_action">👍 좋아요</string>
+    <string name="kids_etiquette_dislike_action">🙅 안 돼요!</string>
+
+    <string name="kids_etiquette_odd_one_good_prompt">도서관 예절왕은 누구일까?</string>
+
+    <string name="kids_etiquette_rescue_book_prompt">🚨 도서관 책이 위험해! 책을 소중하게 지키는 행동을 찾아줘!</string>
+    <string name="kids_etiquette_rescue_book_success">책 구조 성공! 정말 잘했어요!</string>
+    <string name="kids_etiquette_rescue_book_retry">앗! 책이 깜짝 놀랐어요. 다른 행동을 찾아보아요!</string>
 
     <string name="kids_etiquette_tip_1">책을 다 읽은 뒤에는 책 수레에 놓아 주세요.</string>
     <string name="kids_etiquette_tip_2">도서관에서는 작은 목소리로 말해요.</string>

@@ -29,12 +29,14 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -85,9 +87,13 @@ fun QuizPlayScreen(
 
                 Text(
                     text = question.question,
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
+
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    QuizQuestionImage(imageKey = question.imageKey, modifier = Modifier.size(380.dp))
+                }
 
                 question.choices.forEachIndexed { index, choice ->
                     QuizChoiceButton(
@@ -122,6 +128,48 @@ fun QuizPlayScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * 문제 삽화. [imageKey]("dinosaur_01" 등, 확장자 제외 `res/drawable` 리소스 이름)에 해당하는
+ * PNG가 아직 없으면(200문제 중 88개는 의도적으로 비어 있음, `docs/CLAUDE_QUIZ_IMAGE_HANDOFF_
+ * OPTIMIZED_112_OF_200` 인계본 기준) [resources.getIdentifier]가 0을 반환하므로 공통 기본
+ * 이미지(아이콘)로 대체한다 — 나중에 매핑표와 같은 이름의 PNG를 `res/drawable`에 넣기만 하면
+ * 코드 수정 없이 자동으로 반영된다.
+ */
+@Composable
+private fun QuizQuestionImage(imageKey: String?, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val resId = remember(imageKey) {
+        imageKey
+            ?.let { context.resources.getIdentifier(it, "drawable", context.packageName) }
+            ?.takeIf { it != 0 }
+    }
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(LavenderAccentContainer),
+        contentAlignment = Alignment.Center
+    ) {
+        if (resId != null) {
+            // 원본 이미지가 정사각형(720x720)이라 Crop을 쓰면 좌우 폭이 훨씬 넓은 이 박스에서
+            // 이미지 대부분이 잘려 나간다 — Fit으로 전체 그림이 잘리지 않고 다 보이게 한다.
+            Image(
+                painter = painterResource(resId),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Filled.Image,
+                contentDescription = null,
+                tint = LavenderAccent,
+                modifier = Modifier.size(56.dp)
+            )
         }
     }
 }

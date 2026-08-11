@@ -64,6 +64,52 @@ class KidsContentRepository private constructor(
         }
     }
 
+    /**
+     * 200문제 문제은행(공룡/과학/동물/동화 각 50문제)을 아직 병합해보지 않았으면 1회 병합한다.
+     *
+     * [ensureSeeded]와 별개의 플래그([KidsContentDataStoreKeys.QUIZ_BANK_200_MERGED])를 쓴다 —
+     * 이 기기가 이미 예전 12문제로 시드가 끝난 상태([ensureSeeded]는 그냥 반환)여도 200문제는
+     * 한 번은 반영되어야 한다. 이미 있는 id는 건드리지 않고(관리자가 고쳤을 수 있으므로) 새
+     * id만 추가한다 — 예전 자리표시자 12문제(`quiz_animal_1` 등)는 200문제 시드로 완전히
+     * 대체된 내용이라 이 1회 마이그레이션에서만 함께 제거한다.
+     */
+    suspend fun ensureQuizBank200(context: Context) {
+        val alreadyMerged = dataStore.data.first()[KidsContentDataStoreKeys.QUIZ_BANK_200_MERGED] ?: false
+        if (alreadyMerged) return
+
+        val target = DefaultKidsContent.buildQuizQuestions(context)
+        val current = quizQuestions.first().filterNot { it.id in LEGACY_PLACEHOLDER_QUIZ_IDS }
+        val existingIds = current.map { it.id }.toSet()
+        val merged = current + target.filterNot { it.id in existingIds }
+
+        dataStore.edit { prefs ->
+            prefs[KidsContentDataStoreKeys.QUIZ_QUESTIONS_JSON] = KidsJsonMapper.quizToJson(merged)
+            prefs[KidsContentDataStoreKeys.QUIZ_BANK_200_MERGED] = true
+        }
+    }
+
+    /**
+     * 60권 이상 추천도서 풀(기획 문서 "3. 초기 추천 도서 풀")을 아직 병합해보지 않았으면 1회
+     * 병합한다. [ensureQuizBank200]과 같은 패턴 — 이미 있는 id는 건드리지 않고 새 id만
+     * 추가하며, 새 풀과 완전히 같은 책인 예전 "강아지똥"(`book_dog_poop`, 취향 태그 없음)만
+     * 이번 마이그레이션에서 함께 제거한다(새 풀의 `book_puppy_poop`이 같은 책을 태그 포함해
+     * 대체한다).
+     */
+    suspend fun ensureBookPool60(context: Context) {
+        val alreadyMerged = dataStore.data.first()[KidsContentDataStoreKeys.BOOK_POOL_60_MERGED] ?: false
+        if (alreadyMerged) return
+
+        val target = DefaultKidsContent.buildBooks(context)
+        val current = books.first().filterNot { it.id == LEGACY_DUPLICATE_BOOK_ID }
+        val existingIds = current.map { it.id }.toSet()
+        val merged = current + target.filterNot { it.id in existingIds }
+
+        dataStore.edit { prefs ->
+            prefs[KidsContentDataStoreKeys.BOOKS_JSON] = KidsJsonMapper.booksToJson(merged)
+            prefs[KidsContentDataStoreKeys.BOOK_POOL_60_MERGED] = true
+        }
+    }
+
     suspend fun getBook(id: String): RecommendedBook? =
         books.first().firstOrNull { it.id == id }
 
@@ -134,6 +180,17 @@ class KidsContentRepository private constructor(
     }
 
     companion object {
+        /** [ensureQuizBank200]이 딱 한 번 정리하는, 200문제 이전 임시 예시 문제 12개의 id. */
+        private val LEGACY_PLACEHOLDER_QUIZ_IDS = setOf(
+            "quiz_animal_1", "quiz_animal_2", "quiz_animal_3",
+            "quiz_dinosaur_1", "quiz_dinosaur_2", "quiz_dinosaur_3",
+            "quiz_science_1", "quiz_science_2", "quiz_science_3",
+            "quiz_fairytale_1", "quiz_fairytale_2", "quiz_fairytale_3"
+        )
+
+        /** [ensureBookPool60]이 딱 한 번 정리하는, 새 풀의 `book_puppy_poop`과 같은 책인 예전 id. */
+        private const val LEGACY_DUPLICATE_BOOK_ID = "book_dog_poop"
+
         @Volatile
         private var instance: KidsContentRepository? = null
 

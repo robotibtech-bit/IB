@@ -25,6 +25,7 @@ object KidsJsonMapper {
             obj.put("recommendedBookIds", JSONArray(q.recommendedBookIds))
             obj.put("isEnabled", q.isEnabled)
             obj.put("sortOrder", q.sortOrder)
+            obj.put("imageKey", q.imageKey ?: JSONObject.NULL)
             array.put(obj)
         }
         return array.toString()
@@ -45,7 +46,8 @@ object KidsJsonMapper {
                     explanation = obj.optString("explanation", ""),
                     recommendedBookIds = obj.optJSONArray("recommendedBookIds")?.toStringList().orEmpty(),
                     isEnabled = obj.optBoolean("isEnabled", true),
-                    sortOrder = obj.optInt("sortOrder", 0)
+                    sortOrder = obj.optInt("sortOrder", 0),
+                    imageKey = obj.optStringOrNull("imageKey")
                 )
             }
         }.getOrDefault(emptyList())
@@ -65,6 +67,7 @@ object KidsJsonMapper {
             obj.put("locationText", b.locationText ?: JSONObject.NULL)
             obj.put("isEnabled", b.isEnabled)
             obj.put("sortOrder", b.sortOrder)
+            obj.put("tags", JSONArray(b.tags))
             array.put(obj)
         }
         return array.toString()
@@ -86,7 +89,8 @@ object KidsJsonMapper {
                     coverPath = obj.optStringOrNull("coverPath"),
                     locationText = obj.optStringOrNull("locationText"),
                     isEnabled = obj.optBoolean("isEnabled", true),
-                    sortOrder = obj.optInt("sortOrder", 0)
+                    sortOrder = obj.optInt("sortOrder", 0),
+                    tags = obj.optJSONArray("tags")?.toStringList().orEmpty()
                 )
             }
         }.getOrDefault(emptyList())

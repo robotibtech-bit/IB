@@ -1,62 +1,47 @@
 package com.example.ibtech.ui.kids
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.LibraryEtiquetteTip
@@ -72,16 +57,17 @@ import com.example.ibtech.ui.theme.SuccessAccent
 import com.example.ibtech.ui.theme.SuccessAccentContainer
 import com.example.ibtech.ui.theme.YellowAccent
 import com.example.ibtech.ui.theme.YellowAccentContainer
-import kotlin.math.roundToInt
-import kotlinx.coroutines.launch
 
 /**
- * 도서관 예절 화면을 게임으로 바꿨다. 카드 뒤집기/상황극 선택(정답 맞히기)/드래그(커튼 열기) 중
- * 하나를 항목마다 무작위로 골라 보여준다 — 같은 항목이라도 다시 플레이하면 다른 방식이 나올 수
- * 있다.
+ * 도서관 예절 화면을 여러 미니게임을 섞은 "도서관 미션 게임"으로 구성했다(기획 문서 "5. 도서관
+ * 예절" 절: "한 판에 랜덤 5~7라운드만 진행한다"). 라운드마다 [EtiquetteGameType] 4종 중 하나를
+ * 무작위로 고른다 — 상황극 선택만 관리자가 등록한 [LibraryEtiquetteTip] 문구를 쓰고, 나머지
+ * 3종(좋아요?안돼요!/예절왕 찾기/책을 구해줘!)은 이 화면 안의 고정 이미지 예시 목록만으로
+ * 진행되어 문구 개수와 무관하게 항상 라운드를 채울 수 있다. (카드 뒤집기·드래그 커튼·카드 짝
+ * 맞추기는 사용자 요청으로 제외했다.)
  *
- * [LibraryEtiquetteTip]에는 자유 문구 하나뿐이라 "정답/오답" 구분이 없다. 상황극 선택 게임에서
- * 쓰는 오답 보기는 실제 관리자 데이터가 아니라 이 화면 안에서만 쓰는 예시 오답 목록
+ * [LibraryEtiquetteTip]에는 자유 문구 하나뿐이라 "정답/오답" 구분이 없다. 상황극 선택에서 쓰는
+ * 오답 보기는 실제 관리자 데이터가 아니라 이 화면 안에서만 쓰는 예시 오답 목록
  * ([ETIQUETTE_DECOYS])이다 — 관리자가 등록한 예절 문구를 왜곡하지 않는다.
  *
  * 이미지([etiquetteTipImageRes], [ETIQUETTE_DECOYS]의 imageRes)는 seed 문구 4개·오답 10개에만
@@ -106,41 +92,65 @@ fun LibraryEtiquetteScreen(
             return@Box
         }
 
-        // shuffleSeed가 바뀌면 orderedTips가 새 목록으로 바뀌고, 그 키를 물고 있는 currentIndex도
-        // 자동으로 0부터 다시 시작한다 — "다시 하기"에서 순서를 다시 섞어 매번 다른 순서로 논다.
+        // shuffleSeed가 바뀌면 rounds가 새로 구성되고, 그 키를 물고 있는 currentIndex도 자동으로
+        // 0부터 다시 시작한다 — "다시 하기"에서 순서를 다시 섞어 매번 다른 라운드 구성으로 논다.
         var shuffleSeed by remember { mutableIntStateOf(0) }
-        val orderedTips = remember(uiState.tips, shuffleSeed) { uiState.tips.shuffled() }
-        var currentIndex by remember(orderedTips) { mutableIntStateOf(0) }
+        val rounds = remember(uiState.tips, shuffleSeed) { buildEtiquetteRounds(uiState.tips) }
+        var currentIndex by remember(rounds) { mutableIntStateOf(0) }
 
-        if (currentIndex >= orderedTips.size) {
+        if (currentIndex >= rounds.size) {
             EtiquetteCompletionScreen(onRestart = { shuffleSeed++ })
             return@Box
         }
 
-        val tip = orderedTips[currentIndex]
-        // tip.id로 키를 잡아, 같은 항목을 다시 보여줄 때(카드 뒤집기 후 뒤로 왔다가 다시 등)마다
-        // 게임 방식이 바뀌지 않고 한 라운드 동안은 유지되게 한다.
-        val gameType = remember(tip.id) { EtiquetteGameType.entries.random() }
+        val round = rounds[currentIndex]
+
+        // rememberScrollState()를 currentIndex로 키를 걸지 않으면 이전 라운드에서 스크롤한
+        // 위치가 다음 라운드까지 그대로 남아 새 라운드의 카드 윗부분이 화면 밖으로 잘려 보인다
+        // (실기 확인) — 라운드가 바뀔 때마다 스크롤 위치를 0으로 되돌린다.
+        val scrollState = remember(currentIndex) { ScrollState(0) }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(LibraryDimens.ScreenPadding),
-            verticalArrangement = Arrangement.spacedBy(LibraryDimens.CardSpacing)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            EtiquetteProgressBadge(current = currentIndex + 1, total = orderedTips.size)
+            EtiquetteProgressBadge(current = currentIndex + 1, total = rounds.size)
 
-            when (gameType) {
-                EtiquetteGameType.CARD_FLIP -> CardFlipGame(tip = tip, onNext = { currentIndex++ })
-                EtiquetteGameType.SITUATION_CHOICE -> SituationChoiceGame(tip = tip, onNext = { currentIndex++ })
-                EtiquetteGameType.DRAG_REVEAL -> DragRevealGame(tip = tip, onNext = { currentIndex++ })
+            val onNext: () -> Unit = { currentIndex++ }
+            when (round.type) {
+                EtiquetteGameType.SITUATION_CHOICE -> SituationChoiceGame(tip = round.tip!!, onNext = onNext)
+                EtiquetteGameType.LIKE_OR_NOT -> LikeOrNotGame(seed = currentIndex, onNext = onNext)
+                EtiquetteGameType.FIND_THE_ODD_ONE -> FindTheOddOneGame(seed = currentIndex, onNext = onNext)
+                EtiquetteGameType.RESCUE_THE_BOOK -> RescueBookGame(seed = currentIndex, onNext = onNext)
             }
         }
     }
 }
 
-private enum class EtiquetteGameType { CARD_FLIP, SITUATION_CHOICE, DRAG_REVEAL }
+private enum class EtiquetteGameType { SITUATION_CHOICE, LIKE_OR_NOT, FIND_THE_ODD_ONE, RESCUE_THE_BOOK }
+
+private val TIP_BASED_GAME_TYPES = setOf(EtiquetteGameType.SITUATION_CHOICE)
+
+private data class EtiquetteRound(val type: EtiquetteGameType, val tip: LibraryEtiquetteTip?)
+
+/**
+ * 5~7라운드를 무작위로 구성한다(기획 문서 "한 판에 랜덤 5~7라운드만 진행한다"). 상황극 선택이
+ * 뽑히면 문구를 순서대로 소비하되, 문구 개수(seed 기준 4개)보다 라운드가 많을 수 있으므로 다
+ * 쓰면 다시 섞어 반복한다 — 같은 문구를 두 번 보는 것보다 라운드 부족으로 게임이 조기 종료되는
+ * 쪽이 아이 입장에서 더 어색하다.
+ */
+private fun buildEtiquetteRounds(tips: List<LibraryEtiquetteTip>): List<EtiquetteRound> {
+    val roundCount = (5..7).random()
+    val tipCycle = generateSequence { tips.shuffled() }.flatten().iterator()
+    return (0 until roundCount).map {
+        val type = EtiquetteGameType.entries.random()
+        val tip = if (type in TIP_BASED_GAME_TYPES) tipCycle.next() else null
+        EtiquetteRound(type, tip)
+    }
+}
 
 /**
  * seed 예절 문구 4개(strings.xml)에만 매칭되는 실제 삽화. 문구가 정확히 일치할 때만 그림이
@@ -166,11 +176,11 @@ private fun EtiquetteProgressBadge(current: Int, total: Int) {
     Box(
         modifier = Modifier
             .background(YellowAccentContainer, RoundedCornerShape(50))
-            .padding(horizontal = 20.dp, vertical = 10.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp)
     ) {
         Text(
             text = stringResource(R.string.quiz_progress_format, current, total),
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.labelMedium,
             color = YellowAccent
         )
     }
@@ -217,85 +227,6 @@ private fun EtiquetteCompletionScreen(onRestart: () -> Unit) {
     }
 }
 
-// ── 1) 카드 뒤집기 ──────────────────────────────────────────────────────────
-
-@Composable
-private fun CardFlipGame(tip: LibraryEtiquetteTip, onNext: () -> Unit) {
-    var flipped by remember(tip.id) { mutableStateOf(false) }
-    val rotation by animateFloatAsState(
-        targetValue = if (flipped) 180f else 0f,
-        animationSpec = tween(500),
-        label = "etiquette_card_flip"
-    )
-    val showingBack = rotation > 90f
-    val imageRes = etiquetteTipImageRes(tip.text)
-
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Text(
-            text = stringResource(R.string.kids_etiquette_card_flip_hint),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp)
-                .graphicsLayer {
-                    rotationY = rotation
-                    cameraDistance = 12f * density
-                }
-                .clip(RoundedCornerShape(28.dp))
-                .background(if (showingBack) YellowAccentContainer else YellowAccent)
-                .clickable(enabled = !flipped) { flipped = true },
-            contentAlignment = Alignment.Center
-        ) {
-            if (!showingBack) {
-                Icon(
-                    imageVector = Icons.Filled.TouchApp,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(72.dp)
-                )
-            } else {
-                // 뒷면 내용은 카드 전체와 함께 180도 돌아가 있어, 한 번 더 되돌려 글자가
-                // 거울에 비친 것처럼 보이지 않게 한다. 이미지 영역을 카드 전체 너비로 두면
-                // (가로가 세로보다 훨씬 넓어져) 원본 삽화가 극단적으로 확대돼 잘린다(실기 확인)
-                // — 실제 삽화 비율(약 3:2)에 가까운 고정 크기로 가운데 배치한다.
-                Column(
-                    modifier = Modifier
-                        .graphicsLayer { rotationY = 180f }
-                        .fillMaxSize()
-                        .padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    EtiquetteIllustration(
-                        imageRes = imageRes,
-                        modifier = Modifier
-                            .width(260.dp)
-                            .height(180.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.kids_etiquette_card_flip_reveal_label),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = YellowAccent
-                    )
-                    Text(
-                        text = tip.text,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2
-                    )
-                }
-            }
-        }
-        if (flipped) {
-            LibraryPrimaryButton(text = stringResource(R.string.kids_etiquette_next_action), onClick = onNext)
-        }
-    }
-}
-
 /** 예절/오답 삽화 공용 프레임. 실제 이미지가 없으면(관리자가 새로 추가한 문구) 아이콘으로 대신한다. */
 @Composable
 private fun EtiquetteIllustration(imageRes: Int?, modifier: Modifier = Modifier, cornerRadius: Int = 20) {
@@ -306,10 +237,12 @@ private fun EtiquetteIllustration(imageRes: Int?, modifier: Modifier = Modifier,
         contentAlignment = Alignment.Center
     ) {
         if (imageRes != null) {
+            // Crop을 쓰면 상자 가로세로 비율이 원본 그림과 다를 때 그림 일부가 잘려 나간다
+            // (실기 확인) — Fit으로 그림 전체가 항상 다 보이게 한다.
             Image(
                 painter = painterResource(imageRes),
                 contentDescription = null,
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize()
             )
         } else {
@@ -323,7 +256,7 @@ private fun EtiquetteIllustration(imageRes: Int?, modifier: Modifier = Modifier,
     }
 }
 
-// ── 2) 상황극 선택 ──────────────────────────────────────────────────────────
+// ── 1) 상황극 선택 (기존) ────────────────────────────────────────────────────
 
 /**
  * 상황극 선택 게임의 오답 보기 예시 — 실제 도서관 규정이 아니라 "정답을 골라내는 재미"를 위해
@@ -358,10 +291,10 @@ private fun SituationChoiceGame(tip: LibraryEtiquetteTip, onNext: () -> Unit) {
     }
     var selected by remember(tip.id) { mutableStateOf<SituationOption?>(null) }
 
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(
             text = stringResource(R.string.kids_etiquette_situation_question),
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
         Row(
@@ -384,22 +317,7 @@ private fun SituationChoiceGame(tip: LibraryEtiquetteTip, onNext: () -> Unit) {
             }
         }
         if (selected != null) {
-            val isCorrect = selected?.isCorrect == true
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(
-                    imageVector = if (isCorrect) Icons.Filled.Check else Icons.Filled.Close,
-                    contentDescription = null,
-                    tint = if (isCorrect) SuccessAccent else CoralAccent
-                )
-                Text(
-                    text = stringResource(
-                        if (isCorrect) R.string.quiz_correct_feedback else R.string.quiz_incorrect_feedback
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (isCorrect) SuccessAccent else CoralAccent
-                )
-            }
-            LibraryPrimaryButton(text = stringResource(R.string.kids_etiquette_next_action), onClick = onNext)
+            FeedbackWithNextRow(isCorrect = selected?.isCorrect == true, onNext = onNext)
         }
     }
 }
@@ -443,10 +361,17 @@ private fun SituationChoiceCard(
             .clickable(enabled = state == ChoiceState.NEUTRAL, onClick = debounced(onClick)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(modifier = Modifier.fillMaxWidth().height(150.dp)) {
+        // 카드 바깥쪽 RoundedCornerShape(24.dp) 클립이 이미지 상단 모서리를 바짝 파고들어
+        // "위가 잘린" 것처럼 보였다(사용자 피드백) — 이미지를 살짝 아래로 내려 여유를 준다.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 14.dp)
+                .height(256.dp)
+        ) {
             EtiquetteIllustration(
                 imageRes = option.imageRes,
-                cornerRadius = 0,
+                cornerRadius = 12,
                 modifier = Modifier.fillMaxSize()
             )
             if (state == ChoiceState.CORRECT || state == ChoiceState.WRONG_SELECTED) {
@@ -471,14 +396,15 @@ private fun SituationChoiceCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 72.dp)
+                .heightIn(min = 76.dp)
                 .background(Color.Transparent)
                 .padding(12.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = option.text,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
@@ -486,94 +412,238 @@ private fun SituationChoiceCard(
     }
 }
 
-// ── 3) 드래그로 커튼 열기 ────────────────────────────────────────────────────
+// ── 정오답 공용 표시 ─────────────────────────────────────────────────────────
+
+/** 정답/오답 아이콘+문구. 여러 게임(상황극 선택 포함)이 같은 정답/오답 문구
+ * ([R.string.quiz_correct_feedback]/[R.string.quiz_incorrect_feedback])를 공유한다 — 게임마다
+ * 다른 문구가 필요하면 [correctTextRes]/[incorrectTextRes]로 바꿔 쓴다. */
+@Composable
+private fun FeedbackRow(
+    isCorrect: Boolean,
+    correctTextRes: Int = R.string.quiz_correct_feedback,
+    incorrectTextRes: Int = R.string.quiz_incorrect_feedback,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = if (isCorrect) Icons.Filled.Check else Icons.Filled.Close,
+            contentDescription = null,
+            tint = if (isCorrect) SuccessAccent else CoralAccent
+        )
+        Text(
+            text = stringResource(if (isCorrect) correctTextRes else incorrectTextRes),
+            style = MaterialTheme.typography.titleMedium,
+            color = if (isCorrect) SuccessAccent else CoralAccent
+        )
+    }
+}
+
+/** 정오답 문구와 "다음" 버튼을 한 줄에 나란히 배치해(오른쪽 공간에 버튼) 세로 공간을 아껴
+ * 라운드 내용이 스크롤 없이 한 화면에 들어오게 한다. */
+@Composable
+private fun FeedbackWithNextRow(
+    isCorrect: Boolean,
+    onNext: () -> Unit,
+    correctTextRes: Int = R.string.quiz_correct_feedback,
+    incorrectTextRes: Int = R.string.quiz_incorrect_feedback
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        FeedbackRow(
+            isCorrect = isCorrect,
+            correctTextRes = correctTextRes,
+            incorrectTextRes = incorrectTextRes,
+            modifier = Modifier.weight(1f)
+        )
+        Box(modifier = Modifier.width(160.dp)) {
+            LibraryPrimaryButton(text = stringResource(R.string.kids_etiquette_next_action), onClick = onNext)
+        }
+    }
+}
+
+// ── 2) 좋아요? 안 돼요! / 3) 예절왕·범인을 찾아라 / 4) 책을 구해줘! 공용 이미지 목록 ─────────
+
+/** [ETIQUETTE_DECOYS]는 "오답 보기 문구"만 있던 목록이라, 올바른 행동 쪽도 같은 모양
+ * ([EtiquetteImage])으로 맞춰 둔 목록. seed 예절 문구 4개와 같은 그림([etiquetteTipImageRes]
+ * 매칭 대상)이지만, 이 화면 예시 전용 문구라 관리자 문구와는 별개다([ETIQUETTE_DECOYS]와 같은
+ * 이유). */
+private data class EtiquetteImage(val text: String, val imageRes: Int, val isGood: Boolean)
+
+private val ETIQUETTE_GOOD_IMAGES = listOf(
+    EtiquetteImage("책을 다 읽은 뒤에는 책 수레에 놓아요", R.drawable.etiquette_book_cart, isGood = true),
+    EtiquetteImage("도서관에서는 작은 목소리로 말해요", R.drawable.etiquette_quiet_voice, isGood = true),
+    EtiquetteImage("손을 깨끗이 씻고 책장을 조심히 넘겨요", R.drawable.etiquette_clean_hands, isGood = true),
+    EtiquetteImage("친구가 읽고 있는 책은 차례를 기다려요", R.drawable.etiquette_wait_turn, isGood = true)
+)
+
+private val ETIQUETTE_BAD_IMAGES = ETIQUETTE_DECOYS.map { EtiquetteImage(it.text, it.imageRes, isGood = false) }
+private val ETIQUETTE_ALL_IMAGES = ETIQUETTE_GOOD_IMAGES + ETIQUETTE_BAD_IMAGES
+
+/** "책을 구해줘!" 전용 — 책을 직접 다루는 행동만 골라 둔다(기획 문서 게임 C 예시와 동일). */
+private val BOOK_CARE_GOOD = listOf(ETIQUETTE_GOOD_IMAGES[0], ETIQUETTE_GOOD_IMAGES[2])
+private val BOOK_CARE_BAD_RES = setOf(R.drawable.decoy_scribble_book, R.drawable.decoy_throw_book, R.drawable.decoy_leave_book_anywhere)
+private val BOOK_CARE_BAD = ETIQUETTE_BAD_IMAGES.filter { it.imageRes in BOOK_CARE_BAD_RES }
+
+// ── 2) 좋아요? 안 돼요! ──────────────────────────────────────────────────────
 
 @Composable
-private fun DragRevealGame(tip: LibraryEtiquetteTip, onNext: () -> Unit) {
-    // 커튼 박스 자체가 부모와 같은 너비라서, 드래그 가능 거리를 고정 dp로 잡으면 다 밀어도
-    // 커튼의 일부만 옆으로 비켜나 뒤 내용을 절반도 못 가린다(실기 확인) — 실제 측정된 박스
-    // 너비만큼 밀어야 커튼이 화면 밖으로 완전히 빠진다.
-    var containerWidthPx by remember(tip.id) { mutableFloatStateOf(0f) }
-    val offsetX = remember(tip.id) { Animatable(0f) }
-    var revealed by remember(tip.id) { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val imageRes = etiquetteTipImageRes(tip.text)
+private fun LikeOrNotGame(seed: Int, onNext: () -> Unit) {
+    val target = remember(seed) { ETIQUETTE_ALL_IMAGES.random() }
+    // 사용자가 누른 값(true=좋아요). 아직 안 눌렀으면 null.
+    var picked by remember(seed) { mutableStateOf<Boolean?>(null) }
 
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
         Text(
-            text = stringResource(R.string.kids_etiquette_drag_hint),
+            text = stringResource(R.string.kids_etiquette_like_or_not_question),
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.fillMaxWidth()
         )
-        Box(
+        EtiquetteIllustration(
+            imageRes = target.imageRes,
             modifier = Modifier
-                .fillMaxWidth()
-                .height(260.dp)
-                .clip(RoundedCornerShape(28.dp))
-                .background(YellowAccentContainer)
-                .onSizeChanged { containerWidthPx = it.width.toFloat() }
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                EtiquetteIllustration(
-                    imageRes = imageRes,
-                    modifier = Modifier
-                        .width(220.dp)
-                        .fillMaxHeight()
-                )
-                Text(
-                    text = tip.text,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
+                .width(600.dp)
+                .height(410.dp)
+        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            LikeOrNotButton(
+                text = stringResource(R.string.kids_etiquette_like_action),
+                accent = SuccessAccent,
+                enabled = picked == null,
+                onClick = { picked = true },
+                modifier = Modifier.weight(1f)
+            )
+            LikeOrNotButton(
+                text = stringResource(R.string.kids_etiquette_dislike_action),
+                accent = CoralAccent,
+                enabled = picked == null,
+                onClick = { picked = false },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        val answer = picked
+        if (answer != null) {
+            FeedbackWithNextRow(isCorrect = answer == target.isGood, onNext = onNext)
+        }
+    }
+}
+
+@Composable
+private fun LikeOrNotButton(
+    text: String,
+    accent: Color,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (enabled) accent else accent.copy(alpha = 0.4f))
+            .clickable(enabled = enabled, onClick = debounced(onClick))
+            .padding(vertical = 20.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = text, style = MaterialTheme.typography.titleLarge, color = Color.White)
+    }
+}
+
+// ── 3) 예절왕·범인을 찾아라 ───────────────────────────────────────────────────
+
+@Composable
+private fun FindTheOddOneGame(seed: Int, onNext: () -> Unit) {
+    // "예절왕(좋은 행동 1개)을 찾기"만 진행한다 — "범인(나쁜 행동 1개)을 찾기" 문구는 사용자
+    // 요청으로 제외했다.
+    val options = remember(seed) {
+        (ETIQUETTE_BAD_IMAGES.shuffled().take(2) + ETIQUETTE_GOOD_IMAGES.random()).shuffled()
+    }
+    var selected by remember(seed) { mutableStateOf<EtiquetteImage?>(null) }
+
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = stringResource(R.string.kids_etiquette_odd_one_good_prompt),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            options.forEach { option ->
+                val isTarget = option.isGood
+                val state = when {
+                    selected == null -> ChoiceState.NEUTRAL
+                    isTarget -> ChoiceState.CORRECT
+                    option == selected -> ChoiceState.WRONG_SELECTED
+                    else -> ChoiceState.DISABLED
+                }
+                SituationChoiceCard(
+                    option = SituationOption(option.text, option.imageRes, isCorrect = isTarget),
+                    state = state,
+                    onClick = { if (selected == null) selected = option },
                     modifier = Modifier.weight(1f)
                 )
             }
+        }
+        val current = selected
+        if (current != null) {
+            FeedbackWithNextRow(isCorrect = current.isGood, onNext = onNext)
+        }
+    }
+}
 
-            // 커튼: 오른쪽으로 드래그해서 밀면 뒤에 있는 예절 문구가 드러난다. 다 열리기 전에
-            // 손을 떼면 절반 기준으로 완전히 열리거나(revealed) 원위치로 되돌아간다.
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                    .background(YellowAccent, RoundedCornerShape(28.dp))
-                    .draggable(
-                        orientation = Orientation.Horizontal,
-                        enabled = !revealed,
-                        state = rememberDraggableState { delta ->
-                            scope.launch {
-                                offsetX.snapTo((offsetX.value + delta).coerceIn(0f, containerWidthPx))
-                            }
-                        },
-                        onDragStopped = {
-                            scope.launch {
-                                if (offsetX.value > containerWidthPx * 0.5f) {
-                                    offsetX.animateTo(containerWidthPx, tween(220))
-                                    revealed = true
-                                } else {
-                                    offsetX.animateTo(0f, tween(220))
-                                }
-                            }
-                        }
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.White)
-                    Text(
-                        text = stringResource(R.string.kids_etiquette_drag_handle_label),
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleMedium
-                    )
+// ── 4) 책을 구해줘! ──────────────────────────────────────────────────────────
+
+@Composable
+private fun RescueBookGame(seed: Int, onNext: () -> Unit) {
+    val correct = remember(seed) { BOOK_CARE_GOOD.random() }
+    val options = remember(seed) { (BOOK_CARE_BAD.shuffled().take(2) + correct).shuffled() }
+    var solved by remember(seed) { mutableStateOf(false) }
+    // 오답을 고르면 즉시 끝내지 않고 그 카드만 잠가서(기획: "한 번 더 선택할 수 있게 한다") 다시
+    // 고를 수 있게 한다 — 시도할수록 정답 쪽으로 좁혀진다.
+    var triedWrong by remember(seed) { mutableStateOf(setOf<EtiquetteImage>()) }
+
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = stringResource(R.string.kids_etiquette_rescue_book_prompt),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            options.forEach { option ->
+                val state = when {
+                    solved && option == correct -> ChoiceState.CORRECT
+                    option in triedWrong -> ChoiceState.WRONG_SELECTED
+                    else -> ChoiceState.NEUTRAL
                 }
+                SituationChoiceCard(
+                    option = SituationOption(option.text, option.imageRes, isCorrect = option == correct),
+                    state = state,
+                    onClick = {
+                        if (!solved && option !in triedWrong) {
+                            if (option == correct) solved = true else triedWrong = triedWrong + option
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
-        if (revealed) {
-            LibraryPrimaryButton(text = stringResource(R.string.kids_etiquette_next_action), onClick = onNext)
+        if (solved) {
+            FeedbackWithNextRow(
+                isCorrect = true,
+                onNext = onNext,
+                correctTextRes = R.string.kids_etiquette_rescue_book_success
+            )
+        } else if (triedWrong.isNotEmpty()) {
+            FeedbackRow(isCorrect = false, incorrectTextRes = R.string.kids_etiquette_rescue_book_retry)
         }
     }
 }
