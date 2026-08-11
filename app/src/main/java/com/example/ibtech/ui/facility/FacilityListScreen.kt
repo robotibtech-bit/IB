@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.domain.model.FacilitySyncStatus
@@ -180,9 +181,12 @@ private fun FacilityCard(facility: Facility, onClick: () -> Unit, modifier: Modi
                 verticalArrangement = Arrangement.Center
             ) {
                 Box {
+                    // 공용 LibraryDimens.LargeIconCircle/LargeIconSize(168dp/144dp)보다 이
+                    // 카드에서만 살짝 작게 쓴다(사용자 요청) — 다른 화면(퀴즈 주제, 로봇과
+                    // 놀아요 등)의 아이콘 크기는 그대로 둔다.
                     Box(
                         modifier = Modifier
-                            .size(LibraryDimens.LargeIconCircle)
+                            .size(148.dp)
                             .background(color = SkyAccentContainer, shape = CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
@@ -190,7 +194,7 @@ private fun FacilityCard(facility: Facility, onClick: () -> Unit, modifier: Modi
                             imageVector = facility.resolveIcon(),
                             contentDescription = null,
                             tint = SkyAccent,
-                            modifier = Modifier.size(LibraryDimens.LargeIconSize)
+                            modifier = Modifier.size(126.dp)
                         )
                     }
                     if (isDisconnected) {
@@ -222,9 +226,12 @@ private fun FacilityCard(facility: Facility, onClick: () -> Unit, modifier: Modi
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                // labelLarge(41sp)를 그대로 쓰면 이름 한 줄 밑에 이 층수 줄까지 들어갈 세로
+                // 여유가 2행 격자(대표 장소 8개)에서 모자라 카드 아래쪽이 잘려 보였다(사용자
+                // 피드백) — 부제 성격의 줄이라 훨씬 작은 크기로도 충분히 읽힌다.
                 Text(
                     text = stringResource(R.string.facility_card_floor_format, facility.floor),
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge.copy(fontSize = 26.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

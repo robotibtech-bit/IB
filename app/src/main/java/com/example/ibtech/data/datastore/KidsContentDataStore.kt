@@ -31,4 +31,11 @@ object KidsContentDataStoreKeys {
     /** 60권 이상 추천도서 풀을 이미 병합해봤는지(1회성 마이그레이션). [QUIZ_BANK_200_MERGED]와
      * 같은 이유로 별개 플래그를 쓴다. */
     val BOOK_POOL_60_MERGED: Preferences.Key<Boolean> = booleanPreferencesKey("book_pool_60_merged")
+
+    /** 200문제·200이미지 최종본(2보기/4보기 혼합, `QUIZ_IMAGE_MAPPING_200_FINAL.md` 기준)을 이미
+     * 적용해봤는지(1회성 마이그레이션). [QUIZ_BANK_200_MERGED]는 "새 id만 추가"였지만, 이번엔
+     * 같은 200개 id의 내용(보기 수·이미지)이 이전 버전과 달라져 있는 id는 최종본으로 교체해야
+     * 한다 — 그래서 별도 플래그로 분리했다. */
+    val QUIZ_BANK_200_SMART_CHOICES_MERGED: Preferences.Key<Boolean> =
+        booleanPreferencesKey("quiz_bank_200_smart_choices_merged")
 }

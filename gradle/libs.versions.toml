@@ -18,6 +18,9 @@ datastorePreferences = "1.1.1"
 # temi SDK. 문서(temi_SDK.md) 기준 최신은 1.138.0 이지만, 프로젝트 검증 기준선은 1.137.1.
 # 1.138.0 은 별도 검증 브랜치에서 Launcher 138 호환 빌드와 함께 회귀 테스트 후 올린다.
 temiSdk = "1.137.1"
+# 퀴즈 문제 이미지(200장)를 한 번에 메모리에 올리지 않고 현재 문제 것만 지연 로딩하기 위한
+# 이미지 로더. Compose BOM 2024.09.00과 minSdk 24에서 검증된 안정 버전.
+coil = "2.7.0"
 # 11단계 통계: 시간대별 집계 쿼리가 필요해 이 저장소만 Room을 쓴다(다른 저장소는 전부
 # DataStore+JSON, `data/repository/FacilityRepository.kt` 등 주석 참고). KSP 버전은
 # `<kotlin>-<ksp>` 표기 규칙에 따라 kotlin=2.0.21과 짝을 맞춘다.
@@ -48,6 +51,7 @@ androidx-compose-material-icons-extended = { group = "androidx.compose.material"
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 temi-sdk = { group = "com.robotemi", name = "sdk", version.ref = "temiSdk" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }

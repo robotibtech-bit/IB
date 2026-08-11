@@ -16,13 +16,16 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * [choices]는 항상 2개 또는 4개다(기획 문서 "스마트 보기 개수" 원칙: 판단형 문제는 2보기,
+ * 선택형 문제는 4보기). [onQuizChoiceCountChange]로만 개수를 바꾸며, 그 외에는 항상 이
+ * 길이를 유지한 채 값만 바꾼다.
+ */
 data class QuizDraft(
     val id: String? = null,
     val category: String = "",
     val question: String = "",
-    val choice1: String = "",
-    val choice2: String = "",
-    val choice3: String = "",
+    val choices: List<String> = List(4) { "" },
     val correctIndex: Int = 0,
     val explanation: String = "",
     val recommendedBookIds: Set<String> = emptySet(),
@@ -106,15 +109,21 @@ class KidsContentAdminViewModel(application: Application) : AndroidViewModel(app
     }
 
     fun onEditQuiz(question: QuizQuestion) {
+        // 정확히 2보기인 문제만 2칸으로 열고, 그 외(4보기, 혹은 이 폼이 3칸 고정이던 시절 저장된
+        // 3보기 등)는 4칸으로 열어 기존 값을 그대로 보여준다 — 관리자가 필요하면 보기 개수
+        // 토글로 2보기로 줄일 수 있다.
+        val choices = if (question.choices.size == 2) {
+            question.choices
+        } else {
+            List(4) { question.choices.getOrElse(it) { "" } }
+        }
         editingDraft.value = KidsContentDraft.Quiz(
             QuizDraft(
                 id = question.id,
                 category = question.category,
                 question = question.question,
-                choice1 = question.choices.getOrElse(0) { "" },
-                choice2 = question.choices.getOrElse(1) { "" },
-                choice3 = question.choices.getOrElse(2) { "" },
-                correctIndex = question.correctIndex,
+                choices = choices,
+                correctIndex = question.correctIndex.coerceIn(0, choices.lastIndex),
                 explanation = question.explanation,
                 recommendedBookIds = question.recommendedBookIds.toSet(),
                 isEnabled = question.isEnabled,
@@ -125,9 +134,26 @@ class KidsContentAdminViewModel(application: Application) : AndroidViewModel(app
 
     fun onQuizCategoryChange(value: String) = updateQuizDraft { it.copy(category = value) }
     fun onQuizQuestionChange(value: String) = updateQuizDraft { it.copy(question = value, questionError = null) }
-    fun onQuizChoice1Change(value: String) = updateQuizDraft { it.copy(choice1 = value) }
-    fun onQuizChoice2Change(value: String) = updateQuizDraft { it.copy(choice2 = value) }
-    fun onQuizChoice3Change(value: String) = updateQuizDraft { it.copy(choice3 = value) }
+
+    fun onQuizChoiceChange(index: Int, value: String) = updateQuizDraft { draft ->
+        draft.copy(choices = draft.choices.toMutableList().also { it[index] = value })
+    }
+
+    /** 보기 개수를 2 또는 4로 바꾼다. 4→2는 앞 두 칸만 남기고, 2→4는 빈 칸 두 개를 덧붙인다 —
+     * 어느 쪽이든 이미 입력한 값은 잃지 않는다. 정답 인덱스가 줄어든 범위를 벗어나면 0으로
+     * 되돌린다. */
+    fun onQuizChoiceCountChange(count: Int) = updateQuizDraft { draft ->
+        val resized = when {
+            count == draft.choices.size -> draft.choices
+            count < draft.choices.size -> draft.choices.take(count)
+            else -> draft.choices + List(count - draft.choices.size) { "" }
+        }
+        draft.copy(
+            choices = resized,
+            correctIndex = if (draft.correctIndex in resized.indices) draft.correctIndex else 0
+        )
+    }
+
     fun onQuizCorrectIndexChange(index: Int) = updateQuizDraft { it.copy(correctIndex = index) }
     fun onQuizExplanationChange(value: String) = updateQuizDraft { it.copy(explanation = value) }
 
@@ -150,8 +176,8 @@ class KidsContentAdminViewModel(application: Application) : AndroidViewModel(app
             id = draft.id ?: "quiz_${System.currentTimeMillis()}",
             category = draft.category.trim().ifBlank { getApplication<Application>().getString(R.string.quiz_category_empty_label) },
             question = draft.question.trim(),
-            choices = listOf(draft.choice1, draft.choice2, draft.choice3).map { it.trim() },
-            correctIndex = draft.correctIndex.coerceIn(0, 2),
+            choices = draft.choices.map { it.trim() },
+            correctIndex = draft.correctIndex.coerceIn(0, draft.choices.lastIndex),
             explanation = draft.explanation.trim(),
             recommendedBookIds = draft.recommendedBookIds.toList(),
             isEnabled = draft.isEnabled,

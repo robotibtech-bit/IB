@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">IBTECH</string>
+    <string name="app_name">신트리도서관</string>
 
     <!--
         AndroidManifest 의 com.robotemi.sdk.metadata.PERMISSIONS 에 넣을 값.
@@ -392,13 +392,9 @@
 
     <string name="kids_etiquette_odd_one_good_prompt">도서관 예절왕은 누구일까?</string>
 
-    <string name="kids_etiquette_rescue_book_prompt">🚨 도서관 책이 위험해! 책을 소중하게 지키는 행동을 찾아줘!</string>
-    <string name="kids_etiquette_rescue_book_success">책 구조 성공! 정말 잘했어요!</string>
-    <string name="kids_etiquette_rescue_book_retry">앗! 책이 깜짝 놀랐어요. 다른 행동을 찾아보아요!</string>
-
     <string name="kids_etiquette_tip_1">책을 다 읽은 뒤에는 책 수레에 놓아 주세요.</string>
     <string name="kids_etiquette_tip_2">도서관에서는 작은 목소리로 말해요.</string>
-    <string name="kids_etiquette_tip_3">책장을 넘길 때는 손을 깨끗이 씻고 조심히 넘겨요.</string>
+    <string name="kids_etiquette_tip_3">손을 깨끗이 하고 책을 읽어요.</string>
     <string name="kids_etiquette_tip_4">다른 친구가 읽고 있는 책은 조용히 기다렸다가 빌려요.</string>
 
     <!-- 오늘의 행사·공지 (요구사항 3.5절, 로드맵 9단계) -->
@@ -502,6 +498,7 @@
     <string name="kids_admin_tab_etiquette">도서관 예절</string>
     <string name="kids_admin_field_category">주제</string>
     <string name="kids_admin_field_question">문제</string>
+    <string name="kids_admin_field_choice_count">보기 개수</string>
     <string name="kids_admin_field_choice">보기 %1$d</string>
     <string name="kids_admin_field_correct_choice">정답</string>
     <string name="kids_admin_field_explanation">해설</string>

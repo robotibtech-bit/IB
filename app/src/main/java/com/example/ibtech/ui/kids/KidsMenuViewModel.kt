@@ -19,6 +19,7 @@ class KidsMenuViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             kidsContentRepository.ensureSeeded(application)
             kidsContentRepository.ensureQuizBank200(application)
+            kidsContentRepository.ensureQuizBank200SmartChoices(application)
             kidsContentRepository.ensureBookPool60(application)
         }
     }

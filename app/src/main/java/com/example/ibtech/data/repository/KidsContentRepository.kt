@@ -89,6 +89,30 @@ class KidsContentRepository private constructor(
     }
 
     /**
+     * 200문제·200이미지 최종본(`QUIZ_IMAGE_MAPPING_200_FINAL.md` 기준, 2보기 59문제/4보기
+     * 141문제)을 아직 적용해보지 않았으면 1회 적용한다.
+     *
+     * [ensureQuizBank200]과 달리 이미 있는 id라도 최종본에 포함된 id면 최종본 내용으로
+     * 덮어쓴다 — 같은 id(`quiz_dinosaur_01` 등)라도 이전 버전은 보기 수·이미지가 확정되기
+     * 전 임시본이었기 때문이다. 최종본에 없는 id(관리자가 직접 추가한 문제 등)는 그대로 둔다.
+     */
+    suspend fun ensureQuizBank200SmartChoices(context: Context) {
+        val alreadyMerged =
+            dataStore.data.first()[KidsContentDataStoreKeys.QUIZ_BANK_200_SMART_CHOICES_MERGED] ?: false
+        if (alreadyMerged) return
+
+        val target = DefaultKidsContent.buildQuizQuestions(context)
+        val targetIds = target.map { it.id }.toSet()
+        val current = quizQuestions.first().filterNot { it.id in targetIds }
+        val merged = current + target
+
+        dataStore.edit { prefs ->
+            prefs[KidsContentDataStoreKeys.QUIZ_QUESTIONS_JSON] = KidsJsonMapper.quizToJson(merged)
+            prefs[KidsContentDataStoreKeys.QUIZ_BANK_200_SMART_CHOICES_MERGED] = true
+        }
+    }
+
+    /**
      * 60권 이상 추천도서 풀(기획 문서 "3. 초기 추천 도서 풀")을 아직 병합해보지 않았으면 1회
      * 병합한다. [ensureQuizBank200]과 같은 패턴 — 이미 있는 id는 건드리지 않고 새 id만
      * 추가하며, 새 풀과 완전히 같은 책인 예전 "강아지똥"(`book_dog_poop`, 취향 태그 없음)만

@@ -17,10 +17,10 @@ import com.example.ibtech.domain.model.RecommendedBook
  */
 object DefaultKidsContent {
 
-    /** 200문제 시드(공룡/과학/동물/동화 각 50문제)의 자산 파일명. [KidsJsonMapper.quizToJson]과
-     * 동일한 JSON 모양이라 그대로 [KidsJsonMapper.quizFromJson]으로 읽는다 — 200개를 Kotlin
-     * 코드나 `strings.xml`에 직접 박지 않고 자산으로 분리했다(문서
-     * `docs/CLAUDE_QUIZ_IMAGE_HANDOFF_OPTIMIZED_112_OF_200` 인계본 기준). */
+    /** 200문제 시드(공룡/과학/동물/동화 각 50문제, 2보기 59문제/4보기 141문제)의 자산 파일명.
+     * [KidsJsonMapper.quizToJson]과 동일한 JSON 모양이라 그대로 [KidsJsonMapper.quizFromJson]으로
+     * 읽는다 — 200개를 Kotlin 코드나 `strings.xml`에 직접 박지 않고 자산으로 분리했다(문서
+     * `docs/QUIZ_200_FINAL_DOCS/QUIZ_IMAGE_MAPPING_200_FINAL.md` 최종본 기준). */
     private const val QUIZ_SEED_ASSET = "quiz_seed_200.json"
 
     /** 60권 이상 추천도서 풀(기획 문서 "3. 초기 추천 도서 풀") 자산 파일명. 기존 시드 4권 중

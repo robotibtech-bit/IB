@@ -10,6 +10,7 @@ import com.example.ibtech.data.repository.StatsRepository
 import com.example.ibtech.domain.model.QuizQuestion
 import com.example.ibtech.domain.model.StatEventType
 import com.example.ibtech.domain.usecase.SelectQuizQuestionsUseCase
+import com.example.ibtech.domain.usecase.ShuffleQuizChoicesUseCase
 import com.example.ibtech.robot.TemiControllerProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,7 +65,7 @@ class QuizViewModel(
     init {
         viewModelScope.launch {
             val all = kidsContentRepository.quizQuestions.first()
-            val selected = SelectQuizQuestionsUseCase(all, category)
+            val selected = SelectQuizQuestionsUseCase(all, category).map(ShuffleQuizChoicesUseCase::invoke)
             _uiState.update { it.copy(isLoaded = true, questions = selected) }
             statsRepository.logEvent(StatEventType.QUIZ_START, category)
         }

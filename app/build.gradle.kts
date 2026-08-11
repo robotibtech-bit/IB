@@ -43,8 +43,24 @@ android {
     }
 }
 
+// 출력 APK 파일명을 기본값(app-debug.apk 등)이 아니라 "앱이름-버전명.apk"로 바꾼다(사용자
+// 요청). strings.xml의 app_name과 별개로 여기 문자열도 같이 유지해야 한다 — Gradle 스크립트는
+// 빌드 설정 시점에 Android 리소스를 읽을 수 없어서다.
+androidComponents {
+    val appLabel = "신트리도서관"
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
+                val versionName = output.versionName.get()
+                output.outputFileName.set("${appLabel}-${variant.buildType}-${versionName}.apk")
+            }
+        }
+    }
+}
+
 dependencies {
     implementation(libs.temi.sdk)
+    implementation(libs.coil.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)

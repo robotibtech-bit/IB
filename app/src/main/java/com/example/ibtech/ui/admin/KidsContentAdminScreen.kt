@@ -55,9 +55,8 @@ fun KidsContentAdminScreen(
     onDismissDialog: () -> Unit,
     onQuizCategoryChange: (String) -> Unit,
     onQuizQuestionChange: (String) -> Unit,
-    onQuizChoice1Change: (String) -> Unit,
-    onQuizChoice2Change: (String) -> Unit,
-    onQuizChoice3Change: (String) -> Unit,
+    onQuizChoiceChange: (Int, String) -> Unit,
+    onQuizChoiceCountChange: (Int) -> Unit,
     onQuizCorrectIndexChange: (Int) -> Unit,
     onQuizExplanationChange: (String) -> Unit,
     onQuizToggleRecommendedBook: (String) -> Unit,
@@ -173,9 +172,8 @@ fun KidsContentAdminScreen(
                 onSave = onSaveQuizDraft,
                 onCategoryChange = onQuizCategoryChange,
                 onQuestionChange = onQuizQuestionChange,
-                onChoice1Change = onQuizChoice1Change,
-                onChoice2Change = onQuizChoice2Change,
-                onChoice3Change = onQuizChoice3Change,
+                onChoiceChange = onQuizChoiceChange,
+                onChoiceCountChange = onQuizChoiceCountChange,
                 onCorrectIndexChange = onQuizCorrectIndexChange,
                 onExplanationChange = onQuizExplanationChange,
                 onToggleRecommendedBook = onQuizToggleRecommendedBook,
@@ -250,9 +248,8 @@ private fun QuizDraftDialog(
     onSave: () -> Unit,
     onCategoryChange: (String) -> Unit,
     onQuestionChange: (String) -> Unit,
-    onChoice1Change: (String) -> Unit,
-    onChoice2Change: (String) -> Unit,
-    onChoice3Change: (String) -> Unit,
+    onChoiceChange: (Int, String) -> Unit,
+    onChoiceCountChange: (Int) -> Unit,
     onCorrectIndexChange: (Int) -> Unit,
     onExplanationChange: (String) -> Unit,
     onToggleRecommendedBook: (String) -> Unit,
@@ -275,13 +272,28 @@ private fun QuizDraftDialog(
             singleLine = false,
             minLines = 2
         )
-        AdminTextField(value = draft.choice1, onValueChange = onChoice1Change, label = stringResource(R.string.kids_admin_field_choice, 1))
-        AdminTextField(value = draft.choice2, onValueChange = onChoice2Change, label = stringResource(R.string.kids_admin_field_choice, 2))
-        AdminTextField(value = draft.choice3, onValueChange = onChoice3Change, label = stringResource(R.string.kids_admin_field_choice, 3))
+        Text(text = stringResource(R.string.kids_admin_field_choice_count), style = MaterialTheme.typography.titleMedium)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(2, 4).forEach { count ->
+                FilterChip(
+                    selected = draft.choices.size == count,
+                    onClick = { onChoiceCountChange(count) },
+                    label = { Text(count.toString()) }
+                )
+            }
+        }
+
+        draft.choices.forEachIndexed { index, choice ->
+            AdminTextField(
+                value = choice,
+                onValueChange = { onChoiceChange(index, it) },
+                label = stringResource(R.string.kids_admin_field_choice, index + 1)
+            )
+        }
 
         Text(text = stringResource(R.string.kids_admin_field_correct_choice), style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(0, 1, 2).forEach { index ->
+            draft.choices.indices.forEach { index ->
                 FilterChip(
                     selected = draft.correctIndex == index,
                     onClick = { onCorrectIndexChange(index) },

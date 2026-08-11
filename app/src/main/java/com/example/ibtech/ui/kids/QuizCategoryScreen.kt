@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.ibtech.R
 import androidx.compose.ui.text.style.TextOverflow
 import com.example.ibtech.ui.common.DecorativeBackground
@@ -105,12 +106,17 @@ private fun QuizCategoryCard(item: QuizCategoryItem, onClick: () -> Unit, modifi
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Quiz,
-                    contentDescription = null,
-                    tint = if (hasQuestions) LavenderAccent else contentColor,
-                    modifier = Modifier.size(LibraryDimens.LargeIconSize)
-                )
+                val emoji = quizCategoryEmoji(item.name)
+                if (emoji != null) {
+                    Text(text = emoji, fontSize = 88.sp)
+                } else {
+                    Icon(
+                        imageVector = Icons.Filled.Quiz,
+                        contentDescription = null,
+                        tint = if (hasQuestions) LavenderAccent else contentColor,
+                        modifier = Modifier.size(LibraryDimens.LargeIconSize)
+                    )
+                }
             }
             Text(
                 text = item.name,
@@ -131,4 +137,16 @@ private fun QuizCategoryCard(item: QuizCategoryItem, onClick: () -> Unit, modifi
             }
         }
     }
+}
+
+/**
+ * 시드 퀴즈(quiz_seed_200.json) 4개 분야에만 매칭되는 이모지 아이콘. 관리자가 새 분야를
+ * 추가하면 매칭되는 이모지가 없어 [Icons.Filled.Quiz] 기본 아이콘으로 자연스럽게 대체된다.
+ */
+private fun quizCategoryEmoji(name: String): String? = when (name) {
+    "공룡" -> "🦕"
+    "과학" -> "🔬"
+    "동물" -> "🐾"
+    "동화" -> "📖"
+    else -> null
 }
