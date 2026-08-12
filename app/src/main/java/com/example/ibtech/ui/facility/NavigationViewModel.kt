@@ -144,6 +144,8 @@ class NavigationViewModel(
         // goTo()가 실제로 Temi 에 전달되지 못했으면(연결 끊김 등) 이동 시작 상태로 확정하지
         // 않는다. hasStarted 가 false 로 남으므로 확인 다이얼로그가 계속 보이고, 사용자는
         // 빈 이동 화면 대신 재시도하거나 취소할 수 있다.
+        // [WayfindingCorridorOverride] 대상 시설도 별도 리다이렉트 없이 그대로 goTo한다 —
+        // 관리자가 temi 지도에서 이 시설들의 실제 좌표를 연결통로 지점으로 등록해 둔다.
         val accepted = controller.goTo(facility.sourcePoiName)
         if (!accepted) return
 

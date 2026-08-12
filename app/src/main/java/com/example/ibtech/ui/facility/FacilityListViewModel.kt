@@ -48,7 +48,10 @@ class FacilityListViewModel(
 
     private val initialQuery = savedStateHandle.get<String>("query").orEmpty()
     private val queryState = MutableStateFlow(initialQuery)
-    private val searchVisibleState = MutableStateFlow(initialQuery.isNotBlank())
+    // 대표 장소(자주 쓰는 곳) 그리드 화면은 일단 막아뒀다(요구사항: "시설안내 버튼을 누르면
+    // 바로 다른 장소 찾기 화면으로") — 시설 목록에 들어오면 항상 전체 검색 목록부터 보여준다.
+    // [FacilityListScreen]의 FEATURED_FACILITY_GRID_ENABLED와 함께 되돌리면 원래대로 복구된다.
+    private val searchVisibleState = MutableStateFlow(true)
 
     val uiState: StateFlow<FacilityListUiState> = combine(
         facilityRepository.visibleFacilities,
@@ -76,7 +79,7 @@ class FacilityListViewModel(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = FacilityListUiState(query = initialQuery, isSearchVisible = initialQuery.isNotBlank())
+        initialValue = FacilityListUiState(query = initialQuery, isSearchVisible = true)
     )
 
     init {

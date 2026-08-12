@@ -1,5 +1,6 @@
 package com.example.ibtech.ui.facility
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,13 +28,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.Facility
+import com.example.ibtech.domain.model.WayfindingCorridorOverride
 import com.example.ibtech.robot.NavigationIssue
 import com.example.ibtech.robot.NavigationState
 import com.example.ibtech.ui.common.ConfirmDialog
@@ -130,7 +134,14 @@ fun NavigationProgressScreen(
                             idleTimeoutSeconds = idleTimeoutSeconds,
                             interactionTick = interactionTick,
                             onFindAnotherFacility = onFindAnotherFacility,
-                            onGoHome = onGoHome
+                            onGoHome = onGoHome,
+                            // 안내도 이미지가 있는 시설만 남는 세로 공간을 이미지에 준다 — 나머지는
+                            // 기존처럼 내용 크기만큼만 차지한다.
+                            modifier = if (WayfindingCorridorOverride.wayfindingImageAssetPath(facility.id) != null) {
+                                Modifier.weight(1f)
+                            } else {
+                                Modifier
+                            }
                         )
 
                         NavigationState.Idle -> Unit
@@ -227,28 +238,79 @@ private fun ArrivedContent(
     idleTimeoutSeconds: Int,
     interactionTick: Int,
     onFindAnotherFacility: () -> Unit,
-    onGoHome: () -> Unit
+    onGoHome: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var secondsLeft by remember(idleTimeoutSeconds) { mutableIntStateOf(idleTimeoutSeconds) }
+    val wayfindingImageAsset = WayfindingCorridorOverride.wayfindingImageAssetPath(facility.id)
 
-    Column(verticalArrangement = Arrangement.spacedBy(LibraryDimens.CardSpacing)) {
-        NavigationStatusCard(
-            icon = Icons.Filled.CheckCircle,
-            accent = SuccessAccent,
-            container = SuccessAccentContainer,
-            text = buildNavigationArrivedText(context, facility, baseFloor, R.string.navigation_arrived_body)
-        )
-        Text(
-            text = stringResource(R.string.navigation_arrived_countdown, secondsLeft),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        LibraryPrimaryButton(
-            text = stringResource(R.string.navigation_arrived_continue_action),
-            onClick = onFindAnotherFacility
-        )
-        LibraryOutlinedButton(text = stringResource(R.string.top_bar_home), onClick = onGoHome)
+    if (wayfindingImageAsset != null) {
+        // 안내도 이미지가 화면의 대부분을 차지해야 하므로(요청: "안내도가 가장 크게 보일수
+        // 있게"), 일반 도착 화면보다 간격을 좁히고 "홈" 버튼은 뺀다 — 60초 뒤 자동 홈 복귀가
+        // 이미 있어서 버튼이 없어도 빠져나갈 방법은 남아있다. 상태 카드는 일반 도착 화면과
+        // 같은 [NavigationStatusCard]를 그대로 쓴다 — 축약 헤더보다 이 카드 스타일이 낫다는
+        // 피드백에 따라 되돌렸다.
+        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            NavigationStatusCard(
+                icon = Icons.Filled.CheckCircle,
+                accent = SuccessAccent,
+                container = SuccessAccentContainer,
+                text = buildNavigationArrivedText(context, facility, baseFloor, R.string.navigation_arrived_body)
+            )
+            val bitmap = rememberWayfindingImageBitmap(facility.id)
+            if (bitmap != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .clip(RoundedCornerShape(24.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        bitmap = bitmap,
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.navigation_arrived_countdown, secondsLeft),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                LibraryPrimaryButton(
+                    text = stringResource(R.string.navigation_arrived_continue_action),
+                    onClick = onFindAnotherFacility,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    } else {
+        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(LibraryDimens.CardSpacing)) {
+            NavigationStatusCard(
+                icon = Icons.Filled.CheckCircle,
+                accent = SuccessAccent,
+                container = SuccessAccentContainer,
+                text = buildNavigationArrivedText(context, facility, baseFloor, R.string.navigation_arrived_body)
+            )
+            Text(
+                text = stringResource(R.string.navigation_arrived_countdown, secondsLeft),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            LibraryPrimaryButton(
+                text = stringResource(R.string.navigation_arrived_continue_action),
+                onClick = onFindAnotherFacility
+            )
+            LibraryOutlinedButton(text = stringResource(R.string.top_bar_home), onClick = onGoHome)
+        }
     }
 
     // 실제 홈 복귀(화면 전환 + "홈" POI로 로봇 이동)는 LibraryNavHost의 IdleTimeoutObserver가

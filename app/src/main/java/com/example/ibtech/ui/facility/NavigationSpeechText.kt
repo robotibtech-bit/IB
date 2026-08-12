@@ -3,6 +3,7 @@ package com.example.ibtech.ui.facility
 import android.content.Context
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.Facility
+import com.example.ibtech.domain.model.WayfindingCorridorOverride
 
 /**
  * 동행 이동 시작/도착 음성·화면 문구. 기준층 시설은 기존 고정 문구를 그대로 쓰고, 기준층이
@@ -27,6 +28,17 @@ fun buildNavigationArrivedText(
     baseFloor: Int,
     sameFloorTextRes: Int
 ): String {
+    // 연결통로까지만 동행하는 시설(WayfindingCorridorOverride)은 실제 문 앞이 아니라서 기본
+    // 층 안내 문구는 맞지 않는다 — 방향이 설정돼 있으면(요구사항: "기준층이 아닌 목적지와
+    // 동일하게, 엘리베이터 대신 연결통로로 안내") [buildFloorDirectionGuideText]와 완전히 같은
+    // 문장("연결통로를 통해 …")을 쓰고, 아직 방향이 없으면 안내도를 보라는 문구로 대신한다.
+    if (WayfindingCorridorOverride.appliesTo(facility.id)) {
+        return if (facility.direction != null) {
+            buildFloorDirectionGuideText(context, facility, baseFloor)
+        } else {
+            context.getString(R.string.navigation_arrived_wayfinding_body)
+        }
+    }
     if (facility.floor == baseFloor) return context.getString(sameFloorTextRes)
     return buildFloorDirectionGuideText(context, facility, baseFloor)
 }

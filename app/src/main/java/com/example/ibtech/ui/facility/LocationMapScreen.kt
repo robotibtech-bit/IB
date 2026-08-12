@@ -59,7 +59,11 @@ fun LocationMapScreen(
         )
 
         else -> {
-            val bitmap = rememberMapBitmap(facility.mapImagePath)
+            // 연결통로 안내도 대상 시설(WayfindingCorridorOverride)은 동행 도착 화면과 똑같이
+            // 여기서도 안내도를 보여준다(요청: "위치만 보기를 눌러 들어간 화면에도 안내도를
+            // 표시해줘") — 관리자 업로드 이미지([Facility.mapImagePath], 아직 실제로 쓰이는
+            // 곳이 없다)보다 우선한다.
+            val bitmap = rememberWayfindingImageBitmap(facility.id) ?: rememberMapBitmap(facility.mapImagePath)
 
             Box(modifier = modifier.fillMaxSize()) {
                 DecorativeBackground(modifier = Modifier.fillMaxSize())

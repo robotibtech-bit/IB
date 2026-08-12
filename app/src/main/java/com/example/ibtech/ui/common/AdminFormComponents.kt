@@ -1,5 +1,6 @@
 package com.example.ibtech.ui.common
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -163,7 +164,15 @@ fun AdminListRow(
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null
 ) {
-    LibraryCard(modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
+    // 편집 아이콘이 작아서 누르기 어렵다는 피드백에 따라 행 전체를 눌러도 편집이 열리게 한다 —
+    // 삭제는 되돌리기 어려운 동작이라 아이콘을 직접 눌러야만 실행되도록 그대로 둔다(중첩된
+    // IconButton의 클릭이 이 행의 클릭보다 우선 처리된다).
+    val rowModifier = if (onEdit != null) {
+        modifier.fillMaxWidth().clickable(onClick = debounced(onEdit))
+    } else {
+        modifier.fillMaxWidth()
+    }
+    LibraryCard(modifier = rowModifier, shape = MaterialTheme.shapes.medium) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

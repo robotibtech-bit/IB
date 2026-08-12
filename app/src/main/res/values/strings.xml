@@ -71,6 +71,11 @@
     <string name="location_guide_up_no_direction">엘리베이터를 이용해 %1$d층으로 올라가시면 있습니다.</string>
     <string name="location_guide_down_with_direction">엘리베이터를 이용해 %1$d층으로 내려가셔서 %2$s으로 이동하시면 있습니다.</string>
     <string name="location_guide_down_no_direction">엘리베이터를 이용해 %1$d층으로 내려가시면 있습니다.</string>
+    <!-- 기준층이면서 방향이 설정된 경우(연결통로 안내도 대상 시설, 요구사항: "기준층이 아닌
+         목적지와 동일하게 방향을 선택하되 엘리베이터 대신 연결통로로 안내") — 위 location_guide_
+         up/down_with_direction과 같은 짜임으로, "엘리베이터를 이용해 N층으로" 자리에 "연결통로를
+         통해"를 쓴다. -->
+    <string name="location_guide_same_floor_with_direction">연결통로를 통해 %1$s으로 이동하시면 있습니다.</string>
     <string name="facility_direction_right">우측</string>
     <string name="facility_direction_front">정면</string>
     <string name="facility_direction_left">좌측</string>
@@ -94,6 +99,8 @@
     <string name="navigation_arrived_body">목적지에 도착했습니다.</string>
     <string name="navigation_start_speech">목적지로 이동을 시작합니다.</string>
     <string name="navigation_arrived_speech">목적지에 도착했습니다.</string>
+    <!-- 연결통로까지만 동행하는 시설(1층 일부 자료실 등)의 도착 문구·화면 안내도 안내. -->
+    <string name="navigation_arrived_wayfinding_body">여기부터는 안내도를 보고 찾아가 주세요.</string>
     <!-- 기준층이 아닌 시설: 로봇은 엘리베이터 POI까지만 동행하므로 시작 문구를 구분한다.
          도착 문구는 위 location_guide_* 를 그대로 재사용한다(화면·음성 일치). -->
     <string name="navigation_start_speech_other_floor">계단이나 엘리베이터로 안내하겠습니다.</string>
@@ -476,7 +483,7 @@
     <string name="facility_admin_field_name">표시명</string>
     <string name="facility_admin_field_floor">층</string>
     <string name="facility_admin_field_description">설명</string>
-    <string name="facility_admin_field_direction">방향 (기준층이 아닐 때, 엘리베이터 기준)</string>
+    <string name="facility_admin_field_direction">방향</string>
     <string name="facility_admin_field_guide_mode">안내 방식</string>
     <string name="facility_admin_field_icon">아이콘</string>
     <string name="facility_admin_field_enabled">이용자에게 노출</string>

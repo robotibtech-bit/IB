@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.domain.model.FacilityDirection
+import com.example.ibtech.domain.model.WayfindingCorridorOverride
 
 /**
  * 층·방향 안내 문구. 화면 표시(시설 상세·위치만 보기)와 로봇 음성(동행 도착)이 완전히 같은
@@ -17,7 +18,16 @@ import com.example.ibtech.domain.model.FacilityDirection
  */
 fun buildFloorDirectionGuideText(context: Context, facility: Facility, baseFloor: Int): String {
     if (facility.floor == baseFloor) {
-        return context.getString(R.string.facility_detail_floor_line, facility.floor)
+        // "연결통로를 통해 …" 문구는 연결통로 안내도 대상 시설([WayfindingCorridorOverride])에만
+        // 맞는 말이다 — 신규 POI는 기준층이어도 방향이 기본값(정면)으로 채워져 들어오므로
+        // (SyncPoiUseCase), direction != null만으로 판단하면 그냥 로봇이 문 앞까지 바로 데려다
+        // 주는 일반 기준층 시설에도 잘못된 "연결통로를 통해" 문구가 나간다.
+        val direction = facility.direction
+        return if (direction != null && WayfindingCorridorOverride.appliesTo(facility.id)) {
+            context.getString(R.string.location_guide_same_floor_with_direction, context.getString(direction.labelRes()))
+        } else {
+            context.getString(R.string.facility_detail_floor_line, facility.floor)
+        }
     }
 
     val direction = facility.direction

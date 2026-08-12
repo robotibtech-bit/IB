@@ -125,8 +125,10 @@ fun FacilityAdminEditScreen(
                     onClick = { onGuideModeChange(GuideMode.BOTH) }
                 )
 
-                // 기준층(baseFloor)과 다른 층일 때만 의미가 있으므로 그때만 보여준다.
-                if (uiState.floorText.trim().toIntOrNull() != uiState.baseFloor) {
+                // 기준층(baseFloor)과 다른 층일 때 의미가 있어 그때 보여준다 — 연결통로 안내도
+                // 대상 시설(allowDirectionOnBaseFloor)은 기준층이어도 예외로 보여준다(요구사항:
+                // "기준층이 아닌 목적지와 동일하게 방향을 선택").
+                if (uiState.floorText.trim().toIntOrNull() != uiState.baseFloor || uiState.allowDirectionOnBaseFloor) {
                     Text(
                         text = stringResource(R.string.facility_admin_field_direction),
                         style = MaterialTheme.typography.titleMedium

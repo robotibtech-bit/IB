@@ -1,6 +1,7 @@
 package com.example.ibtech.domain.usecase
 
 import com.example.ibtech.domain.model.Facility
+import com.example.ibtech.domain.model.FacilityDirection
 import com.example.ibtech.domain.model.FacilitySyncStatus
 import com.example.ibtech.domain.model.GuideMode
 import org.junit.Assert.assertEquals
@@ -10,15 +11,16 @@ import org.junit.Test
 class SyncPoiUseCaseTest {
 
     @Test
-    fun `new remote poi is added as unset and hidden`() {
+    fun `new remote poi is added with unset floor but escort plus location guide mode, front direction, visible on by default`() {
         val result = SyncPoiUseCase(local = emptyList(), remote = listOf("새 POI"))
 
         assertEquals(1, result.size)
         val added = result.single()
         assertEquals("새 POI", added.sourcePoiName)
         assertEquals(Facility.UNSET_FLOOR, added.floor)
-        assertEquals(GuideMode.LOCATION_ONLY, added.guideMode)
-        assertEquals(false, added.isEnabled)
+        assertEquals(GuideMode.BOTH, added.guideMode)
+        assertEquals(FacilityDirection.FRONT, added.direction)
+        assertTrue(added.isEnabled)
         assertEquals(FacilitySyncStatus.NEW, added.syncStatus)
     }
 

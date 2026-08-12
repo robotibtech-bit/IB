@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -172,7 +173,12 @@ fun LibraryCard(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         if (accentColor != null) {
-            Row(modifier = Modifier.fillMaxWidth()) {
+            // height(IntrinsicSize.Min): 이 Row를 자식들의 최소 고유 높이로 측정하게 한다.
+            // 이게 없으면 fillMaxHeight() 악센트 바가 부모가 준 제약(예: 화면을 꽉 채우는
+            // Column 안에서 이 카드가 다른 weight 형제와 남는 세로 공간을 나눠 쓰는 경우, 그
+            // "남는 공간" 전체)까지 그대로 늘어나 버려 카드가 내용과 무관하게 화면을 다 차지하고
+            // 형제 컴포저블(예: 안내도 이미지)이 공간을 못 받는 버그가 생긴다.
+            Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()

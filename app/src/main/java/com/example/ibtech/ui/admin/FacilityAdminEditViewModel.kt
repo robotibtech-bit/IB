@@ -11,6 +11,7 @@ import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.domain.model.FacilityDirection
 import com.example.ibtech.domain.model.GuideMode
 import com.example.ibtech.domain.model.LibrarySettings
+import com.example.ibtech.domain.model.WayfindingCorridorOverride
 import com.example.ibtech.domain.usecase.FacilityAdminValidation
 import com.example.ibtech.domain.usecase.ValidateFacilityAdminInputUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +30,9 @@ data class FacilityAdminEditUiState(
     val description: String = "",
     val guideMode: GuideMode = GuideMode.LOCATION_ONLY,
     val direction: FacilityDirection? = null,
+    /** 연결통로 안내도 대상 시설([WayfindingCorridorOverride])은 기준층이어도 방향을 고를 수
+     * 있다(요구사항: "기준층이 아닌 목적지와 동일하게 방향을 선택"). */
+    val allowDirectionOnBaseFloor: Boolean = false,
     val baseFloor: Int = LibrarySettings.DEFAULT_BASE_FLOOR,
     val iconKey: String? = null,
     val isEnabled: Boolean = false,
@@ -75,6 +79,7 @@ class FacilityAdminEditViewModel(
                         description = facility.shortDescription,
                         guideMode = facility.guideMode,
                         direction = facility.direction,
+                        allowDirectionOnBaseFloor = WayfindingCorridorOverride.appliesTo(facilityId),
                         baseFloor = baseFloor,
                         iconKey = facility.iconKey,
                         isEnabled = facility.isEnabled,
@@ -143,8 +148,12 @@ class FacilityAdminEditViewModel(
                     floor = validation.floor,
                     shortDescription = state.description.trim(),
                     guideMode = state.guideMode,
-                    // 기준층으로 되돌리면 방향 값은 의미가 없어지므로 함께 지운다.
-                    direction = state.direction.takeIf { validation.floor != state.baseFloor },
+                    // 기준층으로 되돌리면 방향 값은 보통 의미가 없어지므로 함께 지운다 — 단,
+                    // 연결통로 안내도 대상 시설(allowDirectionOnBaseFloor)은 기준층이어도 방향을
+                    // 그대로 쓰므로 지우지 않는다.
+                    direction = state.direction.takeIf {
+                        validation.floor != state.baseFloor || state.allowDirectionOnBaseFloor
+                    },
                     iconKey = state.iconKey,
                     isEnabled = state.isEnabled,
                     isFeatured = state.isFeatured,

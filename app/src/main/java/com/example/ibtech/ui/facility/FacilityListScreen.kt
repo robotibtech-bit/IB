@@ -46,12 +46,19 @@ import com.example.ibtech.ui.theme.LibraryDimens
 import com.example.ibtech.ui.theme.SkyAccent
 import com.example.ibtech.ui.theme.SkyAccentContainer
 
+/** 대표 장소(자주 쓰는 곳) 그리드 화면을 일단 막아뒀다(요구사항: "시설안내 버튼을 누르면
+ * 바로 다른 장소 찾기 화면으로, 자주쓰는 버튼 기능은 일단 막아놔 안보이게") — 이 그리드로
+ * 돌아가는 버튼을 숨긴다. [FacilityListViewModel]의 `searchVisibleState` 초기값과 함께
+ * true로 되돌리면 원래 동작(대표 장소 먼저 보여주기)이 복구된다. */
+private const val FEATURED_FACILITY_GRID_ENABLED = false
+
 /**
  * 시설 목록 화면 (요구사항 명세서 2.3절, 12단계 개편).
  *
  * 기본 화면은 관리자가 "대표 장소"로 표시한 시설만(관리자 설정 개수만큼, 2/4/8) 화면을 여백
  * 없이 채우는 큰 카드로 보여준다. "다른 장소 찾기"를 누르면 노출 가능한 시설 전체를 검색·탐색
  * 가능한 목록으로 전환한다 — 대표 장소로 지정되지 않은 곳도 여기서는 전부 보이고 누를 수 있다.
+ * ([FEATURED_FACILITY_GRID_ENABLED]가 false인 동안은 항상 검색 목록부터 보여준다.)
  */
 @Composable
 fun FacilityListScreen(
@@ -113,11 +120,13 @@ fun FacilityListScreen(
                     }
                 }
 
-                LibraryOutlinedButton(
-                    text = stringResource(R.string.facility_list_show_featured),
-                    onClick = onToggleSearch,
-                    modifier = Modifier.padding(top = 12.dp)
-                )
+                if (FEATURED_FACILITY_GRID_ENABLED) {
+                    LibraryOutlinedButton(
+                        text = stringResource(R.string.facility_list_show_featured),
+                        onClick = onToggleSearch,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                }
             } else if (uiState.featuredFacilities.isNotEmpty()) {
                 val columns = when {
                     uiState.featuredFacilities.size <= 2 -> uiState.featuredFacilities.size.coerceAtLeast(1)
@@ -174,19 +183,21 @@ private fun FacilityCard(facility: Facility, onClick: () -> Unit, modifier: Modi
             Column(
                 // 이 카드는 이름+층 두 줄을 쓰는 유일한 큰 카드라, 2행 격자(대표 장소 4~8개)에서
                 // 다른 카드보다 여유가 적다 — 안쪽 여백을 CardPadding(28dp)보다 좁게 잡는다.
+                // 세로 패딩만 키운 건 목록(전체 검색) 화면에서 카드를 더 높여서, 스크롤 가능함을
+                // 보여주는 3번째 줄이 절반이 아니라 4분의 1 정도만 보이게 하려는 것이다(사용자 요청).
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(12.dp),
+                    .padding(horizontal = 12.dp, vertical = 30.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 Box {
                     // 공용 LibraryDimens.LargeIconCircle/LargeIconSize(168dp/144dp)보다 이
-                    // 카드에서만 살짝 작게 쓴다(사용자 요청) — 다른 화면(퀴즈 주제, 로봇과
+                    // 카드에서만 작게 쓴다(사용자 요청으로 축소) — 다른 화면(퀴즈 주제, 로봇과
                     // 놀아요 등)의 아이콘 크기는 그대로 둔다.
                     Box(
                         modifier = Modifier
-                            .size(148.dp)
+                            .size(108.dp)
                             .background(color = SkyAccentContainer, shape = CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
@@ -194,7 +205,7 @@ private fun FacilityCard(facility: Facility, onClick: () -> Unit, modifier: Modi
                             imageVector = facility.resolveIcon(),
                             contentDescription = null,
                             tint = SkyAccent,
-                            modifier = Modifier.size(126.dp)
+                            modifier = Modifier.size(88.dp)
                         )
                     }
                     if (isDisconnected) {
@@ -215,12 +226,21 @@ private fun FacilityCard(facility: Facility, onClick: () -> Unit, modifier: Modi
                     }
                 }
                 Spacer(modifier = Modifier.height(4.dp))
-                // 이름+층 두 줄을 쓰는 유일한 큰 카드라 대표 장소 개수(2/4/8, 관리자 설정)에 따라
-                // 칸이 좁아질 수 있다 — 한 줄로 고정하고 넘치면 말줄임표로 잘라 세로 높이가
-                // 예측 불가능하게 늘어나 카드 밖으로 밀려나는 일을 막는다.
+                // 이름 글자 수(공백 제외)에 따라 글자 크기를 줄여서 항상 한 줄에 담는다(사용자
+                // 요청) — 5자까지는 그대로, 6자부터는 한 글자씩 늘어날 때마다 더 작게 줄인다.
+                val compactLength = facility.name.replace(" ", "").length
+                val nameFontSize = when {
+                    compactLength <= 5 -> 40.sp
+                    compactLength == 6 -> 34.sp
+                    compactLength == 7 -> 30.sp
+                    else -> 26.sp
+                }
                 Text(
                     text = facility.name,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontSize = nameFontSize,
+                        lineHeight = nameFontSize
+                    ),
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
