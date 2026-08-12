@@ -43,16 +43,20 @@ android {
     }
 }
 
-// 출력 APK 파일명을 기본값(app-debug.apk 등)이 아니라 "앱이름-버전명.apk"로 바꾼다(사용자
-// 요청). strings.xml의 app_name과 별개로 여기 문자열도 같이 유지해야 한다 — Gradle 스크립트는
-// 빌드 설정 시점에 Android 리소스를 읽을 수 없어서다.
+// 출력 APK 파일명을 기본값(app-debug.apk 등)이 아니라 "앱이름-날짜_시간.apk"로 바꾼다(사용자
+// 요청). 앱 라벨은 한글("신트리도서관")을 쓰다가, GitHub 릴리스 업로드 시 한글 파일명이 깨져
+// 엉뚱한 이름의 자산이 함께 올라가는 문제(2026-08-12)가 있어 영문 "shintree"로 바꿨다 —
+// strings.xml의 app_name(사용자에게 보이는 화면 표시 이름)은 그대로 "신트리도서관"이며 이
+// 빌드 파일명과는 무관하다. versionName은 "1.0-YYYYMMDD.HHmm" 고정 형식(배포 절차 참고)이라
+// "1.0-" 접두사를 떼고 "."을 "_"로 바꿔 "YYYYMMDD_HHmm"만 남긴다.
 androidComponents {
-    val appLabel = "신트리도서관"
+    val appLabel = "shintree"
     onVariants { variant ->
         variant.outputs.forEach { output ->
             if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
                 val versionName = output.versionName.get()
-                output.outputFileName.set("${appLabel}-${variant.buildType}-${versionName}.apk")
+                val dateStamp = versionName.substringAfter('-').replace('.', '_')
+                output.outputFileName.set("${appLabel}-${dateStamp}.apk")
             }
         }
     }
