@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.EventSeat
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -52,6 +53,8 @@ import com.example.ibtech.ui.common.DecorativeBackground
 import com.example.ibtech.ui.common.LibraryCard
 import com.example.ibtech.ui.common.debounced
 import com.example.ibtech.ui.theme.IBTECHTheme
+import com.example.ibtech.ui.theme.LavenderAccent
+import com.example.ibtech.ui.theme.LavenderAccentContainer
 import com.example.ibtech.ui.theme.LibraryDimens
 import com.example.ibtech.ui.theme.MintContainer
 import com.example.ibtech.ui.theme.MintPrimary
@@ -80,6 +83,7 @@ fun HomeScreen(
     onUsageGuide: () -> Unit,
     onKidsContent: () -> Unit,
     onTodayEvents: () -> Unit,
+    onSeatStatus: () -> Unit,
     onAdminClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -167,13 +171,30 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(cardsToEventSpacing))
 
-            TodayEventBar(
-                text = stringResource(R.string.home_action_today_events),
-                onClick = onTodayEvents,
+            // 행사 안내가 전체 폭을 쓰던 자리를 절반씩 나눠, 옆에 "실시간 좌석 · 예약현황"
+            // 진입 버튼을 추가한다(명세: 실시간 좌석·예약현황 메뉴 추가). 행사 안내 자체의
+            // 기능·모양(TodayEventBar)은 그대로 두고 배치만 Row로 바꿨다.
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(eventBarHeight)
-            )
+                    .height(eventBarHeight),
+                horizontalArrangement = Arrangement.spacedBy(LibraryDimens.CardSpacing)
+            ) {
+                TodayEventBar(
+                    text = stringResource(R.string.home_action_today_events),
+                    onClick = onTodayEvents,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                )
+                SeatStatusBar(
+                    text = stringResource(R.string.home_action_seat_status),
+                    onClick = onSeatStatus,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                )
+            }
         }
     }
 }
@@ -408,6 +429,70 @@ private fun TodayEventBar(
     }
 }
 
+/** 실시간 좌석 · 예약현황 진입 바. [TodayEventBar]와 같은 행에서 절반 폭을 나눠 쓰므로
+ * 모양·크기를 그대로 맞추고 강조색만 Lavender로 구분한다(디지털자료실=Lavender 매핑,
+ * UsageSubcategoryScreen 참고). 아이콘은 전용 PNG 에셋이 없어 앱 다른 화면에서도 이미 쓰는
+ * Material Icon(EventSeat)을 그대로 재사용한다. */
+@Composable
+private fun SeatStatusBar(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.clickable(onClick = debounced(onClick)),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = EventBarCream),
+        border = BorderStroke(1.5.dp, LavenderAccent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight(0.72f)
+                    .aspectRatio(1f)
+                    .background(LavenderAccentContainer, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.EventSeat,
+                    contentDescription = null,
+                    tint = LavenderAccent,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight(0.72f)
+                    .aspectRatio(1f)
+                    .background(LavenderAccent, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.surface
+                )
+            }
+        }
+    }
+}
+
 @Preview(name = "1280x800", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
 private fun HomeScreenLargePreview() {
@@ -418,6 +503,7 @@ private fun HomeScreenLargePreview() {
             onUsageGuide = {},
             onKidsContent = {},
             onTodayEvents = {},
+            onSeatStatus = {},
             onAdminClick = {}
         )
     }
@@ -433,6 +519,7 @@ private fun HomeScreen1280x720Preview() {
             onUsageGuide = {},
             onKidsContent = {},
             onTodayEvents = {},
+            onSeatStatus = {},
             onAdminClick = {}
         )
     }
@@ -448,6 +535,7 @@ private fun HomeScreenSmallPreview() {
             onUsageGuide = {},
             onKidsContent = {},
             onTodayEvents = {},
+            onSeatStatus = {},
             onAdminClick = {}
         )
     }

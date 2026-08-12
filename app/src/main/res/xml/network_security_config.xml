@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    기본은 평문(HTTP) 통신을 막는 안드로이드 기본값을 그대로 따른다. 신트리도서관 열람실
-    좌석현황(seat8.ice.go.kr, 이용방법 안내 > 열람실·자료실 이용 > 실시간 좌석 현황)만
-    도서관 자체 시스템이 HTTPS를 지원하지 않아 예외로 허용한다.
+    기본은 평문(HTTP) 통신을 막는 안드로이드 기본값을 그대로 따른다. 도서관 자체 시스템이라
+    HTTPS를 지원하지 않는 곳만 예외로 허용한다.
+    - seat8.ice.go.kr: 열람실 실시간 좌석 현황(홈 > 실시간 좌석 · 예약현황 > 열람실 좌석현황)
+    - digital8.ice.go.kr: 디지털자료실(LibMate) 예약현황(홈 > 실시간 좌석 · 예약현황 > 디지털자료실 예약현황)
 -->
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="false">seat8.ice.go.kr</domain>
+        <domain includeSubdomains="false">digital8.ice.go.kr</domain>
     </domain-config>
 </network-security-config>

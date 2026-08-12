@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.example.ibtech.data.repository.DefaultUsageContent
 import com.example.ibtech.data.repository.UsageRepository
 import com.example.ibtech.domain.model.UsageTopic
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,8 +35,15 @@ class UsageSubcategoryViewModel(
             UsageSubcategoryUiState(
                 isLoaded = true,
                 category = topics.firstOrNull { it.id == categoryId && it.parentId == null },
+                // 실시간 좌석 현황은 "홈 → 실시간 좌석 · 예약현황"으로 진입점을 옮겼다(명세:
+                // 실시간 좌석·예약현황 메뉴 추가). 데이터/기능은 그대로 두고 이 목록에서만
+                // 제외한다 — 관리자 화면(UsageInfoAdminScreen)에서는 계속 조회·수정할 수 있다.
                 subtopics = topics
-                    .filter { it.parentId == categoryId && it.isEnabled }
+                    .filter {
+                        it.parentId == categoryId &&
+                            it.isEnabled &&
+                            it.id != DefaultUsageContent.READING_SEAT_STATUS_TOPIC_ID
+                    }
                     .sortedBy { it.sortOrder }
             )
         }

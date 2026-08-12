@@ -25,6 +25,10 @@ object DefaultUsageContent {
     const val READING_SEAT_STATUS_URL = "http://seat8.ice.go.kr/EZ5500/SEAT/RoomStatus.aspx"
     const val READING_SEAT_STATUS_TOPIC_ID = "reading_seat_status"
 
+    /** 디지털자료실(PC) 예약현황 페이지(LibMate). "실시간 좌석 · 예약현황" 메뉴 명세에 지정된
+     * 주소를 그대로 쓴다 — 임의의 예약 URL을 추측해 넣지 않는다. */
+    const val DIGITAL_ROOM_RESERVATION_STATUS_URL = "http://digital8.ice.go.kr:8800/LibMate/LibMate.php"
+
     /** [ensureReadingSeatStatusTopic][com.example.ibtech.data.repository.UsageRepository.ensureReadingSeatStatusTopic]의
      * 1회성 마이그레이션과 [build] 양쪽에서 같은 항목을 쓰기 위해 따로 뺀다. */
     fun buildReadingSeatStatusTopic(context: Context) = UsageTopic(

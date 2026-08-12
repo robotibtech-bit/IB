@@ -32,6 +32,10 @@ object LibraryRoutes {
     const val EVENTS = "events"
     const val EVENT_DETAIL = "event_detail/{eventId}"
 
+    /** 실시간 좌석 · 예약현황 메뉴(홈 하단 신규 버튼). 하위 두 카드(디지털자료실 예약현황,
+     * 열람실 좌석현황)는 별도 라우트 없이 기존 [WEB_VIEW]로 바로 이동한다. */
+    const val SEAT_STATUS_MENU = "seat_status_menu"
+
     /** 개발자 메뉴(`BuildConfig.DEBUG` 전용). release 빌드에는 진입 버튼 자체가 없다. */
     const val DEV_MENU = "dev_menu"
 

@@ -20,6 +20,7 @@
     <string name="home_action_usage_guide">이용방법이 궁금해요</string>
     <string name="home_action_kids_content">로봇과 놀아요</string>
     <string name="home_action_today_events">행사 안내</string>
+    <string name="home_action_seat_status">실시간 좌석 · 예약현황</string>
 
     <!-- 홈 화면 메뉴 카드 부제 (3단계, 전체 UI 디자인 패키지 mockup_home.png 기준 — 화면 표시용
          문구일 뿐 도메인 데이터가 아니다). -->
@@ -32,6 +33,15 @@
     <string name="title_usage_category">이용방법 안내</string>
     <string name="title_kids_menu">로봇과 놀아요</string>
     <string name="title_events">오늘의 행사</string>
+    <string name="title_seat_status_menu">실시간 좌석 · 예약현황</string>
+
+    <!-- 실시간 좌석 · 예약현황 메뉴 (홈 → 실시간 좌석 · 예약현황). 열람실 좌석현황 카드는 기존
+         "이용방법 → 실시간 좌석 현황"(usage_topic_reading_seat_status_*) 기능을 그대로 재사용하며,
+         이 화면 전용 카드 문구만 별도로 둔다. -->
+    <string name="seat_status_digital_room_title">디지털자료실 예약현황</string>
+    <string name="seat_status_digital_room_subtitle">PC 및 디지털자료실 이용 현황을 확인해요.</string>
+    <string name="seat_status_reading_room_title">열람실 좌석현황</string>
+    <string name="seat_status_reading_room_subtitle">열람실의 실시간 좌석 이용 현황을 확인해요.</string>
 
     <!-- 시설 목록 (요구사항 2.3절) -->
     <string name="facility_list_search_toggle">다른 장소 찾기</string>

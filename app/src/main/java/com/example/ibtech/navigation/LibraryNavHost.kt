@@ -82,6 +82,7 @@ import com.example.ibtech.ui.facility.NavigationProgressScreen
 import com.example.ibtech.ui.facility.NavigationViewModel
 import com.example.ibtech.ui.home.HomeScreen
 import com.example.ibtech.ui.home.HomeViewModel
+import com.example.ibtech.ui.seatstatus.SeatStatusMenuScreen
 import com.example.ibtech.ui.kids.BookRecommendationScreen
 import com.example.ibtech.ui.kids.BookRecommendationViewModel
 import com.example.ibtech.ui.kids.KidsMenuScreen
@@ -200,6 +201,7 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                 val menuUsageGuide = stringResource(R.string.home_action_usage_guide)
                 val menuKidsContent = stringResource(R.string.home_action_kids_content)
                 val menuTodayEvents = stringResource(R.string.home_action_today_events)
+                val menuSeatStatus = stringResource(R.string.home_action_seat_status)
 
                 fun logMenuSelect(label: String) {
                     statsScope.launch { statsRepository.logEvent(StatEventType.MENU_SELECT, label) }
@@ -225,6 +227,10 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                             navController.navigate(
                                 LibraryRoutes.webView(url = settings.eventNoticeUrl, title = menuTodayEvents)
                             )
+                        },
+                        onSeatStatus = {
+                            logMenuSelect(menuSeatStatus)
+                            navController.navigate(LibraryRoutes.SEAT_STATUS_MENU)
                         },
                         onAdminClick = { navController.navigate(LibraryRoutes.ADMIN_LOGIN) }
                     )
@@ -701,6 +707,39 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                         },
                         onQrOpened = viewModel::onQrOpened,
                         onGoHome = { goHome() },
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            composable(LibraryRoutes.SEAT_STATUS_MENU) {
+                val digitalRoomTitle = stringResource(R.string.seat_status_digital_room_title)
+                val readingRoomTitle = stringResource(R.string.seat_status_reading_room_title)
+
+                LibraryScaffold(
+                    title = stringResource(R.string.title_seat_status_menu),
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                ) { padding ->
+                    SeatStatusMenuScreen(
+                        onDigitalRoomStatus = {
+                            navController.navigate(
+                                LibraryRoutes.webView(
+                                    url = DefaultUsageContent.DIGITAL_ROOM_RESERVATION_STATUS_URL,
+                                    title = digitalRoomTitle
+                                )
+                            )
+                        },
+                        onReadingRoomSeatStatus = {
+                            // 기존 "이용방법 → 실시간 좌석 현황"과 완전히 같은 URL·WebView
+                            // 로직(WEB_VIEW 라우트, verticalScale 처리 포함)을 그대로 재사용한다.
+                            navController.navigate(
+                                LibraryRoutes.webView(
+                                    url = DefaultUsageContent.READING_SEAT_STATUS_URL,
+                                    title = readingRoomTitle
+                                )
+                            )
+                        },
                         modifier = Modifier.padding(padding)
                     )
                 }
