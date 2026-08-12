@@ -37,6 +37,7 @@ class UsageCategoryViewModel(application: Application) : AndroidViewModel(applic
         // 트리거와 같은 자리) — 이후에는 관리자 화면(10단계)이 이 저장소를 직접 편집한다.
         viewModelScope.launch {
             usageRepository.ensureSeeded(application)
+            usageRepository.ensureReadingSeatStatusTopic(application)
         }
     }
 }

@@ -32,7 +32,11 @@ fun LibraryWebView(
     url: String,
     modifier: Modifier = Modifier,
     onWebViewReady: (WebView) -> Unit = {},
-    onCanGoBackChanged: (Boolean) -> Unit = {}
+    onCanGoBackChanged: (Boolean) -> Unit = {},
+    /** 페이지 내용을 세로로만 늘려 보여줄 배율(1이면 원본 그대로). 가로로 넓게 설계된 페이지가
+     * 가로로 긴 키오스크 화면에서 위아래로 짧고 빈약해 보일 때 쓴다 — 실제 레이아웃을 다시 짜는
+     * 게 아니라 렌더링된 화면만 CSS `transform: scaleY()`로 시각적으로 늘린다. */
+    verticalScale: Float = 1f
 ) {
     var isLoading by remember { mutableStateOf(true) }
     var loadError by remember { mutableStateOf(false) }
@@ -47,6 +51,13 @@ fun LibraryWebView(
                         override fun onPageFinished(view: WebView, pageUrl: String?) {
                             isLoading = false
                             onCanGoBackChanged(view.canGoBack())
+                            if (verticalScale != 1f) {
+                                view.evaluateJavascript(
+                                    "document.body.style.transformOrigin='top';" +
+                                        "document.body.style.transform='scaleY($verticalScale)';",
+                                    null
+                                )
+                            }
                         }
 
                         override fun onReceivedError(

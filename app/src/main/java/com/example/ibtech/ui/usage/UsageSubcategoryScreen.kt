@@ -129,6 +129,7 @@ private fun resolveTopicVisual(title: String): TopicVisual = when {
     "반납" in title || "연체" in title ->
         TopicVisual(Icons.AutoMirrored.Filled.AssignmentReturn, "반납 방법과 연체 규정을 확인해요", CoralAccent, CoralAccentContainer)
     "대출" in title -> TopicVisual(Icons.AutoMirrored.Filled.MenuBook, "대출 권수와 기간을 확인해요", SkyAccent, SkyAccentContainer)
+    "실시간" in title -> TopicVisual(Icons.Filled.EventSeat, "지금 남은 좌석을 바로 확인해요", YellowAccent, YellowAccentContainer)
     "좌석" in title -> TopicVisual(Icons.Filled.EventSeat, "좌석 발급과 반납 방법을 확인해요", MintPrimary, MintContainer)
     "수칙" in title || "대기" in title ->
         TopicVisual(Icons.Filled.HourglassTop, "이용 수칙과 대기 안내를 확인해요", CoralAccent, CoralAccentContainer)

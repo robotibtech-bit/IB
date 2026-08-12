@@ -34,6 +34,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.ibtech.BuildConfig
 import com.example.ibtech.R
+import com.example.ibtech.data.repository.DefaultUsageContent
 import com.example.ibtech.data.repository.SettingsRepository
 import com.example.ibtech.data.repository.StatsRepository
 import com.example.ibtech.domain.model.LibrarySettings
@@ -457,7 +458,14 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                     UsageSubcategoryScreen(
                         uiState = subcategoryUiState,
                         onSelectTopic = { topic ->
-                            navController.navigate(LibraryRoutes.usageAnswer(topic.id))
+                            // 실시간 좌석 현황은 설명 화면 없이 바로 웹뷰를 보여준다 — 안내문 자체가
+                            // 목적이 아니라 그 자리에서 바로 확인하는 게 목적인 항목이라, 다른
+                            // 항목들과 달리 답변 화면(및 "바로가기" 버튼)을 한 단계 건너뛴다.
+                            if (topic.id == DefaultUsageContent.READING_SEAT_STATUS_TOPIC_ID && !topic.qrUrl.isNullOrBlank()) {
+                                navController.navigate(LibraryRoutes.webView(url = topic.qrUrl, title = topic.title))
+                            } else {
+                                navController.navigate(LibraryRoutes.usageAnswer(topic.id))
+                            }
                         },
                         onGoHome = { goHome() },
                         modifier = Modifier.padding(padding)
@@ -481,6 +489,11 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                         uiState = answerUiState,
                         onRelatedFacilityClick = { facilityId ->
                             navController.navigate(LibraryRoutes.facilityDetail(facilityId))
+                        },
+                        onOpenUrl = { url ->
+                            navController.navigate(
+                                LibraryRoutes.webView(url = url, title = answerUiState.topic?.title.orEmpty())
+                            )
                         },
                         onStaffHelpClick = viewModel::onStaffHelpClick,
                         onDismissStaffHelp = viewModel::onDismissStaffHelp,
@@ -1014,7 +1027,10 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                             .padding(padding)
                             .fillMaxSize(),
                         onWebViewReady = { webView = it },
-                        onCanGoBackChanged = { canGoBack = it }
+                        onCanGoBackChanged = { canGoBack = it },
+                        // 좌석현황 페이지는 가로로 넓게 설계돼 있어 가로로 긴 키오스크 화면에서도
+                        // 위아래로 짧고 빈약해 보인다 — 세로 방향으로만 시각적으로 늘려 채운다.
+                        verticalScale = if (url == DefaultUsageContent.READING_SEAT_STATUS_URL) 1.3f else 1f
                     )
                 }
             }

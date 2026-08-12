@@ -1,8 +1,5 @@
 package com.example.ibtech.ui.usage
 
-import android.content.Intent
-import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,8 +17,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -54,6 +50,7 @@ import com.example.ibtech.ui.theme.LibraryDimens
 fun UsageAnswerScreen(
     uiState: UsageAnswerUiState,
     onRelatedFacilityClick: (String) -> Unit,
+    onOpenUrl: (String) -> Unit,
     onStaffHelpClick: () -> Unit,
     onDismissStaffHelp: () -> Unit,
     onGoHome: () -> Unit,
@@ -111,7 +108,11 @@ fun UsageAnswerScreen(
                 }
 
                 if (!topic.qrUrl.isNullOrBlank()) {
-                    QrButton(url = topic.qrUrl)
+                    LibraryOutlinedButton(
+                        text = stringResource(R.string.usage_answer_qr_action),
+                        icon = Icons.AutoMirrored.Filled.OpenInNew,
+                        onClick = { onOpenUrl(topic.qrUrl) }
+                    )
                 }
 
                 val relatedFacility = uiState.relatedFacility
@@ -140,23 +141,6 @@ fun UsageAnswerScreen(
             }
         }
     }
-}
-
-@Composable
-private fun QrButton(url: String) {
-    val context = LocalContext.current
-    val errorMessage = stringResource(R.string.usage_answer_qr_error)
-    LibraryOutlinedButton(
-        text = stringResource(R.string.usage_answer_qr_action),
-        icon = Icons.Filled.QrCode,
-        onClick = {
-            runCatching {
-                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-            }.onFailure {
-                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-            }
-        }
-    )
 }
 
 // 표 칸 글자는 화면 전역의 확대 타이포그래피(본문 44sp)를 그대로 쓰면 열이 몇 개만 있어도
@@ -243,6 +227,7 @@ private fun UsageAnswerScreenPreview() {
         UsageAnswerScreen(
             uiState = previewAnswerUiState(),
             onRelatedFacilityClick = {},
+            onOpenUrl = {},
             onStaffHelpClick = {},
             onDismissStaffHelp = {},
             onGoHome = {}

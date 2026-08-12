@@ -32,6 +32,39 @@ class UsageRepository private constructor(
         save(DefaultUsageContent.build(context))
     }
 
+    /**
+     * "실시간 좌석 현황" 항목을 아직 병합해보지 않았으면 1회 추가하고, 열람실·자료실 이용
+     * 카테고리 안에서 첫 번째 항목이 되도록 나머지 항목들의 순서도 함께 맞춘다. [ensureSeeded]
+     * 이후에 생긴 항목이라, 이미 콘텐츠가 채워진 기존 설치에도 [KidsContentRepository.ensureQuizBank200]과
+     * 같은 방식(플래그 확인)으로 반영한다. 관리자가 이미 같은 id로 직접 추가했다면 새로 만들지
+     * 않고 순서만 정리한다.
+     */
+    suspend fun ensureReadingSeatStatusTopic(context: Context) {
+        val alreadyMerged = dataStore.data.first()[UsageDataStoreKeys.READING_SEAT_STATUS_MERGED] ?: false
+        if (alreadyMerged) return
+
+        // 열람실·자료실 이용 카테고리 안에서의 의도한 순서 — 실시간 좌석 현황이 0(첫 번째).
+        val desiredOrder = mapOf(
+            DefaultUsageContent.READING_SEAT_STATUS_TOPIC_ID to 0,
+            "reading_seat" to 1,
+            "reading_rules" to 2,
+            "materials_general_kids" to 3,
+            "materials_digital" to 4
+        )
+
+        val current = topics.first()
+        val withSeatStatus = if (current.none { it.id == DefaultUsageContent.READING_SEAT_STATUS_TOPIC_ID }) {
+            current + DefaultUsageContent.buildReadingSeatStatusTopic(context)
+        } else {
+            current
+        }
+        val reordered = withSeatStatus.map { topic ->
+            desiredOrder[topic.id]?.let { topic.copy(sortOrder = it) } ?: topic
+        }
+        save(reordered)
+        dataStore.edit { prefs -> prefs[UsageDataStoreKeys.READING_SEAT_STATUS_MERGED] = true }
+    }
+
     suspend fun getTopic(id: String): UsageTopic? =
         topics.first().firstOrNull { it.id == id }
 

@@ -21,6 +21,21 @@ import com.example.ibtech.domain.model.UsageTopic
  */
 object DefaultUsageContent {
 
+    /** 신트리도서관 일반열람실 실시간 좌석 현황(ezlib). 도서관 자체 시스템 링크라 PDF에는 없다. */
+    const val READING_SEAT_STATUS_URL = "http://seat8.ice.go.kr/EZ5500/SEAT/RoomStatus.aspx"
+    const val READING_SEAT_STATUS_TOPIC_ID = "reading_seat_status"
+
+    /** [ensureReadingSeatStatusTopic][com.example.ibtech.data.repository.UsageRepository.ensureReadingSeatStatusTopic]의
+     * 1회성 마이그레이션과 [build] 양쪽에서 같은 항목을 쓰기 위해 따로 뺀다. */
+    fun buildReadingSeatStatusTopic(context: Context) = UsageTopic(
+        id = READING_SEAT_STATUS_TOPIC_ID,
+        parentId = "category_reading_materials",
+        title = context.getString(R.string.usage_topic_reading_seat_status_title),
+        shortAnswer = context.getString(R.string.usage_topic_reading_seat_status_answer),
+        qrUrl = READING_SEAT_STATUS_URL,
+        sortOrder = 0
+    )
+
     fun build(context: Context): List<UsageTopic> {
         fun s(resId: Int) = context.getString(resId)
 
@@ -89,33 +104,34 @@ object DefaultUsageContent {
             ),
 
             UsageTopic(id = "category_reading_materials", parentId = null, title = s(R.string.usage_category_reading_materials), sortOrder = 2),
+            buildReadingSeatStatusTopic(context),
             UsageTopic(
                 id = "reading_seat",
                 parentId = "category_reading_materials",
                 title = s(R.string.usage_topic_reading_seat_title),
                 shortAnswer = s(R.string.usage_topic_reading_seat_answer),
-                sortOrder = 0
+                sortOrder = 1
             ),
             UsageTopic(
                 id = "reading_rules",
                 parentId = "category_reading_materials",
                 title = s(R.string.usage_topic_reading_rules_title),
                 shortAnswer = s(R.string.usage_topic_reading_rules_answer),
-                sortOrder = 1
+                sortOrder = 2
             ),
             UsageTopic(
                 id = "materials_general_kids",
                 parentId = "category_reading_materials",
                 title = s(R.string.usage_topic_materials_general_kids_title),
                 shortAnswer = s(R.string.usage_topic_materials_general_kids_answer),
-                sortOrder = 2
+                sortOrder = 3
             ),
             UsageTopic(
                 id = "materials_digital",
                 parentId = "category_reading_materials",
                 title = s(R.string.usage_topic_materials_digital_title),
                 shortAnswer = s(R.string.usage_topic_materials_digital_answer),
-                sortOrder = 3
+                sortOrder = 4
             ),
 
             UsageTopic(id = "category_hours", parentId = null, title = s(R.string.usage_category_hours), sortOrder = 3),
