@@ -1,6 +1,5 @@
 package com.example.ibtech.navigation
 
-import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -1046,18 +1045,13 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
             ) { backStackEntry ->
                 val url = backStackEntry.arguments?.getString("url").orEmpty()
                 val webTitle = backStackEntry.arguments?.getString("title").orEmpty()
-                var webView by remember { mutableStateOf<WebView?>(null) }
-                var canGoBack by remember { mutableStateOf(false) }
 
-                // 페이지 안에서 링크를 타고 들어간 경우, 뒤로가기는 앱 화면이 아니라 웹 히스토리부터
-                // 되짚어야 한다 — 시스템 뒤로가기·상단바 뒤로가기 모두 이 규칙을 따른다.
-                BackHandler(enabled = canGoBack) { webView?.goBack() }
-
+                // 뒤로가기(시스템·상단바 모두)는 웹페이지 자체 히스토리를 되짚지 않고 항상 바로
+                // 이전 앱 화면으로 돌아간다 — 웹뷰 안에서 링크를 몇 번 타고 들어갔든 뒤로가기 한 번에
+                // 키오스크 화면으로 복귀해야 한다(요구사항 3장 "뒤로가기는 popBackStack 하나만").
                 LibraryScaffold(
                     title = webTitle.ifBlank { stringResource(R.string.web_view_default_title) },
-                    onBack = {
-                        if (canGoBack) webView?.goBack() else navController.popBackStack()
-                    },
+                    onBack = { navController.popBackStack() },
                     onHome = { goHome() }
                 ) { padding ->
                     LibraryWebView(
@@ -1065,11 +1059,13 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                         modifier = Modifier
                             .padding(padding)
                             .fillMaxSize(),
-                        onWebViewReady = { webView = it },
-                        onCanGoBackChanged = { canGoBack = it },
                         // 좌석현황 페이지는 가로로 넓게 설계돼 있어 가로로 긴 키오스크 화면에서도
                         // 위아래로 짧고 빈약해 보인다 — 세로 방향으로만 시각적으로 늘려 채운다.
-                        verticalScale = if (url == DefaultUsageContent.READING_SEAT_STATUS_URL) 1.3f else 1f
+                        verticalScale = if (url == DefaultUsageContent.READING_SEAT_STATUS_URL) 1.3f else 1f,
+                        // 디지털자료실 예약현황(LibMate)은 고정 폭으로 만들어진 옛날 페이지라 넓은
+                        // 키오스크 화면에서 오른쪽에 빈 여백이 크게 남는다 — 좌우 10%씩만 남기고
+                        // 가운데 80%를 채우도록 가로로 늘려 가운데 정렬한다.
+                        horizontalFit = url == DefaultUsageContent.DIGITAL_ROOM_RESERVATION_STATUS_URL
                     )
                 }
             }
