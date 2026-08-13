@@ -44,7 +44,9 @@ class FacilityRepository private constructor(
     val visibleFacilities: Flow<List<Facility>> = allFacilities.map { facilities ->
         facilities
             .filter { it.isEnabled && it.floor != Facility.UNSET_FLOOR }
-            .sortedBy { it.sortOrder }
+            // 층 오름차순이 먼저고, 같은 층 안에서는 관리자가 지정한 정렬 순서(sortOrder)를 따른다
+            // (요청: "층별 순으로") — sortOrder만으로는 층이 뒤섞여 나왔었다.
+            .sortedWith(compareBy({ it.floor }, { it.sortOrder }))
     }
 
     /** temi가 보고한 최신 POI 이름 목록으로 로컬 시설 목록을 동기화한다(6.2절). */
