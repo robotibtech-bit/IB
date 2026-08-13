@@ -1,6 +1,8 @@
 package com.example.ibtech.ui.facility
 
 import android.graphics.BitmapFactory
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -93,20 +95,29 @@ fun LocationMapScreen(
                             )
                         }
                     }
-                    if (bitmap != null) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                                .clip(RoundedCornerShape(24.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                bitmap = bitmap,
-                                contentDescription = null,
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.fillMaxSize()
-                            )
+                    // 안내도가 여러 장을 번갈아 보여주는 시설(계단 안내도 대상)은 그냥 이미지를
+                    // 바꿔치면 언제 바뀌었는지 놓치기 쉽다 — Crossfade로 부드럽게 겹쳐 넘겨서
+                    // 전환을 눈에 띄게 한다(요청: "안내도가 전환된다는걸 사용자가 알수있게").
+                    Crossfade(
+                        targetState = bitmap,
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        animationSpec = tween(durationMillis = 700),
+                        label = "wayfindingImage"
+                    ) { currentBitmap ->
+                        if (currentBitmap != null) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(24.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    bitmap = currentBitmap,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
                         }
                     }
                 }

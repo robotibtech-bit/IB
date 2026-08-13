@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
@@ -84,7 +85,7 @@ fun UsageInfoAdminScreen(
                 items(topics, key = { it.id }) { topic ->
                     AdminListRow(
                         title = topic.title,
-                        subtitle = topic.shortAnswer,
+                        subtitle = topic.shortAnswer?.let { AnnotatedString(it) },
                         onEdit = { onEditTopic(topic) },
                         onDelete = { pendingDelete = topic }
                     )

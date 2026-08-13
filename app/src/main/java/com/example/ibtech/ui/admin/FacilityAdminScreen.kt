@@ -20,6 +20,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.Facility
@@ -29,7 +32,8 @@ import com.example.ibtech.ui.common.AdminListRow
 import com.example.ibtech.ui.common.ConfirmDialog
 import com.example.ibtech.ui.common.DecorativeBackground
 import com.example.ibtech.ui.common.EmptyState
-import com.example.ibtech.ui.common.LibraryOutlinedButton
+import com.example.ibtech.ui.common.LibraryPrimaryButton
+import com.example.ibtech.ui.theme.ErrorRed
 import com.example.ibtech.ui.theme.LibraryDimens
 
 /** 시설 관리 목록 화면 (로드맵 10단계): POI 새로고침, 동기화 상태 배지, 편집/삭제 진입점. */
@@ -53,7 +57,10 @@ fun FacilityAdminScreen(
                     .padding(horizontal = LibraryDimens.ScreenPadding, vertical = 12.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                LibraryOutlinedButton(
+                // 관리자가 자주 눌러야 하는 핵심 동작이라 눈에 띄게 아웃라인 대신 채워진
+                // 버튼으로 바꿨다(사용자 요청) — 새 색을 추가하지 않고 기존 강조색(민트,
+                // LibraryPrimaryButton)을 그대로 재사용한다.
+                LibraryPrimaryButton(
                     text = stringResource(R.string.facility_admin_refresh),
                     icon = Icons.Filled.Refresh,
                     onClick = onRefresh,
@@ -109,8 +116,9 @@ fun FacilityAdminScreen(
 }
 
 @Composable
-private fun facilitySubtitle(facility: Facility): String {
-    val floorText = if (facility.floor == Facility.UNSET_FLOOR) {
+private fun facilitySubtitle(facility: Facility): AnnotatedString {
+    val isUnset = facility.floor == Facility.UNSET_FLOOR
+    val floorText = if (isUnset) {
         stringResource(R.string.facility_admin_unset_floor)
     } else {
         stringResource(R.string.facility_card_floor_format, facility.floor)
@@ -120,7 +128,19 @@ private fun facilitySubtitle(facility: Facility): String {
         GuideMode.LOCATION_ONLY -> stringResource(R.string.facility_detail_location_action)
         GuideMode.BOTH -> stringResource(R.string.facility_admin_guide_both)
     }
-    return stringResource(R.string.facility_admin_row_subtitle, floorText, guideModeText)
+    val fullText = stringResource(R.string.facility_admin_row_subtitle, floorText, guideModeText)
+    if (!isUnset) return AnnotatedString(fullText)
+
+    // "미설정"만 빨간색으로 강조한다(사용자 요청) — 부제 전체가 "%1$s · %2$s" 형식 리소스로
+    // 조립되므로, floorText가 그 안에서 시작하는 위치를 찾아 그 구간에만 색을 입힌다(구분자를
+    // 코드에 하드코딩하지 않기 위해).
+    return buildAnnotatedString {
+        append(fullText)
+        val start = fullText.indexOf(floorText)
+        if (start >= 0) {
+            addStyle(SpanStyle(color = ErrorRed), start, start + floorText.length)
+        }
+    }
 }
 
 @Composable

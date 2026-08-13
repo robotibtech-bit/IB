@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.domain.model.FacilityDirection
+import com.example.ibtech.domain.model.StairsWayfindingOverride
 import com.example.ibtech.domain.model.WayfindingCorridorOverride
 
 /**
@@ -27,6 +28,18 @@ fun buildFloorDirectionGuideText(context: Context, facility: Facility, baseFloor
             context.getString(R.string.location_guide_same_floor_with_direction, context.getString(direction.labelRes()))
         } else {
             context.getString(R.string.facility_detail_floor_line, facility.floor)
+        }
+    }
+
+    // 여름강의실 옆 계단으로만 갈 수 있는 시설(StairsWayfindingOverride)은 일반 "엘리베이터를
+    // 이용해 …" 안내 대신 그 계단 위치를 짚어 안내한다 — 그 외에는 location_guide_up_*과 같은
+    // 짜임으로 층·방향을 그대로 안내한다.
+    if (StairsWayfindingOverride.appliesTo(facility.id)) {
+        val direction = facility.direction
+        return if (direction != null) {
+            context.getString(R.string.stairs_wayfinding_guide_body, facility.floor, context.getString(direction.labelRes()))
+        } else {
+            context.getString(R.string.stairs_wayfinding_guide_body_no_direction, facility.floor)
         }
     }
 

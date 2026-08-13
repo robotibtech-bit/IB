@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
@@ -138,7 +139,7 @@ fun KidsContentAdminScreen(
                     KidsContentTab.QUIZ -> items(uiState.quizQuestions, key = { it.id }) { question ->
                         AdminListRow(
                             title = question.question,
-                            subtitle = question.category,
+                            subtitle = AnnotatedString(question.category),
                             onEdit = { onEditQuiz(question) },
                             onDelete = { pendingDeleteQuiz = question }
                         )
@@ -147,7 +148,7 @@ fun KidsContentAdminScreen(
                     KidsContentTab.BOOKS -> items(uiState.books, key = { it.id }) { book ->
                         AdminListRow(
                             title = book.title,
-                            subtitle = book.author,
+                            subtitle = AnnotatedString(book.author),
                             onEdit = { onEditBook(book) },
                             onDelete = { pendingDeleteBook = book }
                         )

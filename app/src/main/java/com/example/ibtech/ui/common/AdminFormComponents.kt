@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -154,12 +155,14 @@ fun AdminSwitchRow(
     }
 }
 
-/** 관리자 목록 화면의 공용 행: 제목/부제/배지 + 수정·삭제 아이콘 버튼. */
+/** 관리자 목록 화면의 공용 행: 제목/부제/배지 + 수정·삭제 아이콘 버튼.
+ * [subtitle]은 [AnnotatedString]이라 호출부에서 일부 구간(예: "미설정")만 다른 색으로
+ * 강조할 수 있다 — 그냥 문자열만 필요하면 `AnnotatedString(text)`로 감싸서 넘기면 된다. */
 @Composable
 fun AdminListRow(
     title: String,
     modifier: Modifier = Modifier,
-    subtitle: String? = null,
+    subtitle: AnnotatedString? = null,
     trailingBadge: String? = null,
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null

@@ -76,6 +76,11 @@
          up/down_with_direction과 같은 짜임으로, "엘리베이터를 이용해 N층으로" 자리에 "연결통로를
          통해"를 쓴다. -->
     <string name="location_guide_same_floor_with_direction">연결통로를 통해 %1$s으로 이동하시면 있습니다.</string>
+    <!-- 여름강의실 옆 계단으로만 갈 수 있는 2층 시설(StairsWayfindingOverride) 전용 안내 — 위
+         location_guide_up_with_direction/up_no_direction과 같은 짜임으로, "엘리베이터를 이용해"
+         자리에 "여름강의실 옆에 있는 계단을 이용해"를 쓴다. -->
+    <string name="stairs_wayfinding_guide_body">여름강의실 옆에 있는 계단을 이용해 %1$d층으로 올라가셔서 %2$s으로 이동하시면 있습니다.</string>
+    <string name="stairs_wayfinding_guide_body_no_direction">여름강의실 옆에 있는 계단을 이용해 %1$d층으로 올라가시면 있습니다.</string>
     <string name="facility_direction_right">우측</string>
     <string name="facility_direction_front">정면</string>
     <string name="facility_direction_left">좌측</string>

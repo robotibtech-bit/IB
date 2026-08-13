@@ -126,7 +126,10 @@ fun HomeScreen(
         val cardIconSize = if (compact) 92.dp else 112.dp
         val heroToCardsSpacing = if (compact) 12.dp else 16.dp
         val cardsToEventSpacing = if (compact) 12.dp else LibraryDimens.CardSpacing
-        val eventBarHeight = if (compact) 76.dp else 92.dp
+        // 3대 카드 하단에 남는 공백이 눈에 띈다는 피드백(사진에 빨간 원으로 표시) — 카드 Row가
+        // weight(1f)로 남는 세로 공간을 다 가져가므로, 이 고정 높이를 키우면 카드 쪽 공백이
+        // 줄고 행사 안내·좌석 현황 바가 그만큼 커진다.
+        val eventBarHeight = if (compact) 124.dp else 148.dp
 
         DecorativeBackground(modifier = Modifier.fillMaxSize())
 

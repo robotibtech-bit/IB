@@ -1,5 +1,7 @@
 package com.example.ibtech.ui.facility
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,7 +39,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.Facility
-import com.example.ibtech.domain.model.WayfindingCorridorOverride
 import com.example.ibtech.robot.NavigationIssue
 import com.example.ibtech.robot.NavigationState
 import com.example.ibtech.ui.common.ConfirmDialog
@@ -137,7 +138,7 @@ fun NavigationProgressScreen(
                             onGoHome = onGoHome,
                             // 안내도 이미지가 있는 시설만 남는 세로 공간을 이미지에 준다 — 나머지는
                             // 기존처럼 내용 크기만큼만 차지한다.
-                            modifier = if (WayfindingCorridorOverride.wayfindingImageAssetPath(facility.id) != null) {
+                            modifier = if (wayfindingImageAssetPath(facility.id) != null) {
                                 Modifier.weight(1f)
                             } else {
                                 Modifier
@@ -156,7 +157,8 @@ fun NavigationProgressScreen(
                     confirmLabel = stringResource(R.string.navigation_confirm_action),
                     dismissLabel = stringResource(R.string.facility_detail_escort_confirm_cancel),
                     onConfirm = onConfirmStart,
-                    onDismiss = onCancelStart
+                    onDismiss = onCancelStart,
+                    emphasize = facility.name
                 )
             }
         }
@@ -243,7 +245,7 @@ private fun ArrivedContent(
 ) {
     val context = LocalContext.current
     var secondsLeft by remember(idleTimeoutSeconds) { mutableIntStateOf(idleTimeoutSeconds) }
-    val wayfindingImageAsset = WayfindingCorridorOverride.wayfindingImageAssetPath(facility.id)
+    val wayfindingImageAsset = wayfindingImageAssetPath(facility.id)
 
     if (wayfindingImageAsset != null) {
         // 안내도 이미지가 화면의 대부분을 차지해야 하므로(요청: "안내도가 가장 크게 보일수
@@ -259,20 +261,29 @@ private fun ArrivedContent(
                 text = buildNavigationArrivedText(context, facility, baseFloor, R.string.navigation_arrived_body)
             )
             val bitmap = rememberWayfindingImageBitmap(facility.id)
-            if (bitmap != null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .clip(RoundedCornerShape(24.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        bitmap = bitmap,
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize()
-                    )
+            // 안내도가 여러 장을 번갈아 보여주는 시설(계단 안내도 대상)은 그냥 이미지를 바꿔
+            // 치면 언제 바뀌었는지 놓치기 쉽다 — Crossfade로 부드럽게 겹쳐 넘겨서 전환을
+            // 눈에 띄게 한다(요청: "안내도가 전환된다는걸 사용자가 알수있게").
+            Crossfade(
+                targetState = bitmap,
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                animationSpec = tween(durationMillis = 700),
+                label = "wayfindingImage"
+            ) { currentBitmap ->
+                if (currentBitmap != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(24.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            bitmap = currentBitmap,
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
             Row(
