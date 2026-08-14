@@ -29,13 +29,29 @@ import kotlinx.coroutines.withContext
 // 차 있어 크롭이 필요 없다 — 같은 비율을 적용하면 오히려 그림 가장자리가 잘린다. 크롭은
 // 시설이 아니라 이미지가 어느 asset 폴더에서 왔는지로 판단한다 — 계단 안내도 대상은 아래에서
 // 보듯 두 폴더의 이미지를 섞어서 보여주기 때문이다.
+//
+// STAIRS_LANDING_IMAGE_PATH("11_여자화장실옆계단.png")는 같은 wayfinding/ 폴더에 있지만 다른
+// 10장과 여백 비율이 다르다(실측: 위 약 16%, 아래 약 5%, 좌 약 5%, 우 약 1% — "1F" 글씨가 박스
+// 위쪽 멀리 떨어져 있어 위쪽 여백이 훨씬 크다) — CORRIDOR_CROP을 그대로 적용하면 아래쪽을
+// 19%나 잘라내 실제 평면도 내용이 잘린다. 그래서 경로를 정확히 매칭해 전용 크롭을 따로 둔다.
 private data class WayfindingCropInsets(val left: Float, val top: Float, val right: Float, val bottom: Float)
 
 private val CORRIDOR_CROP = WayfindingCropInsets(left = 0.025f, top = 0.035f, right = 0.045f, bottom = 0.19f)
+private val STAIRS_LANDING_CROP = WayfindingCropInsets(left = 0.02f, top = 0.02f, right = 0.005f, bottom = 0.03f)
 private val NO_CROP = WayfindingCropInsets(left = 0f, top = 0f, right = 0f, bottom = 0f)
 
-private fun wayfindingCropInsetsForPath(assetPath: String): WayfindingCropInsets =
-    if (assetPath.startsWith("wayfinding/")) CORRIDOR_CROP else NO_CROP
+/** 계단 이용 안내(위/아래 공통) 첫 장면 — 연결통로 도착 지점에서 계단 앞(여자화장실 옆)까지 가는
+ * 길을 보여준다. 예전에는 "여름강의실" 시설의 연결통로 안내도([WayfindingCorridorOverride])를
+ * 재사용했지만, 목적지 표시가 여름강의실이라 계단으로 가라는 의도가 명확하지 않았다(요청: "그거
+ * 대신 …11_여자화장실옆계단 이미지를 이용해서 안내해줘") — 계단 시설과 무관한 전용 이미지라
+ * [WayfindingCorridorOverride]의 시설별 맵이 아니라 여기 상수로 직접 관리한다. */
+private const val STAIRS_LANDING_IMAGE_PATH = "wayfinding/11_여자화장실옆계단.png"
+
+private fun wayfindingCropInsetsForPath(assetPath: String): WayfindingCropInsets = when {
+    assetPath == STAIRS_LANDING_IMAGE_PATH -> STAIRS_LANDING_CROP
+    assetPath.startsWith("wayfinding/") -> CORRIDOR_CROP
+    else -> NO_CROP
+}
 
 /** 안내도가 여러 장일 때(계단 안내도 대상) 몇 ms마다 다음 장으로 넘길지. */
 private const val WAYFINDING_CYCLE_INTERVAL_MS = 6_000L
@@ -45,21 +61,19 @@ private const val WAYFINDING_CYCLE_INTERVAL_MS = 6_000L
  * 돌려준다.
  *
  * 계단 안내도 대상([StairsWayfindingOverride], [BasementStairsWayfindingOverride])은 로봇이
- * 실제로 데려다주는 지점(연결통로)과 안내도가 그리는 시작점(여름강의실 옆 계단 위)이 서로
- * 다르다 — 연결통로에 도착한 다음 여름강의실까지 먼저 걸어가야 계단이 나오므로, 여름강의실
- * 연결통로 안내도([WayfindingCorridorOverride])를 먼저 넣고 그 시설 전용 계단 안내도를 이어
- * 붙인다(요청: "여름강의실 안내도와 반복적으로 표시" — 지하 계단도 "1열람실을 안내할 때와
- * 똑같은 루틴, 층만 지하로 바뀐 것"이라 같은 방식을 그대로 쓴다). 엘리베이터 안내도 대상
- * ([ElevatorWayfindingOverride])은 엘리베이터가 목적지 층까지 바로 데려다주므로 다른 이미지와
- * 이어 붙일 필요 없이 그 시설 전용 안내도 한 장만 보여준다. 그 외(연결통로 대상)도 기존처럼
- * 한 장뿐이다.
+ * 실제로 데려다주는 지점(연결통로)과 안내도가 그리는 시작점(계단 앞)이 서로 다르다 — 연결통로에
+ * 도착한 다음 계단까지 먼저 걸어가야 하므로, 계단 앞까지 가는 길을 보여주는
+ * [STAIRS_LANDING_IMAGE_PATH]를 먼저 넣고 그 시설 전용 계단 안내도를 이어 붙인다(요청: "안내도와
+ * 반복적으로 표시" — 지하 계단도 "1열람실을 안내할 때와 똑같은 루틴, 층만 지하로 바뀐 것"이라
+ * 같은 방식을 그대로 쓴다). 엘리베이터 안내도 대상([ElevatorWayfindingOverride])은 엘리베이터가
+ * 목적지 층까지 바로 데려다주므로 다른 이미지와 이어 붙일 필요 없이 그 시설 전용 안내도 한 장만
+ * 보여준다. 그 외(연결통로 대상)도 기존처럼 한 장뿐이다.
  */
 fun wayfindingImageAssetPaths(facilityId: String): List<String> {
     val stairsPath = StairsWayfindingOverride.wayfindingImageAssetPath(facilityId)
         ?: BasementStairsWayfindingOverride.wayfindingImageAssetPath(facilityId)
     if (stairsPath != null) {
-        val summerLectureRoomPath = WayfindingCorridorOverride.wayfindingImageAssetPath("여름강의실")
-        return listOfNotNull(summerLectureRoomPath, stairsPath)
+        return listOf(STAIRS_LANDING_IMAGE_PATH, stairsPath)
     }
     val elevatorPath = ElevatorWayfindingOverride.wayfindingImageAssetPath(facilityId)
     if (elevatorPath != null) {
