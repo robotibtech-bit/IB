@@ -26,15 +26,22 @@ import androidx.compose.ui.unit.dp
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.FacilityDirection
 import com.example.ibtech.domain.model.GuideMode
+import com.example.ibtech.ui.common.AdminDropdownField
 import com.example.ibtech.ui.common.AdminSwitchRow
 import com.example.ibtech.ui.common.AdminTextField
 import com.example.ibtech.ui.common.DecorativeBackground
 import com.example.ibtech.ui.common.EmptyState
 import com.example.ibtech.ui.common.LibraryPrimaryButton
+import com.example.ibtech.ui.facility.formatFloorBadge
 import com.example.ibtech.ui.theme.LibraryDimens
 
 private val ICON_KEYS = listOf(null, "child_care", "computer", "library_books", "groups")
 private val DIRECTION_KEYS = listOf(null, FacilityDirection.RIGHT, FacilityDirection.FRONT, FacilityDirection.LEFT)
+
+// 자유 입력을 드롭다운으로 바꿨다(요청: "층설정을 드롭다운방식으로 바꾸면 편한거 같은데") —
+// 건물에 실제로 있는 층만 골라 쓰게 해 오타를 막는다. null은 "미설정"(신규 POI 기본값)이다.
+// 새 층이 생기면 이 목록에 추가해야 한다.
+private val FLOOR_OPTIONS: List<Int?> = listOf(null, -1, 1, 2, 3, 4)
 
 /** 시설 편집 화면 (로드맵 10단계): 표시명·층·설명·안내방식·아이콘·노출여부·순서. */
 @Composable
@@ -90,12 +97,13 @@ fun FacilityAdminEditScreen(
                     label = stringResource(R.string.facility_admin_field_name),
                     errorText = uiState.nameError
                 )
-                AdminTextField(
-                    value = uiState.floorText,
-                    onValueChange = onFloorChange,
+                AdminDropdownField(
                     label = stringResource(R.string.facility_admin_field_floor),
-                    errorText = uiState.floorError,
-                    keyboardType = KeyboardType.Number
+                    options = FLOOR_OPTIONS,
+                    selected = uiState.floorText.trim().toIntOrNull(),
+                    optionLabel = { floorOptionLabel(it) },
+                    onSelect = { floor -> onFloorChange(floor?.toString().orEmpty()) },
+                    errorText = uiState.floorError
                 )
                 AdminTextField(
                     value = uiState.description,
@@ -204,6 +212,10 @@ private fun GuideModeOption(label: String, selected: Boolean, onClick: () -> Uni
         Text(text = label, style = MaterialTheme.typography.bodyLarge)
     }
 }
+
+@Composable
+private fun floorOptionLabel(floor: Int?): String =
+    if (floor == null) stringResource(R.string.facility_admin_unset_floor) else formatFloorBadge(LocalContext.current, floor)
 
 @Composable
 private fun directionLabel(key: FacilityDirection?): String = when (key) {
