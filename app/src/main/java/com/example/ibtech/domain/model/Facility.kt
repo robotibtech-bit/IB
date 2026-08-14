@@ -30,6 +30,25 @@ data class Facility(
     companion object {
         /** 관리자가 층을 아직 지정하지 않은 신규 POI의 기본값. */
         const val UNSET_FLOOR = Int.MIN_VALUE
+
+        /**
+         * 시설 목록 정렬용 그룹 값(요청: "1234층 다음에 지하1층이 표시되게") — 오름차순으로
+         * 정렬하면 미설정 → 지상 층(1, 2, 3…) → 지하 층(지하1, 지하2…) 순서가 된다. [floorSortValue]와
+         * 함께 써야 한다. [com.example.ibtech.data.repository.FacilityRepository.visibleFacilities]
+         * (이용자 목록)와 [com.example.ibtech.ui.admin.FacilityAdminViewModel](관리자 목록) 양쪽에서 쓴다.
+         */
+        fun floorSortGroup(floor: Int): Int = when {
+            floor == UNSET_FLOOR -> 0
+            floor > 0 -> 1
+            else -> 2
+        }
+
+        /**
+         * 그룹 안에서의 오름차순 정렬 값. 지상 층은 floor 그대로(1, 2, 3…), 지하 층은 깊이
+         * (-floor, 즉 지하1층=1, 지하2층=2…)를 써서 지하1층이 지하2층보다 먼저 오게 한다 — floor
+         * 원값 그대로 정렬하면 -2가 -1보다 앞에 와 순서가 뒤집힌다.
+         */
+        fun floorSortValue(floor: Int): Int = if (floor > 0) floor else -floor
     }
 }
 

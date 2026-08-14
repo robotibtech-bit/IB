@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -33,6 +34,7 @@ import com.example.ibtech.ui.common.ConfirmDialog
 import com.example.ibtech.ui.common.DecorativeBackground
 import com.example.ibtech.ui.common.EmptyState
 import com.example.ibtech.ui.common.LibraryPrimaryButton
+import com.example.ibtech.ui.facility.formatFloorBadge
 import com.example.ibtech.ui.theme.ErrorRed
 import com.example.ibtech.ui.theme.LibraryDimens
 
@@ -121,7 +123,7 @@ private fun facilitySubtitle(facility: Facility): AnnotatedString {
     val floorText = if (isUnset) {
         stringResource(R.string.facility_admin_unset_floor)
     } else {
-        stringResource(R.string.facility_card_floor_format, facility.floor)
+        formatFloorBadge(LocalContext.current, facility.floor)
     }
     val guideModeText = when (facility.guideMode) {
         GuideMode.ESCORT -> stringResource(R.string.facility_detail_escort_action)

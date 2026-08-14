@@ -30,7 +30,18 @@ class FacilityAdminViewModel(application: Application) : AndroidViewModel(applic
 
     val uiState: StateFlow<FacilityAdminUiState> = facilityRepository.allFacilities
         .map { facilities ->
-            FacilityAdminUiState(isLoaded = true, facilities = facilities.sortedBy { it.sortOrder })
+            // 이용자 목록([FacilityRepository.visibleFacilities])과 같은 기준으로 맞춘다(요청:
+            // "관리자 페이지 시설관리 위치도 층순으로" / "1234층 다음에 지하1층이 표시되게") —
+            // 미설정(Facility.floorSortGroup 0) 시설이 가장 앞에 모여 관리자 눈에 먼저 띄고, 그
+            // 다음 지상 층 오름차순, 마지막이 지하 층이다.
+            val sorted = facilities.sortedWith(
+                compareBy(
+                    { Facility.floorSortGroup(it.floor) },
+                    { Facility.floorSortValue(it.floor) },
+                    { it.sortOrder }
+                )
+            )
+            FacilityAdminUiState(isLoaded = true, facilities = sorted)
         }
         .stateIn(
             scope = viewModelScope,

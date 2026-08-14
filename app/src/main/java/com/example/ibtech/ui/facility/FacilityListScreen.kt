@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -250,7 +251,7 @@ private fun FacilityCard(facility: Facility, onClick: () -> Unit, modifier: Modi
                 // 여유가 2행 격자(대표 장소 8개)에서 모자라 카드 아래쪽이 잘려 보였다(사용자
                 // 피드백) — 부제 성격의 줄이라 훨씬 작은 크기로도 충분히 읽힌다.
                 Text(
-                    text = stringResource(R.string.facility_card_floor_format, facility.floor),
+                    text = formatFloorBadge(LocalContext.current, facility.floor),
                     style = MaterialTheme.typography.labelLarge.copy(fontSize = 26.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

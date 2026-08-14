@@ -2,6 +2,7 @@ package com.example.ibtech.ui.facility
 
 import android.content.Context
 import com.example.ibtech.R
+import com.example.ibtech.domain.model.BasementStairsWayfindingOverride
 import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.domain.model.FacilityDirection
 import com.example.ibtech.domain.model.StairsWayfindingOverride
@@ -43,6 +44,17 @@ fun buildFloorDirectionGuideText(context: Context, facility: Facility, baseFloor
         }
     }
 
+    // 지하 1층 계단으로만 갈 수 있는 시설(BasementStairsWayfindingOverride)도 위와 같은 방식이되
+    // 내려가는 문구를 쓴다 — "엘리베이터를 이용해 …" 문구는 지상 층 기준이라 지하에는 안 맞는다.
+    if (BasementStairsWayfindingOverride.appliesTo(facility.id)) {
+        val direction = facility.direction
+        return if (direction != null) {
+            context.getString(R.string.stairs_wayfinding_guide_body_down, context.getString(direction.labelRes()))
+        } else {
+            context.getString(R.string.stairs_wayfinding_guide_body_down_no_direction)
+        }
+    }
+
     val direction = facility.direction
     val goingUp = facility.floor > baseFloor
     return when {
@@ -56,6 +68,18 @@ fun buildFloorDirectionGuideText(context: Context, facility: Facility, baseFloor
         else -> context.getString(R.string.location_guide_down_no_direction, facility.floor)
     }
 }
+
+/**
+ * 시설 카드·관리자 목록에 보이는 층수 배지 문구. 지하 시설(관리자가 [Facility.floor]를 음수로
+ * 등록, 예: 지하 1층 = -1)은 "N층"이 아니라 "지하 N층"으로 보여준다
+ * ([BasementStairsWayfindingOverride]).
+ */
+fun formatFloorBadge(context: Context, floor: Int): String =
+    if (floor < 0) {
+        context.getString(R.string.facility_card_floor_format_basement, -floor)
+    } else {
+        context.getString(R.string.facility_card_floor_format, floor)
+    }
 
 internal fun FacilityDirection.labelRes(): Int = when (this) {
     FacilityDirection.RIGHT -> R.string.facility_direction_right

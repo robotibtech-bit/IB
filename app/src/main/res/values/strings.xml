@@ -51,6 +51,9 @@
     <string name="facility_list_show_featured">대표 장소로 돌아가기</string>
     <string name="facility_list_no_featured">아직 대표 장소가 설정되지 않았습니다.\n다른 장소 찾기에서 전체 목록을 확인해 주세요.</string>
     <string name="facility_card_floor_format">%1$d층</string>
+    <!-- 지하 시설(BasementStairsWayfindingOverride, facility.floor가 음수)의 층수 배지 —
+         "%1$d층"과 달리 절댓값을 넣어 "지하 1층"처럼 자연스럽게 읽히게 한다. -->
+    <string name="facility_card_floor_format_basement">지하 %1$d층</string>
     <string name="facility_card_poi_disconnected">위치 정보 없음</string>
 
     <!-- 시설 상세/안내 방식 (요구사항 2.4절) -->
@@ -81,6 +84,12 @@
          자리에 "여름강의실 옆에 있는 계단을 이용해"를 쓴다. -->
     <string name="stairs_wayfinding_guide_body">여름강의실 옆에 있는 계단을 이용해 %1$d층으로 올라가셔서 %2$s으로 이동하시면 있습니다.</string>
     <string name="stairs_wayfinding_guide_body_no_direction">여름강의실 옆에 있는 계단을 이용해 %1$d층으로 올라가시면 있습니다.</string>
+    <!-- 지하 1층 계단으로만 갈 수 있는 시설(BasementStairsWayfindingOverride) 전용 안내 — 위
+         stairs_wayfinding_guide_body와 같은 계단(여름강의실 옆)이지만 방향이 반대다(요청:
+         "1열람실을 안내할 때와 똑같은 루틴, 층만 지하로 바뀐 것") — "올라가셔서" 대신
+         "내려가셔서", 층수 자리에 숫자 대신 고정값 "지하 1층"을 쓴다. -->
+    <string name="stairs_wayfinding_guide_body_down">여름강의실 옆에 있는 계단을 이용해 지하 1층으로 내려가셔서 %1$s으로 이동하시면 있습니다.</string>
+    <string name="stairs_wayfinding_guide_body_down_no_direction">여름강의실 옆에 있는 계단을 이용해 지하 1층으로 내려가시면 있습니다.</string>
     <string name="facility_direction_right">우측</string>
     <string name="facility_direction_front">정면</string>
     <string name="facility_direction_left">좌측</string>

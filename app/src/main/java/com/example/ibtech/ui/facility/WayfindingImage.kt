@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import com.example.ibtech.domain.model.BasementStairsWayfindingOverride
 import com.example.ibtech.domain.model.ElevatorWayfindingOverride
 import com.example.ibtech.domain.model.StairsWayfindingOverride
 import com.example.ibtech.domain.model.WayfindingCorridorOverride
@@ -43,16 +44,19 @@ private const val WAYFINDING_CYCLE_INTERVAL_MS = 6_000L
  * [facilityId]가 안내도 대상이면 순서대로 보여줄 asset 경로 목록을, 대상이 아니면 빈 목록을
  * 돌려준다.
  *
- * 계단 안내도 대상([StairsWayfindingOverride])은 로봇이 실제로 데려다주는 지점(연결통로)과
- * 안내도가 그리는 시작점(여름강의실 옆 계단 위, 2층)이 서로 다르다 — 연결통로에 도착한 다음
- * 여름강의실까지 먼저 걸어가야 계단이 나오므로, 여름강의실 연결통로 안내도
- * ([WayfindingCorridorOverride])를 먼저 넣고 그 시설 전용 계단 안내도를 이어 붙인다(요청:
- * "여름강의실 안내도와 반복적으로 표시"). 엘리베이터 안내도 대상([ElevatorWayfindingOverride])은
- * 엘리베이터가 목적지 층까지 바로 데려다주므로 다른 이미지와 이어 붙일 필요 없이 그 시설 전용
- * 안내도 한 장만 보여준다. 그 외(연결통로 대상)도 기존처럼 한 장뿐이다.
+ * 계단 안내도 대상([StairsWayfindingOverride], [BasementStairsWayfindingOverride])은 로봇이
+ * 실제로 데려다주는 지점(연결통로)과 안내도가 그리는 시작점(여름강의실 옆 계단 위)이 서로
+ * 다르다 — 연결통로에 도착한 다음 여름강의실까지 먼저 걸어가야 계단이 나오므로, 여름강의실
+ * 연결통로 안내도([WayfindingCorridorOverride])를 먼저 넣고 그 시설 전용 계단 안내도를 이어
+ * 붙인다(요청: "여름강의실 안내도와 반복적으로 표시" — 지하 계단도 "1열람실을 안내할 때와
+ * 똑같은 루틴, 층만 지하로 바뀐 것"이라 같은 방식을 그대로 쓴다). 엘리베이터 안내도 대상
+ * ([ElevatorWayfindingOverride])은 엘리베이터가 목적지 층까지 바로 데려다주므로 다른 이미지와
+ * 이어 붙일 필요 없이 그 시설 전용 안내도 한 장만 보여준다. 그 외(연결통로 대상)도 기존처럼
+ * 한 장뿐이다.
  */
 fun wayfindingImageAssetPaths(facilityId: String): List<String> {
     val stairsPath = StairsWayfindingOverride.wayfindingImageAssetPath(facilityId)
+        ?: BasementStairsWayfindingOverride.wayfindingImageAssetPath(facilityId)
     if (stairsPath != null) {
         val summerLectureRoomPath = WayfindingCorridorOverride.wayfindingImageAssetPath("여름강의실")
         return listOfNotNull(summerLectureRoomPath, stairsPath)
