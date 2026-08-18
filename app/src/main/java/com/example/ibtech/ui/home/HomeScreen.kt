@@ -300,7 +300,8 @@ private fun HomeMenuCard(
 ) {
     LibraryCard(
         modifier = modifier.clickable(onClick = debounced(menu.onClick)),
-        accentColor = menu.accent
+        accentColor = menu.accent,
+        fillHeight = true
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(

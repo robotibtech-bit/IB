@@ -112,7 +112,8 @@ private fun SeatStatusMenuCard(item: SeatStatusMenuItem, modifier: Modifier = Mo
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = debounced(item.onClick)),
-        accentColor = item.accent
+        accentColor = item.accent,
+        fillHeight = true
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Row(

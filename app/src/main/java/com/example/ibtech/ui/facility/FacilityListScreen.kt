@@ -178,7 +178,8 @@ private fun FacilityCard(facility: Facility, onClick: () -> Unit, modifier: Modi
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = debounced(onClick)),
-        accentColor = SkyAccent
+        accentColor = SkyAccent,
+        fillHeight = true
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(

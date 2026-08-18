@@ -92,7 +92,8 @@ private fun UsageCategoryCard(item: UsageCategoryItem, onClick: () -> Unit, modi
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = debounced(onClick)),
-        accentColor = accent
+        accentColor = accent,
+        fillHeight = true
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Row(

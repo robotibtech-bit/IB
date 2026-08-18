@@ -163,6 +163,7 @@ fun LibraryCard(
     modifier: Modifier = Modifier,
     accentColor: Color? = null,
     shape: Shape = MaterialTheme.shapes.large,
+    fillHeight: Boolean = false,
     content: @Composable () -> Unit
 ) {
     Card(
@@ -173,12 +174,24 @@ fun LibraryCard(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         if (accentColor != null) {
-            // height(IntrinsicSize.Min): 이 Row를 자식들의 최소 고유 높이로 측정하게 한다.
-            // 이게 없으면 fillMaxHeight() 악센트 바가 부모가 준 제약(예: 화면을 꽉 채우는
-            // Column 안에서 이 카드가 다른 weight 형제와 남는 세로 공간을 나눠 쓰는 경우, 그
-            // "남는 공간" 전체)까지 그대로 늘어나 버려 카드가 내용과 무관하게 화면을 다 차지하고
-            // 형제 컴포저블(예: 안내도 이미지)이 공간을 못 받는 버그가 생긴다.
-            Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            // [fillHeight]=false(기본): 이 Row를 자식들의 최소 고유 높이로 측정하게 한다
+            // (height(IntrinsicSize.Min)). 이게 없으면 fillMaxHeight() 악센트 바가 부모가 준
+            // 제약(예: 화면을 꽉 채우는 Column 안에서 이 카드가 다른 weight 형제와 남는 세로
+            // 공간을 나눠 쓰는 경우, 그 "남는 공간" 전체)까지 그대로 늘어나 버려 카드가 내용과
+            // 무관하게 화면을 다 차지하고 형제 컴포저블(예: 안내도 이미지)이 공간을 못 받는
+            // 버그가 생긴다 — 카드 높이가 내용에 좌우되는 목록/상세 카드에서 쓴다.
+            //
+            // [fillHeight]=true: FillSpaceGrid처럼 부모가 이미 카드에 고정 높이를 확정해 주고
+            // (weight+fillMaxSize), 카드 내용이 그 높이를 꽉 채워 아이콘/제목을 세로 중앙
+            // 정렬해야 하는 경우 쓴다. 이때 IntrinsicSize.Min을 쓰면 Row가 부모가 준 높이를
+            // 무시하고 내용의 최소 높이로만 측정돼, 카드 테두리는 그대로 크지만 내용은 위로
+            // 붙고 아래에 빈 공간이 남는다.
+            val rowModifier = if (fillHeight) {
+                Modifier.fillMaxWidth().fillMaxHeight()
+            } else {
+                Modifier.fillMaxWidth().height(IntrinsicSize.Min)
+            }
+            Row(modifier = rowModifier) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()

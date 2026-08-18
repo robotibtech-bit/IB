@@ -106,7 +106,8 @@ private fun KidsMenuCard(item: KidsMenuItem, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = debounced(item.onClick)),
-        accentColor = item.accent
+        accentColor = item.accent,
+        fillHeight = true
     ) {
         Column(
             modifier = Modifier

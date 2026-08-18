@@ -84,7 +84,8 @@ private fun QuizCategoryCard(item: QuizCategoryItem, onClick: () -> Unit, modifi
             ),
         // 열람실·퀴즈 = Lavender(01_DESIGN_SYSTEM.md). 문제가 없는 주제는 클릭 불가 상태를
         // 그대로 유지해야 하므로 강조색을 넣지 않고 기존 회색 비활성 표시를 그대로 쓴다.
-        accentColor = if (hasQuestions) LavenderAccent else null
+        accentColor = if (hasQuestions) LavenderAccent else null,
+        fillHeight = true
     ) {
         Column(
             modifier = Modifier
