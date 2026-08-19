@@ -27,7 +27,7 @@ data class RobotSnapshot(
  */
 object CanStartEscortUseCase {
 
-    operator fun invoke(facility: Facility, robot: RobotSnapshot): EscortGate {
+    operator fun invoke(facility: Facility, robot: RobotSnapshot, baseFloor: Int): EscortGate {
         if (robot.connectionState != TemiConnectionState.Ready) {
             return EscortGate.Blocked(EscortBlockReason.SDK_NOT_READY)
         }
@@ -36,14 +36,17 @@ object CanStartEscortUseCase {
         if (TemiFeaturePermission.MAP !in robot.permissionStatus.granted) {
             return EscortGate.Blocked(EscortBlockReason.PERMISSION)
         }
-        if (!robot.knownLocations.contains(facility.sourcePoiName)) {
+        // 실제로 goTo() 할 POI는 facility.sourcePoiName이 아닐 수 있다(POI GOTO 경로 처리
+        // 요구사항 — 타 층·기존 계단/지하계단 대상은 엘리베이터로, 연결통로 대상은 연결통로로
+        // 이동한다). 존재 확인도 실제 이동 대상 기준으로 해야 한다 — sourcePoiName만 확인하면
+        // 정작 필요한 엘리베이터/연결통로 POI가 없어도 통과시켜 버린다.
+        val targetPoi = ResolveNavigationTargetUseCase.poiName(facility, baseFloor)
+        if (!robot.knownLocations.contains(targetPoi)) {
             return EscortGate.Blocked(EscortBlockReason.POI_MISSING)
         }
         if (robot.isNavigationBusy) {
             return EscortGate.Blocked(EscortBlockReason.ALREADY_MOVING)
         }
-        // 타 층 시설은 관리자가 sourcePoiName을 엘리베이터 POI로 등록해 두므로(요구사항: 타 층
-        // 안내 고도화), 층 비교로 동행을 막지 않는다 — 도착 가능 여부는 위 POI_MISSING이 이미 검증한다.
         return EscortGate.Allowed
     }
 }

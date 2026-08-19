@@ -83,7 +83,7 @@ class FacilityDetailViewModel(
                 isLoaded = true,
                 facility = facility,
                 guideOptions = ResolveGuideOptionUseCase(facility),
-                escortGate = CanStartEscortUseCase(facility, snapshot),
+                escortGate = CanStartEscortUseCase(facility, snapshot, settings.baseFloor),
                 permissionRequestInFlight = snapshot.permissionStatus.requestInFlight,
                 baseFloor = settings.baseFloor
             )

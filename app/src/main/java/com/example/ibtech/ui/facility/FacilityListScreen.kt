@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ibtech.R
 import com.example.ibtech.domain.model.Facility
-import com.example.ibtech.domain.model.FacilitySyncStatus
+import com.example.ibtech.domain.usecase.ResolveNavigationTargetUseCase
 import com.example.ibtech.ui.common.DecorativeBackground
 import com.example.ibtech.ui.common.EmptyState
 import com.example.ibtech.ui.common.FillSpaceGrid
@@ -116,7 +116,12 @@ fun FacilityListScreen(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(uiState.allFacilities, key = { it.id }) { facility ->
-                            FacilityCard(facility = facility, onClick = { onSelectFacility(facility) })
+                            FacilityCard(
+                                facility = facility,
+                                knownLocations = uiState.knownLocations,
+                                baseFloor = uiState.baseFloor,
+                                onClick = { onSelectFacility(facility) }
+                            )
                         }
                     }
                 }
@@ -141,7 +146,13 @@ fun FacilityListScreen(
                         .fillMaxWidth()
                         .weight(1f)
                 ) { facility, cardModifier ->
-                    FacilityCard(facility = facility, onClick = { onSelectFacility(facility) }, modifier = cardModifier)
+                    FacilityCard(
+                        facility = facility,
+                        knownLocations = uiState.knownLocations,
+                        baseFloor = uiState.baseFloor,
+                        onClick = { onSelectFacility(facility) },
+                        modifier = cardModifier
+                    )
                 }
                 Spacer(modifier = Modifier.height(LibraryDimens.CardSpacing))
                 LibraryOutlinedButton(
@@ -163,23 +174,33 @@ fun FacilityListScreen(
 /**
  * PDF 목업의 "아이콘 상단 + 라벨 하단" 카드를 재해석한 레이아웃.
  *
- * 시설 대표색은 Sky로 통일한다(01_DESIGN_SYSTEM.md "시설 찾기·위치 안내 = Sky"). POI가 Temi
- * 지도에서 더 이상 조회되지 않는 경우([FacilitySyncStatus.NOT_FOUND_ON_TEMI])는 관리자가 아직
- * 비활성화하지 않았다면 이용자 화면에도 그대로 노출될 수 있어(FacilityRepository.visibleFacilities는
- * isEnabled·floor만 거르고 syncStatus는 거르지 않는다), 아이콘 모서리에 작은 Coral 배지로
+ * 시설 대표색은 Sky로 통일한다(01_DESIGN_SYSTEM.md "시설 찾기·위치 안내 = Sky"). 실제로
+ * `goTo()`할 대상([ResolveNavigationTargetUseCase])이 temi 지도에 없으면(관리자가 아직
+ * 비활성화하지 않았다면 이용자 화면에도 그대로 노출될 수 있다 — FacilityRepository.visibleFacilities는
+ * isEnabled·floor만 거르고 이동 가능 여부는 거르지 않는다), 아이콘 모서리에 작은 Coral 배지로
  * "위치 정보 없음" 상태를 표시한다 — 텍스트 줄을 추가하면 이 카드(대표 장소 2~8개 격자에서
  * 이미 세로 여유가 가장 빠듯한 카드)가 다시 잘리므로 배지 하나로만 표현한다.
+ *
+ * `facility.syncStatus`(시설 자체의 `sourcePoiName`이 temi에 있는지)가 아니라 실제 이동 대상
+ * 기준으로 판단한다 — POI GOTO 경로 처리 요구사항 이후로는 연결통로·엘리베이터 대상 시설은
+ * `sourcePoiName` 자체가 temi에 등록돼 있지 않아도 정상 동작하므로, syncStatus만 보면 정상
+ * 작동하는 시설도 "위치 정보 없음"으로 잘못 표시된다.
  */
 @Composable
-private fun FacilityCard(facility: Facility, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val isDisconnected = facility.syncStatus == FacilitySyncStatus.NOT_FOUND_ON_TEMI
+private fun FacilityCard(
+    facility: Facility,
+    knownLocations: List<String>,
+    baseFloor: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isDisconnected = ResolveNavigationTargetUseCase.poiName(facility, baseFloor) !in knownLocations
 
     LibraryCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = debounced(onClick)),
-        accentColor = SkyAccent,
-        fillHeight = true
+        accentColor = SkyAccent
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(

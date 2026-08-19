@@ -179,7 +179,7 @@
     <!-- 운영시간·휴관일 (PDF 1장 "개관시간 및 휴관일 안내") -->
     <string name="usage_topic_hours_operating_title">시설별 운영시간</string>
     <string name="usage_topic_hours_operating_answer">요일과 자료실에 따라 운영시간이 다릅니다. 방문 전 아래 표를 확인해 주세요.</string>
-    <string name="usage_topic_hours_operating_table">시설|평일 (화~금)|주말 (토,일)|위치\n종합자료실|09:00~20:00|09:00~17:00|3층\n어린이자료실|09:00~18:00|09:00~17:00|1층\n디지털자료실|09:00~18:00|09:00~17:00|2층\n일반열람실 (제1~4열람실)|06:00~22:00|06:00~22:00|2층</string>
+    <string name="usage_topic_hours_operating_table">시설|평일 (화~금)|주말 (토,일)|위치\n종합자료실|09:00~20:00|09:00~17:00|3층\n어린이자료실|09:00~18:00|09:00~17:00|1층\n디지털자료실|09:00~18:00|09:00~17:00|2층\n일반열람실 (제1~3열람실)|06:00~22:00|06:00~22:00|2층\n제4열람실|06:00~22:00|06:00~22:00|3층</string>
     <string name="usage_topic_hours_title">휴관일 안내</string>
     <string name="usage_topic_hours_answer">정기 휴관일과 임시 휴관일을 안내해 드립니다.\n\n• 매주 월요일 정기 휴관\n• 관공서 공휴일 (일요일과 공휴일이 겹치는 경우 휴관)\n• 특별한 사유로 관장이 지정한 날 (임시 휴관일)</string>
 

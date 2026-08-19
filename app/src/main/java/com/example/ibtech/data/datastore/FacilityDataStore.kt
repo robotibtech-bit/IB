@@ -2,6 +2,7 @@ package com.example.ibtech.data.datastore
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 
@@ -17,4 +18,9 @@ val Context.facilityDataStore by preferencesDataStore(name = "facilities")
 
 object FacilityDataStoreKeys {
     val FACILITIES_JSON: Preferences.Key<String> = stringPreferencesKey("facilities_json")
+
+    /** 디폴트 시설 데이터([com.example.ibtech.data.repository.DefaultFacilityContent])를 이미
+     * 채워봤는지(1회성 시드). "목록이 비어 있는지"로 판단하면 안 된다 — Temi POI 동기화가
+     * 디폴트 시드보다 먼저 끝나 목록이 채워지면 시드가 영구히 안 되는 경쟁 상태가 생긴다. */
+    val DEFAULT_FACILITIES_SEEDED: Preferences.Key<Boolean> = booleanPreferencesKey("default_facilities_seeded")
 }

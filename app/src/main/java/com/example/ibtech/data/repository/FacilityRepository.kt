@@ -61,6 +61,23 @@ class FacilityRepository private constructor(
         readModifyWrite { current -> SyncPoiUseCase(current, remotePois) }
     }
 
+    /** 저장된 시설이 없으면(최초 실행) [DefaultFacilityContent]로 1회 채운다. 이미 시드했으면
+     * 아무 것도 하지 않는다 — "목록이 비었는지"가 아니라 별도 플래그로 판단한다([syncWithRobot]과
+     * 동시에 일어나 목록이 먼저 채워지는 경쟁 상태를 피하기 위해, [UsageRepository.ensureSeeded]와
+     * 다른 방식을 쓴다). 이미 같은 id로 등록된 시설(먼저 끝난 동기화 등)은 덮어쓰지 않는다. */
+    suspend fun ensureSeeded() {
+        dataStore.edit { prefs ->
+            if (prefs[FacilityDataStoreKeys.DEFAULT_FACILITIES_SEEDED] == true) return@edit
+
+            val current = FacilityJsonMapper.fromJson(prefs[FacilityDataStoreKeys.FACILITIES_JSON].orEmpty())
+            val existingIds = current.map { it.id }.toSet()
+            val defaults = DefaultFacilityContent.build().filterNot { it.id in existingIds }
+
+            prefs[FacilityDataStoreKeys.FACILITIES_JSON] = FacilityJsonMapper.toJson(current + defaults)
+            prefs[FacilityDataStoreKeys.DEFAULT_FACILITIES_SEEDED] = true
+        }
+    }
+
     suspend fun getFacility(id: String): Facility? =
         allFacilities.first().firstOrNull { it.id == id }
 

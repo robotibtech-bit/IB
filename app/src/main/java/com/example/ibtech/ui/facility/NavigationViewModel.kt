@@ -11,6 +11,7 @@ import com.example.ibtech.data.repository.StatsRepository
 import com.example.ibtech.domain.model.Facility
 import com.example.ibtech.domain.model.LibrarySettings
 import com.example.ibtech.domain.model.StatEventType
+import com.example.ibtech.domain.usecase.ResolveNavigationTargetUseCase
 import com.example.ibtech.robot.NavigationState
 import com.example.ibtech.robot.TemiController
 import com.example.ibtech.robot.TemiControllerProvider
@@ -94,15 +95,15 @@ class NavigationViewModel(
                                 controller.speak(text)
                             }
                         }
-                        statsRepository.logEvent(StatEventType.NAV_SUCCESS, navState.target)
+                        statsRepository.logEvent(StatEventType.NAV_SUCCESS, navigationStatEventTarget(navState.target))
                     }
 
                     is NavigationState.Interrupted -> {
-                        statsRepository.logEvent(StatEventType.NAV_CANCELLED, navState.target)
+                        statsRepository.logEvent(StatEventType.NAV_CANCELLED, navigationStatEventTarget(navState.target))
                     }
 
                     is NavigationState.Failed -> {
-                        statsRepository.logEvent(StatEventType.NAV_FAILED, navState.target)
+                        statsRepository.logEvent(StatEventType.NAV_FAILED, navigationStatEventTarget(navState.target))
                     }
 
                     else -> Unit
@@ -125,6 +126,12 @@ class NavigationViewModel(
         }
     }
 
+    /** 통계에는 실제 goTo 대상("엘리베이터"/"연결통로")이 아니라 사용자가 선택한 시설명을
+     * 남긴다 — target은 중간 경유지일 뿐이라 그대로 쓰면 여러 다른 시설이 전부 같은 이름으로
+     * 뭉뚱그려 기록된다. facility가 비어 있는 예외적인 경우에만 target으로 대체한다. */
+    private fun navigationStatEventTarget(target: String): String =
+        uiState.value.facility?.name ?: target
+
     /** ViewModel 이 사라질 때(홈 이동/재시도로 새 인스턴스 전환) 남아있는 terminal state를
      * 소비해 Idle 로 되돌린다. 그대로 두면 다음 이동의 새 ViewModel 이 이전 이동의
      * Arrived/Interrupted/Failed 를 즉시 재수신해 도착 TTS·통계가 중복 처리될 수 있다.
@@ -141,12 +148,22 @@ class NavigationViewModel(
         val facility = uiState.value.facility ?: return
         hasSpokenArrival = false
 
+        // 사용자가 선택한 목적지(facility)와 실제 goTo() 대상은 분리된다(POI GOTO 경로 처리
+        // 요구사항) — 연결통로·기존 계단/지하계단 대상은 "연결통로" 공용 POI로, 그 외 타 층
+        // 시설은 "엘리베이터" 공용 POI로, 그 외 기준층 일반 시설만 facility.sourcePoiName으로
+        // 직접 이동한다(ResolveNavigationTargetUseCase). 도착 후 안내 문구·층·방향·이미지는 이
+        // target과 무관하게 항상 facility 기준으로만 결정된다(buildNavigationArrivedText 등 참고).
+        val targetPoi = ResolveNavigationTargetUseCase.poiName(facility, uiState.value.baseFloor)
+
+        // 엘리베이터/연결통로 POI가 temi 지도에 아직 없으면 goTo 자체를 호출하지 않는다 —
+        // CanStartEscortUseCase가 이미 같은 기준으로 버튼을 막아 두므로 정상 경로로는 여기까지
+        // 오지 않지만, 크래시하거나 엉뚱한 곳으로 이동하지 않도록 한 번 더 확인한다.
+        if (targetPoi !in controller.locations.value) return
+
         // goTo()가 실제로 Temi 에 전달되지 못했으면(연결 끊김 등) 이동 시작 상태로 확정하지
         // 않는다. hasStarted 가 false 로 남으므로 확인 다이얼로그가 계속 보이고, 사용자는
         // 빈 이동 화면 대신 재시도하거나 취소할 수 있다.
-        // [WayfindingCorridorOverride] 대상 시설도 별도 리다이렉트 없이 그대로 goTo한다 —
-        // 관리자가 temi 지도에서 이 시설들의 실제 좌표를 연결통로 지점으로 등록해 둔다.
-        val accepted = controller.goTo(facility.sourcePoiName)
+        val accepted = controller.goTo(targetPoi)
         if (!accepted) return
 
         hasStarted.value = true

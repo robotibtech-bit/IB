@@ -33,6 +33,10 @@ object ElevatorWayfindingOverride {
 
     fun appliesTo(facilityId: String): Boolean = facilityId in IMAGE_ASSET_BY_FACILITY_ID
 
+    /** 이 override가 다루는 시설 id 전체 — [com.example.ibtech.data.repository.DefaultFacilityContent]가
+     * 디폴트 시설을 만들 때 같은 이름을 다시 하드코딩하지 않고 여기서 가져다 쓴다. */
+    fun facilityIds(): Set<String> = IMAGE_ASSET_BY_FACILITY_ID.keys
+
     /** `assets/elevator/`를 기준으로 한 안내도 이미지 경로. 대상이 아니면 null. */
     fun wayfindingImageAssetPath(facilityId: String): String? =
         IMAGE_ASSET_BY_FACILITY_ID[facilityId]?.let { "elevator/$it" }
