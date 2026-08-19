@@ -1,9 +1,17 @@
 package com.example.ibtech.domain.usecase
 
+import com.example.ibtech.domain.model.Facility
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ValidateFacilityAdminInputUseCaseTest {
+
+    @Test
+    fun `blank floor is Valid with UNSET_FLOOR (floor dropdown 미설정 선택지)`() {
+        val result = ValidateFacilityAdminInputUseCase("연결통로", "")
+
+        assertEquals(FacilityAdminValidation.Valid(Facility.UNSET_FLOOR), result)
+    }
 
     @Test
     fun `blank name is BlankName`() {

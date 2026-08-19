@@ -31,6 +31,7 @@ object FacilityJsonMapper {
             obj.put("isFeatured", facility.isFeatured)
             obj.put("sortOrder", facility.sortOrder)
             obj.put("syncStatus", facility.syncStatus.name)
+            obj.put("navigationTargetOverride", facility.navigationTargetOverride ?: JSONObject.NULL)
             array.put(obj)
         }
         return array.toString()
@@ -59,7 +60,8 @@ object FacilityJsonMapper {
                     isFeatured = obj.optBoolean("isFeatured", false),
                     sortOrder = obj.optInt("sortOrder", 0),
                     syncStatus = runCatching { FacilitySyncStatus.valueOf(obj.getString("syncStatus")) }
-                        .getOrDefault(FacilitySyncStatus.SYNCED)
+                        .getOrDefault(FacilitySyncStatus.SYNCED),
+                    navigationTargetOverride = obj.optStringOrNull("navigationTargetOverride")
                 )
             }
         }.getOrDefault(emptyList())

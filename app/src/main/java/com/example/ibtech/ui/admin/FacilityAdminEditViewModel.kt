@@ -14,6 +14,7 @@ import com.example.ibtech.domain.model.LibrarySettings
 import com.example.ibtech.domain.model.WayfindingCorridorOverride
 import com.example.ibtech.domain.usecase.FacilityAdminValidation
 import com.example.ibtech.domain.usecase.ValidateFacilityAdminInputUseCase
+import com.example.ibtech.robot.TemiControllerProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +35,12 @@ data class FacilityAdminEditUiState(
      * 있다(요구사항: "기준층이 아닌 목적지와 동일하게 방향을 선택"). */
     val allowDirectionOnBaseFloor: Boolean = false,
     val baseFloor: Int = LibrarySettings.DEFAULT_BASE_FLOOR,
+    /** 관리자가 이 시설의 실제 이동 목적지를 직접 지정한 값(null이면 자동 판단 — 요청:
+     * "위치이름과 가야할곳이 디폴트로는 같은곳이 되고, 사용자가 추가로 가야할곳을 다른곳으로
+     * 지정할수있게"). [com.example.ibtech.domain.usecase.ResolveNavigationTargetUseCase] 참고. */
+    val navigationTargetOverride: String? = null,
+    /** 드롭다운에 고를 수 있게 보여줄, 현재 temi 지도에 등록된 POI 이름 목록. */
+    val knownLocations: List<String> = emptyList(),
     val iconKey: String? = null,
     val isEnabled: Boolean = false,
     val isFeatured: Boolean = false,
@@ -54,6 +61,7 @@ class FacilityAdminEditViewModel(
 
     private val facilityRepository = FacilityRepository.getInstance(application)
     private val settingsRepository = SettingsRepository.getInstance(application)
+    private val temiController = TemiControllerProvider.current
 
     /** 저장 시 여기 담긴 원본에 `.copy(...)`만 해서 [Facility.sourcePoiName]/[Facility.syncStatus]
      * 등 이 화면이 다루지 않는 필드를 그대로 보존한다. */
@@ -81,6 +89,8 @@ class FacilityAdminEditViewModel(
                         direction = facility.direction,
                         allowDirectionOnBaseFloor = WayfindingCorridorOverride.appliesTo(facilityId),
                         baseFloor = baseFloor,
+                        navigationTargetOverride = facility.navigationTargetOverride,
+                        knownLocations = temiController.locations.value,
                         iconKey = facility.iconKey,
                         isEnabled = facility.isEnabled,
                         isFeatured = facility.isFeatured,
@@ -109,6 +119,10 @@ class FacilityAdminEditViewModel(
 
     fun onDirectionChange(direction: FacilityDirection?) {
         _uiState.update { it.copy(direction = direction) }
+    }
+
+    fun onNavigationTargetOverrideChange(value: String?) {
+        _uiState.update { it.copy(navigationTargetOverride = value) }
     }
 
     fun onIconKeyChange(key: String?) {
@@ -154,6 +168,7 @@ class FacilityAdminEditViewModel(
                     direction = state.direction.takeIf {
                         validation.floor != state.baseFloor || state.allowDirectionOnBaseFloor
                     },
+                    navigationTargetOverride = state.navigationTargetOverride,
                     iconKey = state.iconKey,
                     isEnabled = state.isEnabled,
                     isFeatured = state.isFeatured,

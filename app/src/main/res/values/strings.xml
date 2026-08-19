@@ -498,6 +498,8 @@
     <string name="facility_admin_field_floor">층</string>
     <string name="facility_admin_field_description">설명</string>
     <string name="facility_admin_field_direction">방향</string>
+    <string name="facility_admin_field_navigation_target">실제 이동 목적지</string>
+    <string name="facility_admin_navigation_target_auto">기본값(자동 · 이 시설과 동일)</string>
     <string name="facility_admin_field_guide_mode">안내 방식</string>
     <string name="facility_admin_field_icon">아이콘</string>
     <string name="facility_admin_field_enabled">이용자에게 노출</string>

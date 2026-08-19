@@ -23,6 +23,11 @@ import com.example.ibtech.domain.model.WayfindingCorridorOverride
  * [com.example.ibtech.ui.facility.buildFloorDirectionGuideText] 등이 결정한다.
  *
  * 우선순위:
+ * 0. [Facility.navigationTargetOverride]가 설정돼 있으면(관리자가 시설 편집 화면에서 직접
+ *    지정) 다른 규칙보다 우선해 그 POI로 이동한다 — 지도에 새 POI가 추가되면 위치 이름과
+ *    이동 목적지가 기본으로 같은 곳이 되는데(=null, 아래 1~3 규칙 그대로 적용), 관리자가
+ *    필요할 때만 다른 곳으로 바꿀 수 있게 하는 확장이다(요청: "엘리베이터랑 연결통로 지금은
+ *    하드코딩했는데 관리자페이지에서... 추가로 설정이 필요한건 수정할 수 있게").
  * 1. [WayfindingCorridorOverride]/[StairsWayfindingOverride]/[BasementStairsWayfindingOverride]
  *    대상이면 층과 무관하게 연결통로로 이동.
  * 2. 그 외 기준층이 아니면 엘리베이터로 이동.
@@ -35,6 +40,8 @@ object ResolveNavigationTargetUseCase {
     const val CORRIDOR_POI_NAME = "연결통로"
 
     fun routeType(facility: Facility, baseFloor: Int): NavigationRouteType = when {
+        !facility.navigationTargetOverride.isNullOrBlank() -> NavigationRouteType.CUSTOM
+
         WayfindingCorridorOverride.appliesTo(facility.id) ||
             StairsWayfindingOverride.appliesTo(facility.id) ||
             BasementStairsWayfindingOverride.appliesTo(facility.id) -> NavigationRouteType.CORRIDOR
@@ -47,6 +54,7 @@ object ResolveNavigationTargetUseCase {
     /** 실제 `goTo()`에 넘길 POI 이름. */
     fun poiName(facility: Facility, baseFloor: Int): String =
         when (routeType(facility, baseFloor)) {
+            NavigationRouteType.CUSTOM -> facility.navigationTargetOverride!!
             NavigationRouteType.CORRIDOR -> CORRIDOR_POI_NAME
             NavigationRouteType.ELEVATOR -> ELEVATOR_POI_NAME
             NavigationRouteType.DIRECT -> facility.sourcePoiName

@@ -52,6 +52,7 @@ fun FacilityAdminEditScreen(
     onDescriptionChange: (String) -> Unit,
     onGuideModeChange: (GuideMode) -> Unit,
     onDirectionChange: (FacilityDirection?) -> Unit,
+    onNavigationTargetOverrideChange: (String?) -> Unit,
     onIconKeyChange: (String?) -> Unit,
     onEnabledChange: (Boolean) -> Unit,
     onFeaturedChange: (Boolean) -> Unit,
@@ -155,6 +156,18 @@ fun FacilityAdminEditScreen(
                     }
                 }
 
+                // 실제 goTo() 목적지를 이 시설(sourcePoiName)과 다르게 지정하고 싶을 때 쓴다
+                // (요청: "위치이름과 가야할곳이 디폴트로는 같은곳이 되고, 사용자가 추가로
+                // 가야할곳을 다른곳으로 지정할수있게"). 목록은 오타 방지를 위해 현재 temi
+                // 지도에서 확인된 POI로만 제한한다(층 드롭다운과 같은 방식).
+                AdminDropdownField(
+                    label = stringResource(R.string.facility_admin_field_navigation_target),
+                    options = listOf(null) + uiState.knownLocations,
+                    selected = uiState.navigationTargetOverride,
+                    optionLabel = { navigationTargetOptionLabel(it) },
+                    onSelect = onNavigationTargetOverrideChange
+                )
+
                 Text(
                     text = stringResource(R.string.facility_admin_field_icon),
                     style = MaterialTheme.typography.titleMedium
@@ -212,6 +225,10 @@ private fun GuideModeOption(label: String, selected: Boolean, onClick: () -> Uni
         Text(text = label, style = MaterialTheme.typography.bodyLarge)
     }
 }
+
+@Composable
+private fun navigationTargetOptionLabel(target: String?): String =
+    target ?: stringResource(R.string.facility_admin_navigation_target_auto)
 
 @Composable
 private fun floorOptionLabel(floor: Int?): String =

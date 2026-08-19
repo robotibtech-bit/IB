@@ -9,12 +9,13 @@ class ResolveNavigationTargetUseCaseTest {
 
     private val baseFloor = 1
 
-    private fun facility(id: String, floor: Int) = Facility(
+    private fun facility(id: String, floor: Int, navigationTargetOverride: String? = null) = Facility(
         id = id,
         sourcePoiName = id,
         name = id,
         floor = floor,
-        isEnabled = true
+        isEnabled = true,
+        navigationTargetOverride = navigationTargetOverride
     )
 
     @Test
@@ -63,5 +64,27 @@ class ResolveNavigationTargetUseCaseTest {
         val facility = facility("동아리실1", floor = 5)
 
         assertEquals(NavigationRouteType.CORRIDOR, ResolveNavigationTargetUseCase.routeType(facility, baseFloor))
+    }
+
+    @Test
+    fun `admin navigation target override takes priority over every other rule`() {
+        // 관리자가 시설 편집 화면에서 직접 지정한 이동 목적지는 연결통로·계단·엘리베이터 규칙보다
+        // 우선한다(요청: "위치이름과 가야할곳이 디폴트로는 같은곳이 되고, 사용자가 추가로
+        // 가야할곳을 다른곳으로 지정할수있게").
+        val corridorFacilityWithOverride = facility("동아리실1", floor = baseFloor, navigationTargetOverride = "특별대기실")
+        assertEquals(NavigationRouteType.CUSTOM, ResolveNavigationTargetUseCase.routeType(corridorFacilityWithOverride, baseFloor))
+        assertEquals("특별대기실", ResolveNavigationTargetUseCase.poiName(corridorFacilityWithOverride, baseFloor))
+
+        val generalFacilityWithOverride = facility("어린이자료실", floor = baseFloor, navigationTargetOverride = "엘리베이터")
+        assertEquals(NavigationRouteType.CUSTOM, ResolveNavigationTargetUseCase.routeType(generalFacilityWithOverride, baseFloor))
+        assertEquals("엘리베이터", ResolveNavigationTargetUseCase.poiName(generalFacilityWithOverride, baseFloor))
+    }
+
+    @Test
+    fun `blank navigation target override is treated as unset`() {
+        val facility = facility("어린이자료실", floor = baseFloor, navigationTargetOverride = "   ")
+
+        assertEquals(NavigationRouteType.DIRECT, ResolveNavigationTargetUseCase.routeType(facility, baseFloor))
+        assertEquals("어린이자료실", ResolveNavigationTargetUseCase.poiName(facility, baseFloor))
     }
 }

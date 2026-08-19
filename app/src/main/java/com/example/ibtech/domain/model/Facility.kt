@@ -25,7 +25,13 @@ data class Facility(
      * [com.example.ibtech.domain.model.LibrarySettings.featuredFacilityCount]가 정한다. */
     val isFeatured: Boolean = false,
     val sortOrder: Int = 0,
-    val syncStatus: FacilitySyncStatus = FacilitySyncStatus.SYNCED
+    val syncStatus: FacilitySyncStatus = FacilitySyncStatus.SYNCED,
+    /** 실제 로봇이 `goTo()`할 POI를 관리자가 이 시설 자체(=[sourcePoiName]) 대신 다른 곳으로
+     * 지정한 값(POI GOTO 경로 처리 요구사항, 관리자 수동 지정 확장). null이면 지금까지처럼
+     * [com.example.ibtech.domain.usecase.ResolveNavigationTargetUseCase]의 자동 판단
+     * (연결통로/엘리베이터 하드코딩 목록 → 타 층 여부 → 시설 자체)을 그대로 따른다 — 새 POI가
+     * 지도에 추가되면 위치 이름과 이동 목적지가 기본적으로 같은 곳이 되는 것과 같다. */
+    val navigationTargetOverride: String? = null
 ) {
     companion object {
         /** 관리자가 층을 아직 지정하지 않은 신규 POI의 기본값. */

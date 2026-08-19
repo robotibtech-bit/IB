@@ -842,6 +842,7 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                             onDescriptionChange = viewModel::onDescriptionChange,
                             onGuideModeChange = viewModel::onGuideModeChange,
                             onDirectionChange = viewModel::onDirectionChange,
+                            onNavigationTargetOverrideChange = viewModel::onNavigationTargetOverrideChange,
                             onIconKeyChange = viewModel::onIconKeyChange,
                             onEnabledChange = viewModel::onEnabledChange,
                             onFeaturedChange = viewModel::onFeaturedChange,
