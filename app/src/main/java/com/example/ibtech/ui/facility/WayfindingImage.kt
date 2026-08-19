@@ -88,6 +88,25 @@ fun wayfindingImageAssetPaths(facilityId: String): List<String> {
  */
 fun wayfindingImageAssetPath(facilityId: String): String? = wayfindingImageAssetPaths(facilityId).firstOrNull()
 
+/** [wayfindingBitmapCache]에 동시에 들고 있을 최대 이미지 수. 안내도 원본은 대략 1880×834~
+ * 2155×730 해상도라 디코딩된 비트맵 하나가 수 MB에 달한다 — 전체 안내도(수십 장)를 무기한 다
+ * 캐시하면 메모리 최적화 취지에 어긋난다. 실제 사용 패턴은 한 번에 한 시설(계단 대상이면 2장)만
+ * 반복해서 순환 표시하는 것이므로, 최근 방문한 몇 시설 분량만 남기면 "같은 화면에 머무는 동안
+ * 반복 디코딩"은 완전히 없어지면서 메모리 상한도 지킨다. */
+private const val WAYFINDING_BITMAP_CACHE_CAPACITY = 8
+
+/** asset 경로별 디코딩·크롭 결과의 LRU 캐시 — 안내도가 여러 장인 시설은 [WAYFINDING_CYCLE_INTERVAL_MS]
+ * 마다 같은 파일을 다시 읽게 되는데, 캐시가 없으면 화면에 머무는 내내 몇 초마다 asset 디코딩(디스크
+ * I/O + 비트맵 할당)이 반복된다(최적화: "실행 속도/반응성, 메모리/배터리 사용"). 번들 asset은 앱
+ * 설치 중 바뀌지 않으므로 값 자체는 무기한 캐시해도 안전하지만, 개수는 [WAYFINDING_BITMAP_CACHE_CAPACITY]로
+ * 제한한다. `LinkedHashMap`은 스레드 안전하지 않아 모든 접근을 `synchronized`로 감싼다. */
+private val wayfindingBitmapCache = object : LinkedHashMap<String, ImageBitmap?>(
+    WAYFINDING_BITMAP_CACHE_CAPACITY, 0.75f, true
+) {
+    override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, ImageBitmap?>): Boolean =
+        size > WAYFINDING_BITMAP_CACHE_CAPACITY
+}
+
 /**
  * [facilityId]의 안내도를 읽어 필요하면 잘라낸다. 안내도가 두 장 이상이면([wayfindingImageAssetPaths])
  * 일정 간격으로 번갈아 보여준다. 동행 도착 화면([NavigationProgressScreen])과 위치만 보기 화면
@@ -111,7 +130,8 @@ fun rememberWayfindingImageBitmap(facilityId: String): ImageBitmap? {
 
     val state = produceState<ImageBitmap?>(initialValue = null, assetPaths, index) {
         value = assetPaths.getOrNull(index)?.let { path ->
-            withContext(Dispatchers.IO) {
+            val cached = synchronized(wayfindingBitmapCache) { wayfindingBitmapCache[path] }
+            cached ?: withContext(Dispatchers.IO) {
                 runCatching {
                     val full = context.assets.open(path).use { BitmapFactory.decodeStream(it) }
                         ?: return@runCatching null
@@ -122,7 +142,7 @@ fun rememberWayfindingImageBitmap(facilityId: String): ImageBitmap? {
                     val bottom = full.height - (full.height * insets.bottom).toInt()
                     Bitmap.createBitmap(full, left, top, right - left, bottom - top).asImageBitmap()
                 }.getOrNull()
-            }
+            }.also { decoded -> synchronized(wayfindingBitmapCache) { wayfindingBitmapCache[path] = decoded } }
         }
     }
     return state.value
