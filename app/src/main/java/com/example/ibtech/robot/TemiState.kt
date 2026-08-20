@@ -139,3 +139,31 @@ sealed interface SpeechState {
     /** 발화 실패. [sdkStatus] 는 원시 상태(ERROR / NOT_ALLOWED). */
     data class Failed(val text: String, val sdkStatus: String) : SpeechState
 }
+
+/**
+ * 음성 입력(ASR) 상태.
+ *
+ * temi 의 대화 상태 콜백(`OnConversationStatusChangedListener`)을 앱 상태로 정규화한다.
+ * [NavigationState] 와 같은 원칙 — UI 는 명령만 내리고, 상태 전환은 SDK 콜백에서만 일어난다.
+ */
+sealed interface ListeningState {
+
+    /** 음성 입력 중이 아님. */
+    data object Idle : ListeningState
+
+    /** `askQuestion` 의 질문을 로봇이 읽어 주는 중. 아직 듣기 전이다. */
+    data object Speaking : ListeningState
+
+    /** 사용자 발화를 받는 중. */
+    data object Listening : ListeningState
+
+    /** 인식 결과를 처리하는 중. */
+    data object Thinking : ListeningState
+
+    /** temi 가 아닌 기기 등, 음성 입력을 쓸 수 없는 상태. 마이크 버튼을 숨기는 데 쓴다. */
+    data object Unavailable : ListeningState
+
+    /** 대화가 진행 중인지. 마이크 버튼 비활성화 판단에 쓴다. */
+    val isActive: Boolean
+        get() = this is Speaking || this is Listening || this is Thinking
+}

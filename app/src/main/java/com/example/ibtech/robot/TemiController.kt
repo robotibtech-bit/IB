@@ -18,6 +18,17 @@ interface TemiController {
     val permissionStatus: StateFlow<TemiPermissionStatus>
     val batteryStatus: StateFlow<BatteryStatus?>
 
+    /** 음성 입력 진행 상태. [Unavailable]이면 화면에서 마이크 버튼을 숨긴다. */
+    val listeningState: StateFlow<ListeningState>
+
+    /**
+     * 음성 인식 결과 스트림. [askQuestion] 한 번에 인식된 문장이 한 번 흘러나온다.
+     *
+     * StateFlow 가 아니라 SharedFlow 인 이유 — 같은 말을 두 번 하면 값이 같아 StateFlow 는
+     * 두 번째를 흘리지 않는다. 검색은 매번 다시 실행돼야 한다.
+     */
+    val asrResults: SharedFlow<String>
+
     /** SDK 가 보고한 오류 코드 스트림. ([com.robotemi.sdk.exception.SdkException] 의 code) */
     val sdkErrors: SharedFlow<Int>
 
@@ -25,6 +36,15 @@ interface TemiController {
     fun stopMovement(): Boolean
     fun speak(text: String, showOnScreen: Boolean = false): Boolean
     fun cancelSpeech(): Boolean
+    /**
+     * temi 가 [question]을 읽어 준 뒤 사용자 발화를 듣는다. 결과는 [asrResults] 로 온다.
+     * 로봇이 준비되지 않았으면 false 를 돌려주며, 이때 화면은 키보드 입력만 쓰면 된다.
+     */
+    fun askQuestion(question: String): Boolean
+
+    /** 대화 UI 를 닫고 듣기를 중단한다. 화면을 벗어날 때 반드시 호출한다. */
+    fun finishConversation(): Boolean
+
     fun refreshLocations(): Boolean
     fun refreshBattery(): Boolean
     fun refreshPermissions(): Boolean

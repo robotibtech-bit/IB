@@ -13,6 +13,8 @@ import com.robotemi.sdk.listeners.OnBatteryStatusChangedListener
 import com.robotemi.sdk.listeners.OnButtonStatusChangedListener
 import com.robotemi.sdk.listeners.OnGoToLocationStatusChangedListener
 import com.robotemi.sdk.listeners.OnLocationsUpdatedListener
+import com.robotemi.sdk.SttLanguage
+import com.robotemi.sdk.listeners.OnConversationStatusChangedListener
 import com.robotemi.sdk.listeners.OnRobotReadyListener
 import com.robotemi.sdk.permission.OnRequestPermissionResultListener
 import com.robotemi.sdk.permission.Permission
@@ -54,6 +56,8 @@ class TemiRepository private constructor() :
     OnBatteryStatusChangedListener,
     OnRequestPermissionResultListener,
     OnButtonStatusChangedListener,
+    OnConversationStatusChangedListener,
+    Robot.AsrListener,
     Robot.TtsListener {
 
     /**
@@ -98,6 +102,14 @@ class TemiRepository private constructor() :
 
     // 오류는 상태가 아니라 1회성 사건이므로 SharedFlow 로 흘린다.
     // 구독자가 없을 때 버려지도록 replay = 0.
+    // 음성 입력은 temi 에서만 동작한다. 연결 상태가 Ready 가 되기 전에는 Unavailable 로 두어
+    // 화면이 마이크 버튼을 숨기게 한다.
+    private val _listeningState = MutableStateFlow<ListeningState>(ListeningState.Unavailable)
+    override val listeningState: StateFlow<ListeningState> = _listeningState.asStateFlow()
+
+    private val _asrResults = MutableSharedFlow<String>(replay = 0, extraBufferCapacity = 4)
+    override val asrResults: SharedFlow<String> = _asrResults.asSharedFlow()
+
     private val _sdkErrors = MutableSharedFlow<Int>(replay = 0, extraBufferCapacity = 8)
 
     /** SDK 가 보고한 오류 코드. */
@@ -145,6 +157,12 @@ class TemiRepository private constructor() :
         robot.addOnSdkExceptionListener(this)
         robot.addTtsListener(this)
         robot.addOnButtonStatusChangedListener(this)
+        robot.addAsrListener(this)
+        robot.addOnConversationStatusChangedListener(this)
+        // 이 앱은 한국어 전용이다. 지정하지 않으면 로봇의 시스템 언어를 따라가므로,
+        // 관리자가 로봇 언어를 영어로 바꿔 두면 한국어 발화가 엉뚱하게 인식된다.
+        runCatching { robot.setAsrLanguages(listOf(SttLanguage.KO_KR)) }
+            .onFailure { Log.w(TAG, "ASR 언어 설정 실패", it) }
         listenersRegistered = true
     }
 
@@ -158,6 +176,8 @@ class TemiRepository private constructor() :
         // 바뀌지 않는 한 다시 살아나지 않아 음량 고정이 조용히 풀린 채로 남는다(실기로 확인한
         // 버그). 이 루프는 SDK 리스너 등록과 무관하게 Robot 인스턴스에 직접 걸기 때문에,
         // Activity 생명주기가 아니라 저장소(싱글턴) 생명주기를 따라가도 안전하다.
+        robot.removeOnConversationStatusChangedListener(this)
+        robot.removeAsrListener(this)
         robot.removeOnButtonStatusChangedListener(this)
         robot.removeTtsListener(this)
         robot.removeOnSdkExceptionListener(this)
@@ -197,6 +217,11 @@ class TemiRepository private constructor() :
         }.onFailure { Log.e(TAG, "robot.onStart 실패", it) }
 
         _connectionState.value = TemiConnectionState.Ready
+        // 로봇이 준비된 뒤에야 음성 입력을 쓸 수 있다. 그 전에는 Unavailable 로 두어
+        // 화면이 마이크 버튼을 숨긴다.
+        if (_listeningState.value == ListeningState.Unavailable) {
+            _listeningState.value = ListeningState.Idle
+        }
         verifyPermissionDeclaration(activity)
         refreshPermissions()
         refreshLocations()
@@ -416,6 +441,44 @@ class TemiRepository private constructor() :
         robot.cancelAllTtsRequests()
         pendingTtsId = null
         _speechState.value = SpeechState.Idle
+    }
+
+    /**
+     * 질문을 읽어 준 뒤 사용자 발화를 듣는다.
+     *
+     * 상태는 여기서 확정하지 않는다 — 실제 전환은 [onConversationStatusChanged] 콜백이 한다.
+     * 다만 콜백이 오기 전 마이크 버튼이 다시 눌리는 것을 막으려고 Speaking 만 선반영한다.
+     */
+    override fun askQuestion(question: String): Boolean = withRobot { robot ->
+        _listeningState.value = ListeningState.Speaking
+        robot.askQuestion(question)
+    }
+
+    /** 대화 UI 를 닫는다. 화면 이탈 시 호출하지 않으면 대화 레이어가 남는다. */
+    override fun finishConversation(): Boolean = withRobot { robot ->
+        robot.finishConversation()
+        _listeningState.value = ListeningState.Idle
+    }
+
+    /** 음성 인식 결과. 빈 문자열은 "못 알아들었다"이므로 흘리지 않는다. */
+    override fun onAsrResult(asrResult: String, sttLanguage: SttLanguage) {
+        val text = asrResult.trim()
+        Log.d(TAG, "ASR 결과: '" + text + "' (" + sttLanguage + ")")
+        // 결과를 받은 시점에 대화를 닫는다. 닫지 않으면 temi 가 다음 발화를 계속 기다린다.
+        withRobot { it.finishConversation() }
+        _listeningState.value = ListeningState.Idle
+        if (text.isNotEmpty()) {
+            scope.launch { _asrResults.emit(text) }
+        }
+    }
+
+    override fun onConversationStatusChanged(status: Int, text: String) {
+        _listeningState.value = when (status) {
+            OnConversationStatusChangedListener.LISTENING -> ListeningState.Listening
+            OnConversationStatusChangedListener.THINKING -> ListeningState.Thinking
+            OnConversationStatusChangedListener.SPEAKING -> ListeningState.Speaking
+            else -> ListeningState.Idle
+        }
     }
 
     /** temi 지도의 POI 목록을 다시 읽어온다. */

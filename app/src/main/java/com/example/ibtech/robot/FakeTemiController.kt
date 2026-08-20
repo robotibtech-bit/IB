@@ -67,6 +67,18 @@ class FakeTemiController(
     private val _sdkErrors = MutableSharedFlow<Int>(replay = 0, extraBufferCapacity = 8)
     override val sdkErrors: SharedFlow<Int> = _sdkErrors.asSharedFlow()
 
+    private val _listeningState = MutableStateFlow<ListeningState>(ListeningState.Idle)
+    override val listeningState: StateFlow<ListeningState> = _listeningState.asStateFlow()
+
+    private val _asrResults = MutableSharedFlow<String>(replay = 0, extraBufferCapacity = 4)
+    override val asrResults: SharedFlow<String> = _asrResults.asSharedFlow()
+
+    /**
+     * [askQuestion] 이 흘려보낼 가짜 인식 결과. 개발자 메뉴/테스트에서 갈아 끼운다.
+     * null 이면 "못 알아들었다"로 처리해 아무 결과도 흘리지 않는다.
+     */
+    var nextAsrResult: String? = "공룡 나오는 책"
+
     /** 개발자 메뉴가 시설 목록 동기화에 쓸 가짜 POI를 채운다. */
     fun setLocations(locations: List<String>) {
         _locations.value = locations
@@ -128,6 +140,34 @@ class FakeTemiController(
         return true
     }
 
+    /**
+     * 실기의 대화 흐름을 흉내낸다: 질문 발화 → 듣기 → 결과.
+     * 실제 SDK 처럼 항상 비동기로 상태를 바꿔, 화면이 "즉시 결과가 오는" 타이밍에만
+     * 맞는 버그를 갖지 않게 한다.
+     */
+    private var conversationJob: Job? = null
+
+    override fun askQuestion(question: String): Boolean {
+        conversationJob?.cancel()
+        _listeningState.value = ListeningState.Speaking
+        conversationJob = scope.launch {
+            delay(SPEECH_DELAY_MILLIS)
+            _listeningState.value = ListeningState.Listening
+            delay(LISTEN_DELAY_MILLIS)
+            _listeningState.value = ListeningState.Thinking
+            delay(SPEECH_DELAY_MILLIS)
+            _listeningState.value = ListeningState.Idle
+            nextAsrResult?.takeIf { it.isNotBlank() }?.let { _asrResults.emit(it) }
+        }
+        return true
+    }
+
+    override fun finishConversation(): Boolean {
+        conversationJob?.cancel()
+        _listeningState.value = ListeningState.Idle
+        return true
+    }
+
     override fun refreshLocations(): Boolean = true
 
     override fun refreshBattery(): Boolean = true
@@ -185,6 +225,9 @@ class FakeTemiController(
         private const val MOVING_DELAY_MILLIS = 400L
         private const val OUTCOME_DELAY_MILLIS = 1_600L
         private const val SPEECH_DELAY_MILLIS = 800L
+
+        /** 사용자가 말하는 데 걸리는 시간. 실기의 듣기 구간을 흉내내기 위한 값이다. */
+        private const val LISTEN_DELAY_MILLIS = 1_200L
         private const val FAKE_FAILURE_CODE = -100
     }
 }
