@@ -27,7 +27,14 @@ data class LibrarySettings(
      * (관리자 화면에서 이 세 값만 고를 수 있게 제한한다). */
     val featuredFacilityCount: Int = DEFAULT_FEATURED_FACILITY_COUNT,
     /** 홈 화면 "행사 안내" 버튼이 여는 웹페이지 주소. */
-    val eventNoticeUrl: String = DEFAULT_EVENT_NOTICE_URL
+    val eventNoticeUrl: String = DEFAULT_EVENT_NOTICE_URL,
+    /**
+     * 도서검색 서버 주소(홈 > 책 찾기). 예: "http://192.168.0.50:8080".
+     *
+     * 비어 있으면 아직 설정하지 않은 상태이며, 책 찾기 화면이 "관리자 설정에서 서버 주소를
+     * 지정해 주세요" 안내를 띄운다. 도서관마다 서버 IP가 달라 기본값을 둘 수 없다.
+     */
+    val bookSearchBaseUrl: String = DEFAULT_BOOK_SEARCH_BASE_URL
 ) {
     companion object {
         const val DEFAULT_WELCOME_MESSAGE = "안녕하세요\n무엇을 도와드릴까요?"
@@ -44,5 +51,8 @@ data class LibrarySettings(
         val FEATURED_FACILITY_COUNT_OPTIONS = listOf(2, 4, 8)
         const val DEFAULT_FEATURED_FACILITY_COUNT = 4
         const val DEFAULT_EVENT_NOTICE_URL = "https://lib.ice.go.kr/shintree/index.do"
+
+        /** 도서관마다 서버 IP가 달라 기본값을 둘 수 없다. 관리자가 넣기 전까지는 미설정. */
+        const val DEFAULT_BOOK_SEARCH_BASE_URL = ""
     }
 }

@@ -36,6 +36,7 @@ class BackupRepository private constructor(
                 put("volumeLocked", settings.volumeLocked)
                 put("featuredFacilityCount", settings.featuredFacilityCount)
                 put("eventNoticeUrl", settings.eventNoticeUrl)
+                put("bookSearchBaseUrl", settings.bookSearchBaseUrl)
                 put("facilitiesJson", FacilityJsonMapper.toJson(facilityRepository.allFacilities.first()))
                 put("usageTopicsJson", UsageJsonMapper.toJson(usageRepository.topics.first()))
                 put("quizQuestionsJson", KidsJsonMapper.quizToJson(kidsContentRepository.quizQuestions.first()))
@@ -85,7 +86,11 @@ class BackupRepository private constructor(
                 featuredFacilityCount = sanitizedFeaturedFacilityCount(
                     root.optInt("featuredFacilityCount", LibrarySettings.DEFAULT_FEATURED_FACILITY_COUNT)
                 ),
-                eventNoticeUrl = root.optString("eventNoticeUrl", LibrarySettings.DEFAULT_EVENT_NOTICE_URL)
+                eventNoticeUrl = root.optString("eventNoticeUrl", LibrarySettings.DEFAULT_EVENT_NOTICE_URL),
+                bookSearchBaseUrl = root.optString(
+                    "bookSearchBaseUrl",
+                    LibrarySettings.DEFAULT_BOOK_SEARCH_BASE_URL
+                )
                     .ifBlank { LibrarySettings.DEFAULT_EVENT_NOTICE_URL }
             )
             settingsRepository.updateSettings(restoredSettings)

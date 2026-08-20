@@ -28,6 +28,9 @@ data class SettingsAdminUiState(
     val volume: Int = LibrarySettings.DEFAULT_VOLUME,
     val volumeLocked: Boolean = LibrarySettings.DEFAULT_VOLUME_LOCKED,
     val featuredFacilityCount: Int = LibrarySettings.DEFAULT_FEATURED_FACILITY_COUNT,
+    /** 도서검색 서버 주소. 비어 있으면 홈 > 책 찾기가 "미설정" 안내를 띄운다. */
+    val bookSearchBaseUrl: String = "",
+    val bookSearchBaseUrlError: String? = null,
     val idleTimeoutError: String? = null,
     val baseFloorError: String? = null,
     val currentPassword: String = "",
@@ -67,6 +70,7 @@ class SettingsAdminViewModel(application: Application) : AndroidViewModel(applic
                     volume = settings.volume,
                     volumeLocked = settings.volumeLocked,
                     featuredFacilityCount = settings.featuredFacilityCount,
+                    bookSearchBaseUrl = settings.bookSearchBaseUrl,
                     lastBackupAt = backupRepository.lastBackupAt()
                 )
             }
@@ -93,6 +97,10 @@ class SettingsAdminViewModel(application: Application) : AndroidViewModel(applic
         _uiState.update { it.copy(volumeLocked = value) }
     }
 
+    fun onBookSearchBaseUrlChange(value: String) {
+        _uiState.update { it.copy(bookSearchBaseUrl = value, bookSearchBaseUrlError = null) }
+    }
+
     fun onFeaturedFacilityCountChange(value: Int) {
         _uiState.update { it.copy(featuredFacilityCount = value) }
     }
@@ -111,12 +119,25 @@ class SettingsAdminViewModel(application: Application) : AndroidViewModel(applic
             _uiState.update { it.copy(baseFloorError = app.getString(R.string.admin_error_invalid_number)) }
             return
         }
+        // 비워 두는 것(기능 끄기)은 허용하되, 넣었다면 http(s) 형식은 맞아야 한다 — 오타를
+        // 저장하면 실기에서 "연결 실패"로만 보여 원인을 찾기 어렵다.
+        val bookSearchBaseUrl = state.bookSearchBaseUrl.trim().trimEnd('/')
+        if (bookSearchBaseUrl.isNotEmpty() &&
+            !bookSearchBaseUrl.startsWith("http://") &&
+            !bookSearchBaseUrl.startsWith("https://")
+        ) {
+            _uiState.update {
+                it.copy(bookSearchBaseUrlError = app.getString(R.string.settings_admin_error_book_search_url))
+            }
+            return
+        }
 
         viewModelScope.launch {
             val current = settingsRepository.settings.first()
             settingsRepository.updateSettings(
                 current.copy(
                     welcomeMessage = state.welcomeMessage.ifBlank { LibrarySettings.DEFAULT_WELCOME_MESSAGE },
+                    bookSearchBaseUrl = bookSearchBaseUrl,
                     idleTimeoutSeconds = idleTimeout,
                     baseFloor = baseFloor,
                     volume = state.volume,

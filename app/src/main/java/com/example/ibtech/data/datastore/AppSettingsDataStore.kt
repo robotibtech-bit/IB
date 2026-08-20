@@ -25,4 +25,6 @@ object AppSettingsKeys {
     val ADMIN_PASSWORD_HASH: Preferences.Key<String> = stringPreferencesKey("admin_password_hash")
     val FEATURED_FACILITY_COUNT: Preferences.Key<Int> = intPreferencesKey("featured_facility_count")
     val EVENT_NOTICE_URL: Preferences.Key<String> = stringPreferencesKey("event_notice_url")
+    val BOOK_SEARCH_BASE_URL: Preferences.Key<String> =
+        stringPreferencesKey("book_search_base_url")
 }

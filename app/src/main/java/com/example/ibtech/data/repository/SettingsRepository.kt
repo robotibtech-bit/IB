@@ -36,7 +36,9 @@ class SettingsRepository private constructor(
             featuredFacilityCount = prefs[AppSettingsKeys.FEATURED_FACILITY_COUNT]
                 ?: LibrarySettings.DEFAULT_FEATURED_FACILITY_COUNT,
             eventNoticeUrl = prefs[AppSettingsKeys.EVENT_NOTICE_URL]
-                ?: LibrarySettings.DEFAULT_EVENT_NOTICE_URL
+                ?: LibrarySettings.DEFAULT_EVENT_NOTICE_URL,
+            bookSearchBaseUrl = prefs[AppSettingsKeys.BOOK_SEARCH_BASE_URL]
+                ?: LibrarySettings.DEFAULT_BOOK_SEARCH_BASE_URL
         )
     }
 
@@ -55,6 +57,7 @@ class SettingsRepository private constructor(
             prefs[AppSettingsKeys.VOLUME_LOCKED] = settings.volumeLocked
             prefs[AppSettingsKeys.FEATURED_FACILITY_COUNT] = settings.featuredFacilityCount
             prefs[AppSettingsKeys.EVENT_NOTICE_URL] = settings.eventNoticeUrl
+            prefs[AppSettingsKeys.BOOK_SEARCH_BASE_URL] = settings.bookSearchBaseUrl
         }
     }
 

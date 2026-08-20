@@ -626,4 +626,5 @@
     <string name="stats_export_action">CSV로 내보내기</string>
     <string name="stats_export_success">통계를 CSV로 저장했습니다.</string>
     <string name="stats_export_failure">CSV 저장에 실패했습니다.</string>
+    <string name="settings_admin_field_book_search_url">도서검색 서버 주소 (예: http://192.168.0.50:8080)</string>
 </resources>

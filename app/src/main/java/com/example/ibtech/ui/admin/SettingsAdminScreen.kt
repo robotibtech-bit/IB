@@ -46,6 +46,7 @@ fun SettingsAdminScreen(
     onVolumeChange: (Int) -> Unit,
     onVolumeLockedChange: (Boolean) -> Unit,
     onFeaturedFacilityCountChange: (Int) -> Unit,
+    onBookSearchBaseUrlChange: (String) -> Unit,
     onSaveSettings: () -> Unit,
     onCurrentPasswordChange: (String) -> Unit,
     onNewPasswordChange: (String) -> Unit,
@@ -95,6 +96,15 @@ fun SettingsAdminScreen(
                 label = stringResource(R.string.settings_admin_field_base_floor),
                 errorText = uiState.baseFloorError,
                 keyboardType = KeyboardType.Number
+            )
+            // 기준층 바로 아래에 둔다 — 로봇을 어느 자료실에 놓았는지에 따라 두 값을 함께
+            // 바꾸게 되므로(1층 어린이자료실 / 4층 종합자료실) 붙여 두는 편이 실수가 적다.
+            AdminTextField(
+                value = uiState.bookSearchBaseUrl,
+                onValueChange = onBookSearchBaseUrlChange,
+                label = stringResource(R.string.settings_admin_field_book_search_url),
+                errorText = uiState.bookSearchBaseUrlError,
+                keyboardType = KeyboardType.Uri
             )
 
             Text(
