@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    디버그 빌드 전용 재정의. release 에는 적용되지 않는다(`src/main/res/xml` 의 동명 파일이
+    그대로 쓰인다).
+
+    도서검색 서버는 도서관 내부망의 사설 IP(예: 192.168.x.x)에 HTTP 로 뜬다. 개발 중에는
+    주소가 계속 바뀌므로 디버그에서만 평문을 전면 허용하고, release 에서는 실제 서버
+    호스트를 main 쪽 설정에 명시적으로 추가한다.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
