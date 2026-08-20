@@ -36,6 +36,19 @@ object LibraryRoutes {
      * 열람실 좌석현황)는 별도 라우트 없이 기존 [WEB_VIEW]로 바로 이동한다. */
     const val SEAT_STATUS_MENU = "seat_status_menu"
 
+    /** 책 찾기(홈 신규 버튼). 검색은 외부 도서검색 서버가 처리한다. */
+    const val BOOK_SEARCH = "book_search"
+
+    /**
+     * 서가 안내. 그래프 등록용 패턴이며 실제 이동에는 [shelfNavigation]을 쓴다.
+     *
+     * 책 정보를 전부 인자로 넘기는 이유 — 이 화면만 다시 열려도(프로세스 종료 후 복원 등)
+     * 서버를 다시 부르지 않고 그릴 수 있어야 한다.
+     */
+    const val SHELF_NAVIGATION =
+        "shelf_navigation?bookId={bookId}&title={title}&callNo={callNo}&location={location}" +
+            "&shelfLabel={shelfLabel}&room={room}&floor={floor}&estimated={estimated}"
+
     /** 개발자 메뉴(`BuildConfig.DEBUG` 전용). release 빌드에는 진입 버튼 자체가 없다. */
     const val DEV_MENU = "dev_menu"
 
@@ -84,6 +97,25 @@ object LibraryRoutes {
     }
 
     fun eventDetail(eventId: String): String = "event_detail/${Uri.encode(eventId)}"
+
+    /** 층은 문자열로 넘긴다 — 서버가 층을 모를 수 있어(빈 문자열) Int 인자로는 표현하지 못한다. */
+    fun shelfNavigation(
+        bookId: String,
+        title: String,
+        callNo: String,
+        location: String,
+        shelfLabel: String,
+        room: String,
+        floor: Int?,
+        estimated: Boolean
+    ): String = "shelf_navigation?bookId=${Uri.encode(bookId)}" +
+        "&title=${Uri.encode(title)}" +
+        "&callNo=${Uri.encode(callNo)}" +
+        "&location=${Uri.encode(location)}" +
+        "&shelfLabel=${Uri.encode(shelfLabel)}" +
+        "&room=${Uri.encode(room)}" +
+        "&floor=${floor?.toString().orEmpty()}" +
+        "&estimated=${if (estimated) "1" else "0"}"
 
     fun facilityAdminEdit(facilityId: String): String = "facility_admin_edit/${Uri.encode(facilityId)}"
 

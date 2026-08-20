@@ -626,5 +626,54 @@
     <string name="stats_export_action">CSV로 내보내기</string>
     <string name="stats_export_success">통계를 CSV로 저장했습니다.</string>
     <string name="stats_export_failure">CSV 저장에 실패했습니다.</string>
+
+    <!-- 책 찾기 (홈 > 책 찾기). 검색·서가 매핑은 외부 도서검색 서버가 처리한다. -->
+    <string name="book_search_title">책 찾기</string>
+    <string name="home_action_book_search">책 찾기</string>
+    <string name="home_action_book_search_subtitle">찾는 책이 어느 서가에 있는지 알려드려요</string>
+    <string name="book_search_input_label">책 제목이나 찾고 싶은 내용</string>
+    <string name="book_search_action">검색</string>
+    <string name="book_search_retry">다시 시도</string>
+    <string name="book_search_prompt">찾고 싶은 책을 입력하거나 마이크를 눌러 말씀해 주세요.</string>
+    <string name="book_search_empty_result">%1$s(으)로 찾은 책이 없어요. 다른 말로 다시 찾아볼까요?</string>
+    <string name="book_search_understood_as">이렇게 찾았어요: %1$s</string>
+    <string name="book_search_same_title_count">%1$d권 소장</string>
+    <string name="book_search_shelf_unknown">서가 위치 확인 중</string>
+    <string name="book_search_floor_format">%1$d층</string>
+
+    <!-- 음성 입력 -->
+    <string name="book_search_voice_start">음성으로 검색</string>
+    <string name="book_search_voice_stop">음성 입력 취소</string>
+    <string name="book_search_voice_speaking">잠시만요, 여쭤볼게요.</string>
+    <string name="book_search_listening">듣고 있어요. 말씀해 주세요.</string>
+    <string name="book_search_thinking">알아듣는 중이에요…</string>
+
+    <!-- 실패 안내. 사유 구분은 BookSearchIssue 가 하고 문구는 여기서 매핑한다. -->
+    <string name="book_search_not_configured">도서검색 서버가 아직 설정되지 않았어요. 관리자 설정에서 서버 주소를 지정해 주세요.</string>
+    <string name="book_search_error_invalid_url">서버 주소 형식이 올바르지 않아요. 관리자 설정을 확인해 주세요.</string>
+    <string name="book_search_error_unreachable">도서검색 서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.</string>
+    <string name="book_search_error_server">도서검색 서버에 문제가 생겼어요. 잠시 후 다시 시도해 주세요.</string>
+    <string name="book_search_error_malformed">검색 결과를 이해하지 못했어요. 관리자에게 알려 주세요.</string>
+
+    <!-- 서가 안내 (책 찾기 > 결과 선택). 줄바꿈/작은따옴표는 쓰지 않는다 (AAPT 이스케이프 이슈). -->
+    <string name="shelf_navigation_title">서가 안내</string>
+    <string name="shelf_navigation_go_shelf">서가로 데려다 주세요</string>
+    <string name="shelf_navigation_go_elevator">엘리베이터까지 데려다 주세요</string>
+    <string name="shelf_navigation_stop">여기서 멈출게요</string>
+    <string name="shelf_navigation_guide_escort">%1$s 서가에 있어요. 제가 데려다 드릴게요.</string>
+    <string name="shelf_navigation_guide_escort_estimated">%1$s 서가 근처에 있을 거예요. 그쪽으로 안내해 드릴게요.</string>
+    <string name="shelf_navigation_guide_elevator">%1$d층 %2$s에 있어요. 엘리베이터까지 모셔다 드릴게요.</string>
+    <string name="shelf_navigation_guide_unknown">이 책의 서가 위치를 아직 확인하지 못했어요. 사서 선생님께 여쭤봐 주세요.</string>
+    <string name="shelf_navigation_status_requested">출발 준비 중이에요.</string>
+    <string name="shelf_navigation_status_moving">따라오세요. 서가로 가고 있어요.</string>
+    <string name="shelf_navigation_status_arrived">도착했어요. 이 서가에서 찾아보세요.</string>
+    <string name="shelf_navigation_status_interrupted">이동을 멈췄어요.</string>
+    <string name="shelf_navigation_status_failed">길을 찾지 못했어요. 사서 선생님께 여쭤봐 주세요.</string>
     <string name="settings_admin_field_book_search_url">도서검색 서버 주소 (예: http://192.168.0.50:8080)</string>
+    <string name="settings_admin_error_book_search_url">http:// 또는 https:// 로 시작해야 합니다.</string>
+    <string name="shelf_navigation_substitute_poi">[테스트] 지도에 %1$s POI가 없어 %2$s(으)로 대신 이동합니다.</string>
+    <string name="shelf_navigation_call_no">청구기호 %1$s</string>
+    <string name="shelf_navigation_reg_no">등록번호 %1$s</string>
+    <string name="shelf_navigation_holding">%1$s</string>
+    <string name="shelf_navigation_translator">%1$s 옮김</string>
 </resources>

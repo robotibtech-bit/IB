@@ -61,6 +61,8 @@ import com.example.ibtech.ui.admin.UsageInfoAdminScreen
 import com.example.ibtech.ui.admin.UsageInfoAdminViewModel
 import com.example.ibtech.ui.common.ConfirmDialog
 import com.example.ibtech.ui.common.IdleTimeoutObserver
+import com.example.ibtech.ui.booksearch.BookSearchScreen
+import com.example.ibtech.ui.booksearch.ShelfNavigationScreen
 import com.example.ibtech.ui.common.LibraryScaffold
 import com.example.ibtech.ui.common.LibraryWebView
 import com.example.ibtech.ui.theme.AdminTypography
@@ -196,6 +198,7 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
             composable(LibraryRoutes.HOME) {
                 val viewModel: HomeViewModel = viewModel()
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val menuBookSearch = stringResource(R.string.home_action_book_search)
                 val menuFindFacility = stringResource(R.string.home_action_find_facility)
                 val menuUsageGuide = stringResource(R.string.home_action_usage_guide)
                 val menuKidsContent = stringResource(R.string.home_action_kids_content)
@@ -230,6 +233,10 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                         onSeatStatus = {
                             logMenuSelect(menuSeatStatus)
                             navController.navigate(LibraryRoutes.SEAT_STATUS_MENU)
+                        },
+                        onBookSearch = {
+                            logMenuSelect(menuBookSearch)
+                            navController.navigate(LibraryRoutes.BOOK_SEARCH)
                         },
                         onAdminClick = { navController.navigate(LibraryRoutes.ADMIN_LOGIN) }
                     )
@@ -711,6 +718,48 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                 }
             }
 
+            composable(LibraryRoutes.BOOK_SEARCH) {
+                BookSearchScreen(
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() },
+                    onSelectBook = { hit ->
+                        val shelf = hit.shelf
+                        navController.navigate(
+                            LibraryRoutes.shelfNavigation(
+                                bookId = hit.bookId,
+                                title = hit.title,
+                                callNo = hit.callNo,
+                                location = shelf?.locationName.orEmpty(),
+                                shelfLabel = shelf?.shelfLabel.orEmpty(),
+                                room = shelf?.room.orEmpty(),
+                                floor = shelf?.floor,
+                                estimated = shelf?.isEstimated == true
+                            )
+                        )
+                    }
+                )
+            }
+
+            composable(
+                route = LibraryRoutes.SHELF_NAVIGATION,
+                arguments = listOf(
+                    navArgument("bookId") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("title") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("callNo") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("location") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("shelfLabel") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("room") { type = NavType.StringType; defaultValue = "" },
+                    // 서버가 층을 모르면 빈 문자열이 온다. Int 인자로는 표현하지 못해 문자열로 받는다.
+                    navArgument("floor") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("estimated") { type = NavType.StringType; defaultValue = "0" }
+                )
+            ) {
+                ShelfNavigationScreen(
+                    onBack = { navController.popBackStack() },
+                    onHome = { goHome() }
+                )
+            }
+
             composable(LibraryRoutes.SEAT_STATUS_MENU) {
                 val digitalRoomTitle = stringResource(R.string.seat_status_digital_room_title)
                 val readingRoomTitle = stringResource(R.string.seat_status_reading_room_title)
@@ -978,6 +1027,7 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
                             onVolumeChange = viewModel::onVolumeChange,
                             onVolumeLockedChange = viewModel::onVolumeLockedChange,
                             onFeaturedFacilityCountChange = viewModel::onFeaturedFacilityCountChange,
+                            onBookSearchBaseUrlChange = viewModel::onBookSearchBaseUrlChange,
                             onSaveSettings = viewModel::onSaveSettings,
                             onCurrentPasswordChange = viewModel::onCurrentPasswordChange,
                             onNewPasswordChange = viewModel::onNewPasswordChange,

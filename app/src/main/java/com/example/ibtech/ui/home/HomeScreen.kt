@@ -82,6 +82,7 @@ fun HomeScreen(
     onFindFacility: () -> Unit,
     onUsageGuide: () -> Unit,
     onKidsContent: () -> Unit,
+    onBookSearch: () -> Unit,
     onTodayEvents: () -> Unit,
     onSeatStatus: () -> Unit,
     onAdminClick: () -> Unit,
@@ -113,6 +114,16 @@ fun HomeScreen(
             accent = YellowAccent,
             iconBackground = YellowAccentContainer,
             onClick = onKidsContent
+        ),
+        // 책 찾기(도서검색 서버 연동). 전용 일러스트가 아직 없어 "시설 찾기"와 같은 검색
+        // 아이콘을 쓰되 강조색은 민트 계열로 구분한다 — 실기 확인 후 전용 PNG 로 교체 예정.
+        HomeMenu(
+            iconRes = R.drawable.ic_home_facility_search,
+            label = stringResource(R.string.home_action_book_search),
+            subtitle = stringResource(R.string.home_action_book_search_subtitle),
+            accent = MintPrimary,
+            iconBackground = MintContainer,
+            onClick = onBookSearch
         )
     )
 
@@ -506,6 +517,7 @@ private fun HomeScreenLargePreview() {
             onFindFacility = {},
             onUsageGuide = {},
             onKidsContent = {},
+            onBookSearch = {},
             onTodayEvents = {},
             onSeatStatus = {},
             onAdminClick = {}
@@ -522,6 +534,7 @@ private fun HomeScreen1280x720Preview() {
             onFindFacility = {},
             onUsageGuide = {},
             onKidsContent = {},
+            onBookSearch = {},
             onTodayEvents = {},
             onSeatStatus = {},
             onAdminClick = {}
@@ -538,6 +551,7 @@ private fun HomeScreenSmallPreview() {
             onFindFacility = {},
             onUsageGuide = {},
             onKidsContent = {},
+            onBookSearch = {},
             onTodayEvents = {},
             onSeatStatus = {},
             onAdminClick = {}
