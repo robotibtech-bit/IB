@@ -73,7 +73,13 @@ fun ShelfNavigationScreen(
             RobotSpeechBubble(text = guideText)
             // 말풍선(화면 표시)과 별개로 실제 음성도 나오게 한다(요청: "도서 선택할 때
             // 안내할 때 tts로 소리도 나오게") — 중복 재생 방지는 뷰모델의 hasSpokenGuide가 맡는다.
-            LaunchedEffect(guideText) { viewModel.speakGuide(guideText) }
+            //
+            // isGuideResolved 를 기다리는 이유: 기준층 설정이 도착하기 전의 guideText 는
+            // "서가 위치를 확인하지 못했어요"(LOCATION_ONLY)다. 화면은 곧 올바른 문구로
+            // 바뀌지만 음성은 한 번만 나가므로, 기다리지 않으면 틀린 안내를 말하게 된다.
+            if (state.isGuideResolved) {
+                LaunchedEffect(guideText) { viewModel.speakGuide(guideText) }
+            }
 
             // 디버그 빌드에서 서가 POI 가 지도에 없어 다른 POI 로 대신 이동한 경우.
             // 실제 안내와 혼동하지 않도록 반드시 화면에 남긴다.

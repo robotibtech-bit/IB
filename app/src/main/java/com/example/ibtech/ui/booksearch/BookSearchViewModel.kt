@@ -76,6 +76,9 @@ class BookSearchViewModel(application: Application) : AndroidViewModel(applicati
     private var searchJob: Job? = null
     private var baseUrl: String = ""
 
+    /** 마이크로 대화를 연 적이 있는지. 화면을 벗어날 때 대화를 닫을지 판단하는 데만 쓴다. */
+    private var hasOpenedConversation = false
+
     val uiState: StateFlow<BookSearchUiState> = combine(
         internal,
         controller.listeningState,
@@ -101,6 +104,9 @@ class BookSearchViewModel(application: Application) : AndroidViewModel(applicati
         // 눌러야 하면 흐름이 끊긴다.
         viewModelScope.launch {
             controller.asrResults.collect { spoken ->
+                // 결과를 받은 시점에 Repository 가 이미 대화를 닫았다. 화면을 벗어날 때
+                // 또 닫으면 그때 재생 중일 수 있는 TTS 만 끊긴다.
+                hasOpenedConversation = false
                 internal.update { it.copy(keyword = spoken) }
                 search(spoken)
             }
@@ -125,13 +131,24 @@ class BookSearchViewModel(application: Application) : AndroidViewModel(applicati
     fun onVoiceClick() {
         if (uiState.value.listeningState.isActive) {
             controller.finishConversation()
+            hasOpenedConversation = false
             return
         }
+        hasOpenedConversation = true
         controller.askQuestion(VOICE_PROMPT)
     }
 
-    /** 화면을 벗어날 때 대화 레이어를 반드시 닫는다. */
+    /**
+     * 화면을 벗어날 때 열어 둔 대화 레이어를 닫는다.
+     *
+     * 마이크를 쓴 적이 있을 때만 닫는다. temi 의 finishConversation 은 대화 레이어만
+     * 닫는 것이 아니라 진행 중인 TTS 도 함께 끊기 때문이다. Compose Navigation 은 다음
+     * 화면을 먼저 구성하고 이 화면을 나중에 정리하므로, 조건 없이 부르면 서가 안내 화면이
+     * 막 시작한 안내 음성을 0.6초 만에 잘라 버린다(실측).
+     */
     fun onLeaveScreen() {
+        if (!hasOpenedConversation) return
+        hasOpenedConversation = false
         controller.finishConversation()
     }
 

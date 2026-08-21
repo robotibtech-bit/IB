@@ -60,7 +60,16 @@ data class ShelfNavigationUiState(
     val substitutePoi: String? = null,
     /** 서버에서 받아온 표지·저자·출판사. 아직 못 받았거나 매칭 실패면 null. */
     val detail: BookDetail? = null,
-    val isLoadingDetail: Boolean = false
+    val isLoadingDetail: Boolean = false,
+    /**
+     * 관리자 설정(기준층)이 실제로 반영된 상태인지.
+     *
+     * [guideMode]는 기준층을 알아야 정해진다. 설정은 DataStore 에서 비동기로 오므로 화면이
+     * 처음 그려지는 순간에는 아직 없고, 그때의 [guideMode]는 기본값 LOCATION_ONLY 다.
+     * 말풍선은 곧 올바른 문구로 바뀌지만 음성은 한 번만 나가므로, 이 값이 true 가 되기
+     * 전에는 말하지 않는다.
+     */
+    val isGuideResolved: Boolean = false
 ) {
     val canEscort: Boolean
         get() = guideMode != ShelfGuideMode.LOCATION_ONLY
@@ -147,7 +156,9 @@ class ShelfNavigationViewModel(
             navigationState = navState,
             substitutePoi = substitute,
             detail = detailPair.first,
-            isLoadingDetail = detailPair.second
+            isLoadingDetail = detailPair.second,
+            // 여기까지 왔다는 것은 settings 가 도착했다는 뜻이다.
+            isGuideResolved = true
         )
     }.stateIn(
         scope = viewModelScope,
