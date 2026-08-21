@@ -38,6 +38,13 @@ data class BookSearchUiState(
     /** 서버가 뽑아낸 검색어. "이렇게 찾았어요"로 보여 준다. */
     val planKeywords: List<String> = emptyList(),
     val issue: BookSearchIssue? = null,
+    /**
+     * 서버가 잠들어 있어 깨어나기를 기다리는 중인지.
+     *
+     * 사용자에게는 실패가 아니라 대기로 보여야 한다. 다시 누르라고 하면 그 사이 서버는
+     * 계속 깨어나는 중인데 사용자만 헛수고를 한다.
+     */
+    val isWakingServer: Boolean = false,
     val listeningState: ListeningState = ListeningState.Unavailable,
     val baseFloor: Int = LibrarySettings.DEFAULT_BASE_FLOOR,
     val isServerConfigured: Boolean = true
@@ -55,6 +62,15 @@ class BookSearchViewModel(application: Application) : AndroidViewModel(applicati
     private val settingsRepository = SettingsRepository.getInstance(application)
     private val controller: TemiController = TemiControllerProvider.current
     private val api = BookSearchApi()
+
+    /**
+     * 잠든 서버를 기다릴 때만 쓰는 클라이언트.
+     *
+     * 평소 검색은 10초 안에 끝나야 하고(안 되면 뭔가 잘못된 것이다), 잠든 서버는 깨어나는 데
+     * 40초쯤 걸린다. 두 경우의 적정 타임아웃이 너무 달라서 클라이언트를 나눴다. 평소 검색을
+     * 70초로 늘리면 진짜 장애일 때 사용자가 70초를 버리게 된다.
+     */
+    private val wakeApi = BookSearchApi(readTimeoutMillis = WAKE_READ_TIMEOUT_MILLIS)
 
     private val internal = MutableStateFlow(BookSearchUiState())
     private var searchJob: Job? = null
@@ -134,26 +150,58 @@ class BookSearchViewModel(application: Application) : AndroidViewModel(applicati
         }
         searchJob = viewModelScope.launch {
             try {
-                val result = api.search(baseUrl = baseUrl, query = query)
-                internal.update {
-                    it.copy(
-                        isSearching = false,
-                        hits = result.hits,
-                        planKeywords = result.plan.keywords,
-                        issue = null
-                    )
-                }
+                runSearch(api, query)
             } catch (e: BookSearchException) {
-                internal.update {
-                    it.copy(isSearching = false, hits = emptyList(), issue = e.issue)
+                // 잠든 서버는 "연결 실패"와 구분이 안 된다. 둘 다 UNREACHABLE 로 온다.
+                // 그래서 한 번은 오래 기다려 보고, 그래도 안 되면 그때 실패로 처리한다.
+                if (e.issue != BookSearchIssue.UNREACHABLE) {
+                    internal.update {
+                        it.copy(isSearching = false, hits = emptyList(), issue = e.issue)
+                    }
+                    return@launch
+                }
+                internal.update { it.copy(isWakingServer = true) }
+                try {
+                    runSearch(wakeApi, query)
+                } catch (retry: BookSearchException) {
+                    internal.update {
+                        it.copy(
+                            isSearching = false,
+                            isWakingServer = false,
+                            hits = emptyList(),
+                            issue = retry.issue
+                        )
+                    }
                 }
             }
+        }
+    }
+
+    private suspend fun runSearch(client: BookSearchApi, query: String) {
+        val result = client.search(baseUrl = baseUrl, query = query)
+        internal.update {
+            it.copy(
+                isSearching = false,
+                isWakingServer = false,
+                hits = result.hits,
+                planKeywords = result.plan.keywords,
+                issue = null
+            )
         }
     }
 
     companion object {
         /** 마이크 버튼을 눌렀을 때 로봇이 읽어 주는 질문. */
         const val VOICE_PROMPT = "어떤 책을 찾으시나요? 말씀해 주세요."
+
+        /**
+         * 잠든 서버를 기다리는 시간. 실측 콜드 스타트가 40초대라 여유를 두고 잡았다.
+         *
+         * 이 대기가 자주 보인다면 서버 예열([com.example.ibtech.navigation.LibraryNavHost])이
+         * 제대로 돌지 않는다는 뜻이다. 시연처럼 확실해야 하는 자리에서는 서버를 상시 대기로
+         * 올리는 방법도 있다 — 그쪽 주석에 명령을 적어 두었다.
+         */
+        private const val WAKE_READ_TIMEOUT_MILLIS = 70_000
 
         /**
          * 입력을 돕는 기본 키워드. 아이가 타이핑 없이도 쓸 수 있게 한다.

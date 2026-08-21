@@ -106,6 +106,22 @@ fun BookSearchScreen(
                         message = stringResource(R.string.book_search_not_configured)
                     )
 
+                    // 잠든 서버를 기다리는 중에는 왜 오래 걸리는지 알려 준다. 같은 스피너만
+                    // 계속 돌면 멈춘 줄 알고 화면을 떠나게 된다.
+                    state.isWakingServer -> Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator()
+                        Text(
+                            text = stringResource(R.string.book_search_waking_server),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 24.dp)
+                        )
+                    }
+
                     state.isSearching -> Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center

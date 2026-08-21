@@ -33,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.ibtech.BuildConfig
 import com.example.ibtech.R
+import com.example.ibtech.data.booksearch.BookSearchApi
 import com.example.ibtech.data.repository.DefaultUsageContent
 import com.example.ibtech.data.repository.SettingsRepository
 import com.example.ibtech.data.repository.StatsRepository
@@ -102,6 +103,7 @@ import com.example.ibtech.ui.usage.UsageCategoryScreen
 import com.example.ibtech.ui.usage.UsageCategoryViewModel
 import com.example.ibtech.ui.usage.UsageSubcategoryScreen
 import com.example.ibtech.ui.usage.UsageSubcategoryViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -1123,6 +1125,41 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
         }
     }
 
+    // 도서검색 서버 예열.
+    //
+    // 서버(Cloud Run)를 min-instances=0 으로 두어 요청이 없으면 인스턴스가 내려간다. 다시
+    // 깨어나는 데 40초쯤 걸리는데(이미지 4GB + 임베딩 모델 적재), 앱의 읽기 타임아웃은
+    // 10초라 잠든 서버에 검색을 걸면 "연결하지 못했습니다"로 끝난다. 로봇이 켜져 있는 동안
+    // 주기적으로 깨워 두면 손님이 기다릴 일이 없다.
+    //
+    // NavHost 수준에 두는 이유: 화면과 무관하게 돌아야 한다. 홈 화면에 두면 퀴즈처럼 오래
+    // 머무는 화면에서 코루틴이 취소되고, 하필 그 직후(퀴즈 → 책 추천)에 검색이 느려진다.
+    //
+    // 비용은 사실상 0원이다. 5분 간격이면 하루 300회 남짓이고 Cloud Run 무료 한도의 1%도
+    // 쓰지 않는다. 유휴 인스턴스는 요청을 처리하는 동안만 과금되기 때문이다.
+    //
+    // 시연처럼 한 번도 실패하면 안 되는 자리에서는 서버를 아예 상시 대기로 올리는 편이
+    // 확실하다. 인스턴스 교체나 동시 접속으로 예열이 뚫리는 경우까지 막아 준다.
+    //
+    //   gcloud run services update iblib-search --region=asia-northeast3 --min-instances=1
+    //
+    // 끝나면 반드시 되돌린다. 상시 대기는 하루 약 5,300원, 한 달이면 16만원이다.
+    //
+    //   gcloud run services update iblib-search --region=asia-northeast3 --min-instances=0
+    //
+    // 그때도 이 예열은 그대로 두면 된다. 서로 방해하지 않는다.
+    LaunchedEffect(settings.bookSearchBaseUrl) {
+        val baseUrl = settings.bookSearchBaseUrl
+        if (baseUrl.isBlank()) return@LaunchedEffect
+        val api = BookSearchApi()
+        while (true) {
+            // 실패는 삼킨다. 사용자를 위한 요청이 아니라 준비 작업이라, 서버가 죽었거나
+            // 와이파이가 끊겨도 다른 기능을 쓰는 화면에 오류를 띄우면 안 된다.
+            runCatching { api.health(baseUrl) }
+            delay(SEARCH_WARMUP_INTERVAL_MILLIS)
+        }
+    }
+
     IdleTimeoutObserver(
         navController = navController,
         currentRoute = currentRoute?.destination?.route,
@@ -1143,6 +1180,14 @@ fun LibraryNavHost(navController: NavHostController = rememberNavController()) {
 /** 무입력 자동 복귀 시 로봇이 실제로 이동해 갈 POI 이름. 현장에서 이 이름으로 지도에 위치를
  * 등록해 두어야 동작한다(관리자 시설 등록과 무관한, 로봇 자체의 대기 위치). */
 private const val HOME_POI_NAME = "홈"
+
+/**
+ * 도서검색 서버 예열 간격.
+ *
+ * Cloud Run이 유휴 인스턴스를 얼마나 붙잡아 두는지는 보장하지 않는다. 대체로 15분쯤이지만
+ * 더 짧을 수 있어 5분으로 잡았다. 늘리려면 실제로 잠드는지 확인하고 올려야 한다.
+ */
+private const val SEARCH_WARMUP_INTERVAL_MILLIS = 5 * 60 * 1000L
 
 /** `facility_navigation`에서 이동 중 뒤로/홈을 눌렀을 때 확인 후 수행할 동작. */
 private enum class PendingExit { BACK, HOME }
