@@ -8,8 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -59,8 +63,13 @@ fun ShelfNavigationScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(LibraryDimens.ScreenPadding),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .padding(LibraryDimens.ScreenPadding)
+                // 디버그 대체 안내 배너 + 도착 후 버튼 두 개까지 합쳐지면 화면 높이를
+                // 넘을 수 있다 — 스크롤이 없으면 그 아래 버튼이 아예 눌리지 않는다(실기 확인).
+                .verticalScroll(rememberScrollState()),
+            // 요청: "한화면에 버튼이 다 나오는지 보고 싶어" — 24dp는 도착 후 버튼 줄까지
+            // 합치면 화면 아래로 넘친다. 16dp로 줄여서 최대한 스크롤 없이 다 보이게 한다.
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             BookSummaryCard(
                 title = state.bookTitle,
@@ -80,19 +89,26 @@ fun ShelfNavigationScreen(
             if (state.isGuideResolved) {
                 LaunchedEffect(guideText) { viewModel.speakGuide(guideText) }
             }
+            // 도착 안내(제가 데려다 드릴게요 이후 "도착했어요" 멘트)는 ShelfNavigationViewModel이
+            // navigationState를 직접 구독해서 말한다 — NavigationViewModel과 같은 방식.
 
             // 디버그 빌드에서 서가 POI 가 지도에 없어 다른 POI 로 대신 이동한 경우.
-            // 실제 안내와 혼동하지 않도록 반드시 화면에 남긴다.
-            state.substitutePoi?.let { poi ->
-                Text(
-                    text = stringResource(
-                        R.string.shelf_navigation_substitute_poi,
-                        state.shelfLabel,
-                        poi
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.error
-                )
+            // 실제 안내와 혼동하지 않도록 원래는 반드시 화면에 남긴다 — 사용자 요청으로
+            // 지금 빌드만 화면 표시를 끈다(대체 이동 자체는 그대로 동작한다). 서가 POI가
+            // 실제 지도에 등록되면 이 조건이 항상 false라 자연히 안 뜨게 되므로, 그때는
+            // 이 주석과 아래 if(false)를 지우고 원래대로 되돌리면 된다.
+            if (false) {
+                state.substitutePoi?.let { poi ->
+                    Text(
+                        text = stringResource(
+                            R.string.shelf_navigation_substitute_poi,
+                            state.shelfLabel,
+                            poi
+                        ),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
 
             when {
@@ -100,20 +116,41 @@ fun ShelfNavigationScreen(
 
                 state.hasStarted -> EscortProgress(
                     navigationState = state.navigationState,
-                    onStop = viewModel::stopEscort
+                    onStop = viewModel::stopEscort,
+                    onSearchAnotherBook = onBack,
+                    onGoHome = onHome
                 )
 
-                else -> LibraryPrimaryButton(
-                    text = stringResource(
-                        if (state.guideMode == ShelfGuideMode.ELEVATOR) {
-                            R.string.shelf_navigation_go_elevator
-                        } else {
-                            R.string.shelf_navigation_go_shelf
-                        }
-                    ),
-                    onClick = viewModel::startEscort,
-                    icon = Icons.Filled.DirectionsWalk
-                )
+                // 요청: "버튼 가로크기를 절반으로 나누고 나머지 반 공간에 다른책찾기버튼
+                // 추가" — 이동 버튼 옆에 다른 책을 바로 찾을 수 있는 버튼을 반씩 나눠 둔다.
+                // "다른 책 찾기"는 새 화면을 만들지 않고 뒤로가기와 같다 — 이 화면을 부른
+                // 검색 결과 화면이 그대로 남아 있어 바로 다시 고를 수 있다.
+                else -> Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    LibraryPrimaryButton(
+                        text = stringResource(
+                            if (state.guideMode == ShelfGuideMode.ELEVATOR) {
+                                R.string.shelf_navigation_go_elevator
+                            } else {
+                                R.string.shelf_navigation_go_shelf
+                            }
+                        ),
+                        onClick = viewModel::startEscort,
+                        icon = Icons.Filled.DirectionsWalk,
+                        modifier = Modifier.weight(1f)
+                    )
+                    LibraryOutlinedButton(
+                        text = stringResource(R.string.shelf_navigation_search_another_book),
+                        onClick = onBack,
+                        icon = Icons.Filled.Search,
+                        // Outlined 버튼은 기본이 Primary보다 낮다(88dp vs 100dp) — 같은 줄에서
+                        // 나란히 쓰니 높이를 맞춘다(요청: "2개버튼 크기가 달라보여 크기 통일").
+                        height = LibraryDimens.PrimaryButtonHeight,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     }
@@ -168,25 +205,11 @@ private fun BookSummaryCard(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (detail != null && detail.bookId.isNotBlank()) {
-                    Text(
-                        text = stringResource(R.string.shelf_navigation_reg_no, detail.bookId),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
                 Text(
                     text = location,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
-                if (detail != null && detail.holding.isNotBlank()) {
-                    Text(
-                        text = stringResource(R.string.shelf_navigation_holding, detail.holding),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
         }
     }
@@ -207,7 +230,12 @@ private fun BookDetail.byline(): String? {
 }
 
 @Composable
-private fun EscortProgress(navigationState: NavigationState, onStop: () -> Unit) {
+private fun EscortProgress(
+    navigationState: NavigationState,
+    onStop: () -> Unit,
+    onSearchAnotherBook: () -> Unit,
+    onGoHome: () -> Unit
+) {
     val statusRes = when (navigationState) {
         is NavigationState.Requested -> R.string.shelf_navigation_status_requested
         is NavigationState.Moving -> R.string.shelf_navigation_status_moving
@@ -216,7 +244,7 @@ private fun EscortProgress(navigationState: NavigationState, onStop: () -> Unit)
         is NavigationState.Failed -> R.string.shelf_navigation_status_failed
         NavigationState.Idle -> R.string.shelf_navigation_status_requested
     }
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = stringResource(statusRes),
             style = MaterialTheme.typography.titleLarge
@@ -228,11 +256,34 @@ private fun EscortProgress(navigationState: NavigationState, onStop: () -> Unit)
                 icon = Icons.Filled.Stop
             )
         }
+        // 요청: "서가 이동버튼 누르고 도착해서도 버튼으로 다른책찾기, 홈으로이동 버튼
+        // 추가해줘" — 도착한 뒤에는 다음 행동(다른 책을 더 찾을지, 끝내고 홈으로 갈지)을
+        // 바로 고를 수 있게 한다.
+        if (navigationState is NavigationState.Arrived) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                LibraryOutlinedButton(
+                    text = stringResource(R.string.shelf_navigation_search_another_book),
+                    onClick = onSearchAnotherBook,
+                    icon = Icons.Filled.Search,
+                    height = LibraryDimens.PrimaryButtonHeight,
+                    modifier = Modifier.weight(1f)
+                )
+                LibraryPrimaryButton(
+                    text = stringResource(R.string.shelf_navigation_go_home),
+                    onClick = onGoHome,
+                    icon = Icons.Filled.Home,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
     }
 }
 
-private val COVER_WIDTH = 180.dp
-private val COVER_HEIGHT = 260.dp
+private val COVER_WIDTH = 210.dp
+private val COVER_HEIGHT = 300.dp
 
 /** "1층 어린이자료실 · 아동4~1" 처럼 한 줄로. 층을 모르면 층을 뺀다. */
 @Composable

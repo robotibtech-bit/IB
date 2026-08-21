@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.ibtech.BuildConfig
+import com.example.ibtech.R
 import com.example.ibtech.data.booksearch.BookSearchApi
 import com.example.ibtech.data.booksearch.BookSearchException
 import com.example.ibtech.data.repository.SettingsRepository
@@ -110,31 +111,9 @@ class ShelfNavigationViewModel(
      * [TemiController.speak] 호출은 첫 번째 것만 통과시킨다. */
     private var hasSpokenGuide = false
 
-    init {
-        // 지도에 어떤 POI 가 있는지 알아야 대체 여부를 판단할 수 있다.
-        controller.refreshLocations()
-        loadDetail()
-    }
-
-    /**
-     * 표지·저자·출판사를 서버에서 받아온다.
-     *
-     * 실패해도 화면은 그대로 동작한다 — 서가 안내에 필요한 정보는 이미 라우트 인자로
-     * 갖고 있고, 보강 정보는 있으면 좋은 부가 정보다.
-     */
-    private fun loadDetail() {
-        if (bookId.isBlank()) return
-        isLoadingDetail.value = true
-        viewModelScope.launch {
-            val baseUrl = settingsRepository.settings.first().bookSearchBaseUrl
-            detail.value = try {
-                api.detail(baseUrl = baseUrl, bookId = bookId)
-            } catch (e: BookSearchException) {
-                null
-            }
-            isLoadingDetail.value = false
-        }
-    }
+    /** [speakArrival]이 여러 번 불려도 한 번만 말하게 막는다 — navigationState가 Arrived로
+     * 고정된 채로도 다른 필드(예: detail 로딩) 변화로 recompose 될 수 있다. */
+    private var hasSpokenArrival = false
 
     val uiState: StateFlow<ShelfNavigationUiState> = combine(
         hasStarted,
@@ -173,12 +152,70 @@ class ShelfNavigationViewModel(
         )
     )
 
-    /** 사용자가 "데려다 주세요"를 눌렀을 때. */
+    init {
+        // 지도에 어떤 POI 가 있는지 알아야 대체 여부를 판단할 수 있다.
+        controller.refreshLocations()
+        loadDetail()
+
+        // 도착 음성 안내. NavigationViewModel과 같은 방식으로 ViewModel이 직접
+        // navigationState를 구독한다 — Compose LaunchedEffect에 맡기면 화면이 잠깐이라도
+        // 컴포즈되지 않는 동안(예: 로봇 도킹 UI가 잠깐 전면에 뜨는 경우) 도착을 놓칠 수 있다.
+        //
+        // hasStarted를 반드시 같이 확인해야 한다 — controller는 화면마다 새로 만들어지지
+        // 않는 공유 객체라, 직전에 다른 책으로 동행했다가 Arrived로 끝난 상태가 그대로
+        // 남아 있을 수 있다. 그 상태에서 새 책 화면이 열리자마자(this init이 uiState보다
+        // 먼저 실행되던 예전 순서에서는 uiState가 아직 null이라 NullPointerException까지
+        // 났었다) 가드 없이 반응하면 로봇이 움직이지도 않았는데 "도착했어요"를 말해 버린다.
+        viewModelScope.launch {
+            controller.navigationState.collect { navState ->
+                if (hasStarted.value && navState is NavigationState.Arrived) speakArrival()
+            }
+        }
+    }
+
+    /**
+     * 표지·저자·출판사를 서버에서 받아온다.
+     *
+     * 실패해도 화면은 그대로 동작한다 — 서가 안내에 필요한 정보는 이미 라우트 인자로
+     * 갖고 있고, 보강 정보는 있으면 좋은 부가 정보다.
+     */
+    private fun loadDetail() {
+        if (bookId.isBlank()) return
+        isLoadingDetail.value = true
+        viewModelScope.launch {
+            val baseUrl = settingsRepository.settings.first().bookSearchBaseUrl
+            detail.value = try {
+                api.detail(baseUrl = baseUrl, bookId = bookId)
+            } catch (e: BookSearchException) {
+                null
+            }
+            isLoadingDetail.value = false
+        }
+    }
+
+    /** 사용자가 "데려다 주세요"를 눌렀을 때. "제가 데려다 드릴게요"는 화면이 뜨자마자가
+     * 아니라 실제로 출발하는 이 시점에 말해야 안내 문구와 어긋나지 않는다. */
     fun startEscort() {
         val target = navigationPoi() ?: return
         val actual = substituteIfMissing(target)
         hasStarted.value = true
+        controller.speak(getApplication<Application>().getString(R.string.shelf_navigation_speak_start))
         controller.goTo(actual)
+    }
+
+    /** [NavigationState.Arrived]가 되면 부른다. 서가로 바로 동행한 경우와 엘리베이터까지만
+     * 데려다준 경우는 도착 후 할 말이 다르다 — 후자는 몇 층으로 올라가야 하는지까지
+     * 마저 안내한다. */
+    private fun speakArrival() {
+        if (hasSpokenArrival) return
+        hasSpokenArrival = true
+        val app = getApplication<Application>()
+        val text = if (uiState.value.guideMode == ShelfGuideMode.ELEVATOR) {
+            app.getString(R.string.shelf_navigation_speak_arrived_elevator, shelfFloor ?: uiState.value.baseFloor)
+        } else {
+            app.getString(R.string.shelf_navigation_status_arrived)
+        }
+        controller.speak(text)
     }
 
     /**
@@ -195,8 +232,14 @@ class ShelfNavigationViewModel(
             substitutePoi.value = null
             return target
         }
-        // "홈베이스"처럼 되돌아오는 POI 보다는 목록 첫 항목이 이동 확인에 낫다.
-        val replacement = known.first()
+        // "home base"는 충전 도킹 전용 지점이라 goTo로 보내면 temi SDK가 근처에서 스스로
+        // 중단해 버려(실측: goTo status=abort desc=Abort by user) Arrived까지 가지 않는다.
+        // 동행 화면의 상태 전환(도착 포함)을 눈으로 확인하려는 장치이므로 실제로 도착
+        // 가능한 POI를 골라야 한다 — 있으면 엘리베이터로 보낸다(엘리베이터 안내 문구까지
+        // 함께 확인할 수 있어서), 없으면 home base를 뺀 첫 항목으로 대신한다.
+        val replacement = known.firstOrNull { it == ELEVATOR_POI_NAME }
+            ?: known.firstOrNull { it != HOME_BASE_POI_NAME }
+            ?: known.first()
         substitutePoi.value = replacement
         return replacement
     }
@@ -248,5 +291,11 @@ class ShelfNavigationViewModel(
     companion object {
         /** 시설 id 와 절대 겹치지 않게 하는 접두어. */
         private const val SHELF_FACILITY_ID_PREFIX = "shelf:"
+
+        /** temi SDK가 자동으로 붙이는 충전 도킹 POI 이름. [substituteIfMissing] 대체 후보에서 뺀다. */
+        private const val HOME_BASE_POI_NAME = "home base"
+
+        /** [substituteIfMissing]이 가능하면 우선 고르는 대체 POI. */
+        private const val ELEVATOR_POI_NAME = "엘리베이터"
     }
 }

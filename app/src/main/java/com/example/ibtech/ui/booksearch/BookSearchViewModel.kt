@@ -76,6 +76,21 @@ class BookSearchViewModel(application: Application) : AndroidViewModel(applicati
     private var searchJob: Job? = null
     private var baseUrl: String = ""
 
+    /**
+     * 카드에 띄울 표지. bookId -> 표지 URL.
+     *
+     * 검색 응답에는 표지가 없다 — 서버가 외부 서점에서 표지를 보강해 주는 건 상세 API
+     * (`/books/{id}`)뿐이다. 그렇다고 검색 결과 전부(최대 10건)를 한꺼번에 상세 조회하면
+     * 지연·외부 API 쿼터가 커지므로, [requestThumbnail]로 카드가 실제로 화면에 나타날
+     * 때만 한 건씩 불러온다([BookHitCard]가 트리거한다).
+     */
+    private val thumbnails = MutableStateFlow<Map<String, String>>(emptyMap())
+    val thumbnailsState: StateFlow<Map<String, String>> = thumbnails.asStateFlow()
+
+    /** 이미 요청했거나 응답을 받은 bookId. 실패해도 다시 시도하지 않는다 — 표지는
+     * 부가 정보라 실패했다고 재시도할 만큼 중요하지 않다. */
+    private val requestedThumbnails = mutableSetOf<String>()
+
     /** 마이크로 대화를 연 적이 있는지. 화면을 벗어날 때 대화를 닫을지 판단하는 데만 쓴다. */
     private var hasOpenedConversation = false
 
@@ -196,6 +211,9 @@ class BookSearchViewModel(application: Application) : AndroidViewModel(applicati
 
     private suspend fun runSearch(client: BookSearchApi, query: String) {
         val result = client.search(baseUrl = baseUrl, query = query)
+        // 새 검색 결과에는 이전 검색의 표지가 섞이면 안 되므로 캐시를 비운다.
+        thumbnails.value = emptyMap()
+        requestedThumbnails.clear()
         internal.update {
             it.copy(
                 isSearching = false,
@@ -204,6 +222,21 @@ class BookSearchViewModel(application: Application) : AndroidViewModel(applicati
                 planKeywords = result.plan.keywords,
                 issue = null
             )
+        }
+    }
+
+    /** [BookHitCard]가 화면에 나타날 때 부른다. 이미 요청했던 책이면 아무 일도 하지 않는다. */
+    fun requestThumbnail(bookId: String) {
+        if (bookId.isBlank() || !requestedThumbnails.add(bookId)) return
+        viewModelScope.launch {
+            val thumbnail = try {
+                api.detail(baseUrl = baseUrl, bookId = bookId).thumbnail
+            } catch (e: BookSearchException) {
+                ""
+            }
+            if (thumbnail.isNotBlank()) {
+                thumbnails.update { it + (bookId to thumbnail) }
+            }
         }
     }
 

@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.ibtech.ui.theme.LibraryDimens
 
@@ -66,7 +67,11 @@ fun LibraryOutlinedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    icon: ImageVector? = null
+    icon: ImageVector? = null,
+    // 기본값은 기존 호출부 전부와 동일하게 유지한다. 이 버튼이 LibraryPrimaryButton과
+    // 나란히 한 행을 이룰 때(예: 서가 안내 화면의 "서가 이동/다른 책 찾기") 둘의 높이가
+    // 원래 다르다(Primary 100dp, Outlined 88dp) — 그럴 때만 호출부에서 맞춰 준다.
+    height: Dp = LibraryDimens.SecondaryButtonHeight
 ) {
     OutlinedButton(
         onClick = debounced(onClick),
@@ -78,7 +83,7 @@ fun LibraryOutlinedButton(
         ),
         modifier = modifier
             .fillMaxWidth()
-            .height(LibraryDimens.SecondaryButtonHeight)
+            .height(height)
     ) {
         ButtonContent(text = text, icon = icon, textStyle = MaterialTheme.typography.titleMedium)
     }

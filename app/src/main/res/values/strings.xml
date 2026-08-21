@@ -661,13 +661,17 @@
 
     <!-- 서가 안내 (책 찾기 > 결과 선택). 줄바꿈/작은따옴표는 쓰지 않는다 (AAPT 이스케이프 이슈). -->
     <string name="shelf_navigation_title">서가 안내</string>
-    <string name="shelf_navigation_go_shelf">서가로 데려다 주세요</string>
-    <string name="shelf_navigation_go_elevator">엘리베이터까지 데려다 주세요</string>
+    <string name="shelf_navigation_go_shelf">서가 이동</string>
+    <string name="shelf_navigation_go_elevator">엘리베이터 이동</string>
+    <string name="shelf_navigation_search_another_book">다른 책 찾기</string>
+    <string name="shelf_navigation_go_home">홈으로 이동</string>
     <string name="shelf_navigation_stop">여기서 멈출게요</string>
-    <string name="shelf_navigation_guide_escort">%1$s 서가에 있어요. 제가 데려다 드릴게요.</string>
-    <string name="shelf_navigation_guide_escort_estimated">%1$s 서가 근처에 있을 거예요. 그쪽으로 안내해 드릴게요.</string>
-    <string name="shelf_navigation_guide_elevator">%1$d층 %2$s에 있어요. 엘리베이터까지 모셔다 드릴게요.</string>
+    <string name="shelf_navigation_guide_escort">%1$s 서가에 있어요.</string>
+    <string name="shelf_navigation_guide_escort_estimated">%1$s 서가 근처에 있을 거예요.</string>
+    <string name="shelf_navigation_guide_elevator">%1$d층 %2$s에 있어요.</string>
     <string name="shelf_navigation_guide_unknown">이 책의 서가 위치를 아직 확인하지 못했어요. 사서 선생님께 여쭤봐 주세요.</string>
+    <string name="shelf_navigation_speak_start">제가 데려다 드릴게요.</string>
+    <string name="shelf_navigation_speak_arrived_elevator">도착했어요. 엘리베이터를 이용해 %1$d층으로 올라가시면 있어요.</string>
     <string name="shelf_navigation_status_requested">출발 준비 중이에요.</string>
     <string name="shelf_navigation_status_moving">따라오세요. 서가로 가고 있어요.</string>
     <string name="shelf_navigation_status_arrived">도착했어요. 이 서가에서 찾아보세요.</string>
@@ -677,7 +681,5 @@
     <string name="settings_admin_error_book_search_url">http:// 또는 https:// 로 시작해야 합니다.</string>
     <string name="shelf_navigation_substitute_poi">[테스트] 지도에 %1$s POI가 없어 %2$s(으)로 대신 이동합니다.</string>
     <string name="shelf_navigation_call_no">청구기호 %1$s</string>
-    <string name="shelf_navigation_reg_no">등록번호 %1$s</string>
-    <string name="shelf_navigation_holding">%1$s</string>
     <string name="shelf_navigation_translator">%1$s 옮김</string>
 </resources>

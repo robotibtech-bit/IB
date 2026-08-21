@@ -64,6 +64,7 @@ fun BookSearchScreen(
     viewModel: BookSearchViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val thumbnails by viewModel.thumbnailsState.collectAsStateWithLifecycle()
 
     // 화면을 벗어날 때 대화 레이어를 닫지 않으면 temi 가 계속 듣고 있는 상태로 남는다.
     DisposableEffect(Unit) {
@@ -145,6 +146,8 @@ fun BookSearchScreen(
                     state.hits.isNotEmpty() -> ResultList(
                         hits = state.hits,
                         planKeywords = state.planKeywords,
+                        thumbnails = thumbnails,
+                        onRequestThumbnail = viewModel::requestThumbnail,
                         onSelectBook = onSelectBook
                     )
 
@@ -273,15 +276,18 @@ private fun SuggestionRow(enabled: Boolean, onClick: (String) -> Unit) {
 }
 
 /** 요청: "가로 긴바가 나오는 형태에서 카드형태로 카드들을 가로로 나열" — 한 줄에 결과 하나씩
- * 쌓이던 LazyColumn을 시설 목록 그리드와 같은 방식(Adaptive)의 LazyVerticalGrid로 바꿨다. */
+ * 쌓이던 LazyColumn을 LazyVerticalGrid로 바꿨다. 한 줄에 5개로 고정한다(요청: "한줄에
+ * 5개만 나오게") — Adaptive는 화면 폭에 따라 열 수가 바뀌어 카드 크기도 함께 흔들린다. */
 @Composable
 private fun ResultList(
     hits: List<BookHit>,
     planKeywords: List<String>,
+    thumbnails: Map<String, String>,
+    onRequestThumbnail: (String) -> Unit,
     onSelectBook: (BookHit) -> Unit
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = BOOK_CARD_MIN_WIDTH),
+        columns = GridCells.Fixed(BOOK_CARD_COLUMNS),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -298,12 +304,17 @@ private fun ResultList(
             }
         }
         items(items = hits, key = { it.bookId }) { hit ->
-            BookHitCard(hit = hit, onClick = { onSelectBook(hit) })
+            BookHitCard(
+                hit = hit,
+                thumbnail = thumbnails[hit.bookId],
+                onAppear = { onRequestThumbnail(hit.bookId) },
+                onClick = { onSelectBook(hit) }
+            )
         }
     }
 }
 
-private val BOOK_CARD_MIN_WIDTH = 260.dp
+private const val BOOK_CARD_COLUMNS = 5
 
 // 요청: "검색버튼 살짝 크기 줄이고" — 아이콘 + titleLarge 스타일의 "검색" 두 글자가
 // 한 줄에 들어가는 최소 폭. 160dp까지 줄이면 텍스트가 줄바꿈되면서 버튼 높이에 잘린다.

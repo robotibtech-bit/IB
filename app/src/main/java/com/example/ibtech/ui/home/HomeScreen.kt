@@ -502,7 +502,9 @@ private fun SeatStatusBar(
                     imageVector = Icons.Filled.EventSeat,
                     contentDescription = null,
                     tint = LavenderAccent,
-                    modifier = Modifier.size(28.dp)
+                    // 요청: "좌석이미지는 매우 작게 되어있어" — 원형 배지는 바 높이에 맞춰
+                    // 커지는데 아이콘 자체는 28dp로 고정돼 있어 배지 안에서 작아 보였다.
+                    modifier = Modifier.size(44.dp)
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
