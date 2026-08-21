@@ -20,3 +20,10 @@ local.properties
 
 # Claude local settings
 .claude/settings.local.json
+
+# Release 서명키는 절대 커밋하지 않는다(정책, 2026-08-21) — app/debug.keystore(공용 디버그
+# 키, 저장소에 커밋됨)와 달리 release 키/비밀번호는 IB_RELEASE_* 환경변수로만 전달한다.
+# 아래 패턴에 해당하는 파일을 로컬에 두더라도 git에는 절대 올라가지 않는다.
+*release*.keystore
+*release*.jks
+release.properties
