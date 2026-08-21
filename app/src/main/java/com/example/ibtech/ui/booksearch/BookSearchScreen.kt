@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
@@ -270,15 +272,21 @@ private fun SuggestionRow(enabled: Boolean, onClick: (String) -> Unit) {
     }
 }
 
+/** 요청: "가로 긴바가 나오는 형태에서 카드형태로 카드들을 가로로 나열" — 한 줄에 결과 하나씩
+ * 쌓이던 LazyColumn을 시설 목록 그리드와 같은 방식(Adaptive)의 LazyVerticalGrid로 바꿨다. */
 @Composable
 private fun ResultList(
     hits: List<BookHit>,
     planKeywords: List<String>,
     onSelectBook: (BookHit) -> Unit
 ) {
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = BOOK_CARD_MIN_WIDTH),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         if (planKeywords.isNotEmpty()) {
-            item {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 Text(
                     text = stringResource(
                         R.string.book_search_understood_as,
@@ -295,6 +303,10 @@ private fun ResultList(
     }
 }
 
-private val SEARCH_BUTTON_WIDTH = 220.dp
+private val BOOK_CARD_MIN_WIDTH = 260.dp
+
+// 요청: "검색버튼 살짝 크기 줄이고" — 아이콘 + titleLarge 스타일의 "검색" 두 글자가
+// 한 줄에 들어가는 최소 폭. 160dp까지 줄이면 텍스트가 줄바꿈되면서 버튼 높이에 잘린다.
+private val SEARCH_BUTTON_WIDTH = 196.dp
 private val VOICE_ICON_SIZE = 56.dp
 private val CHIP_HEIGHT = 64.dp

@@ -96,6 +96,11 @@ class ShelfNavigationViewModel(
     private val detail = MutableStateFlow<BookDetail?>(null)
     private val isLoadingDetail = MutableStateFlow(false)
 
+    /** 안내 문구를 한 번만 말하게 막는다 — 화면이 여러 번 recompose 돼도 [speakGuide]가
+     * 여러 번 불릴 수 있어서(요청: "도서 선택할 때 안내할 때 tts로 소리도 나오게"), 실제
+     * [TemiController.speak] 호출은 첫 번째 것만 통과시킨다. */
+    private var hasSpokenGuide = false
+
     init {
         // 지도에 어떤 POI 가 있는지 알아야 대체 여부를 판단할 수 있다.
         controller.refreshLocations()
@@ -187,6 +192,14 @@ class ShelfNavigationViewModel(
 
     fun stopEscort() {
         controller.stopMovement()
+    }
+
+    /** 화면에 뜬 안내 문구([ShelfNavigationScreen]의 `guideText()`)를 그대로 음성으로도
+     * 들려준다 — 말풍선은 이미 있었지만 실제 TTS 재생이 빠져 있었다. */
+    fun speakGuide(text: String) {
+        if (hasSpokenGuide || text.isBlank()) return
+        hasSpokenGuide = true
+        controller.speak(text)
     }
 
     private fun resolveGuideMode(baseFloor: Int): ShelfGuideMode {

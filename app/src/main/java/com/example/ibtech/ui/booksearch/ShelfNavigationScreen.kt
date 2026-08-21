@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,7 +69,11 @@ fun ShelfNavigationScreen(
                 detail = state.detail
             )
 
-            RobotSpeechBubble(text = state.guideText())
+            val guideText = state.guideText()
+            RobotSpeechBubble(text = guideText)
+            // 말풍선(화면 표시)과 별개로 실제 음성도 나오게 한다(요청: "도서 선택할 때
+            // 안내할 때 tts로 소리도 나오게") — 중복 재생 방지는 뷰모델의 hasSpokenGuide가 맡는다.
+            LaunchedEffect(guideText) { viewModel.speakGuide(guideText) }
 
             // 디버그 빌드에서 서가 POI 가 지도에 없어 다른 POI 로 대신 이동한 경우.
             // 실제 안내와 혼동하지 않도록 반드시 화면에 남긴다.
