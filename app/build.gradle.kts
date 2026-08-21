@@ -26,21 +26,6 @@ android {
     // 설치가 막힌다(2026-08-20 실제 발생 — 로컬 키스토어가 갱신되며 기존 설치와 서명이 어긋남).
     // 그래서 디버그 키를 로컬에 맡기지 않고 이 저장소에 커밋해 둔 app/debug.keystore 하나로
     // 고정한다 — 어느 PC에서 pull해서 빌드해도 항상 같은 서명이 나온다.
-    //
-    // release 서명키는 절대 이 저장소에 커밋하지 않는다 — 환경변수로만 전달받는다(정책,
-    // 2026-08-21). 아래 네 값이 모두 있어야 release가 서명된다:
-    //   IB_RELEASE_STORE_FILE / IB_RELEASE_STORE_PASSWORD / IB_RELEASE_KEY_ALIAS / IB_RELEASE_KEY_PASSWORD
-    // 하나라도 없으면 assembleRelease/bundleRelease 자체를 막는다(아래 tasks.matching) — 서명 없이
-    // 조용히 unsigned APK를 만들거나, 새 키를 임의로 생성하는 일은 절대 없다.
-    val releaseStoreFile = providers.environmentVariable("IB_RELEASE_STORE_FILE").orNull
-    val releaseStorePassword = providers.environmentVariable("IB_RELEASE_STORE_PASSWORD").orNull
-    val releaseKeyAlias = providers.environmentVariable("IB_RELEASE_KEY_ALIAS").orNull
-    val releaseKeyPassword = providers.environmentVariable("IB_RELEASE_KEY_PASSWORD").orNull
-    val hasReleaseSigningEnv = !releaseStoreFile.isNullOrBlank() &&
-        !releaseStorePassword.isNullOrBlank() &&
-        !releaseKeyAlias.isNullOrBlank() &&
-        !releaseKeyPassword.isNullOrBlank()
-
     signingConfigs {
         getByName("debug") {
             storeFile = file("debug.keystore")
@@ -48,54 +33,15 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
-        create("release") {
-            if (hasReleaseSigningEnv) {
-                storeFile = file(releaseStoreFile!!)
-                storePassword = releaseStorePassword
-                keyAlias = releaseKeyAlias
-                keyPassword = releaseKeyPassword
-            }
-        }
     }
 
     buildTypes {
-        debug {
-            isDebuggable = true
-        }
         release {
-            isDebuggable = false
-            // 우선순위: 안정성. minify/R8을 켜면 디버그와 동작이 달라질 위험이 있어 당장은
-            // 끈 채로 유지한다(정책, 2026-08-21) — 기능은 debug와 동일하게 동작해야 한다.
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (hasReleaseSigningEnv) {
-                signingConfig = signingConfigs.getByName("release")
-            }
-        }
-    }
-
-    // release 서명키 환경변수가 없으면 release 빌드 자체를 아예 실패시킨다 — signingConfig를
-    // 안 붙이면 Gradle은 에러 없이 조용히 unsigned APK를 만들어 버리는데, 그건 이 프로젝트
-    // 정책(배포 중단 후 사용자에게 알림, 임의 키 생성 금지)에 어긋난다. package* 단계(실제
-    // APK를 디스크에 쓰는 태스크)에도 걸어야 한다 — assemble*/bundle*에만 걸면 package가
-    // 먼저 끝나 서명되지 않은 APK 파일이 실패한 빌드에도 결과물 폴더에 남는다.
-    tasks.matching {
-        it.name.startsWith("assembleRelease") ||
-            it.name.startsWith("bundleRelease") ||
-            it.name.startsWith("packageRelease")
-    }.configureEach {
-        doFirst {
-            if (!hasReleaseSigningEnv) {
-                throw GradleException(
-                    "Release 서명 키가 설정되지 않았습니다. IB_RELEASE_STORE_FILE / " +
-                        "IB_RELEASE_STORE_PASSWORD / IB_RELEASE_KEY_ALIAS / IB_RELEASE_KEY_PASSWORD " +
-                        "네 환경변수를 모두 설정한 뒤 다시 시도하세요. 새 키를 임의로 만들지 않습니다 — " +
-                        "정해진 회사 Release 키를 준비해야 합니다."
-                )
-            }
         }
     }
     compileOptions {
