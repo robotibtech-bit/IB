@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.EventSeat
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Card
@@ -44,6 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -115,10 +117,11 @@ fun HomeScreen(
             iconBackground = YellowAccentContainer,
             onClick = onKidsContent
         ),
-        // 책 찾기(도서검색 서버 연동). 전용 일러스트가 아직 없어 "시설 찾기"와 같은 검색
-        // 아이콘을 쓰되 강조색은 민트 계열로 구분한다 — 실기 확인 후 전용 PNG 로 교체 예정.
+        // 책 찾기(도서검색 서버 연동). 전용 일러스트가 아직 없다 — "시설 찾기"(돋보기)와
+        // "이용방법 안내"(펼쳐진 책 한 권) 둘 다와 겹치지 않도록 책 여러 권 아이콘을 임시로
+        // 쓴다(요청: "아이콘이 같으니 다른 아이콘으로 분류") — 실기 확인 후 전용 PNG 로 교체 예정.
         HomeMenu(
-            iconRes = R.drawable.ic_home_facility_search,
+            iconVector = Icons.AutoMirrored.Filled.LibraryBooks,
             label = stringResource(R.string.home_action_book_search),
             subtitle = stringResource(R.string.home_action_book_search_subtitle),
             accent = MintPrimary,
@@ -213,8 +216,11 @@ fun HomeScreen(
     }
 }
 
+/** [iconRes]는 전용 PNG 일러스트, [iconVector]는 아직 전용 일러스트가 없는 카드가 쓰는
+ * Material 아이콘 대체(다른 화면의 EventSeat 자리표시와 같은 패턴) — 정확히 하나만 채운다. */
 private data class HomeMenu(
-    @DrawableRes val iconRes: Int,
+    @DrawableRes val iconRes: Int? = null,
+    val iconVector: ImageVector? = null,
     val label: String,
     val subtitle: String,
     val accent: Color,
@@ -329,12 +335,24 @@ private fun HomeMenuCard(
                         .background(menu.iconBackground, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(menu.iconRes),
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(iconSize)
-                    )
+                    if (menu.iconRes != null) {
+                        Image(
+                            painter = painterResource(menu.iconRes),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(iconSize)
+                        )
+                    } else if (menu.iconVector != null) {
+                        // Material 아이콘은 PNG 일러스트보다 획이 가늘어 같은 크기로 두면
+                        // 휑해 보인다 — 다른 화면의 Material 아이콘 자리표시(EventSeat 등)와
+                        // 비슷한 비율로 살짝 작게 그린다.
+                        Icon(
+                            imageVector = menu.iconVector,
+                            contentDescription = null,
+                            tint = menu.accent,
+                            modifier = Modifier.size(iconSize * 0.6f)
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
@@ -356,6 +374,12 @@ private fun HomeMenuCard(
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 26.sp, lineHeight = 32.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
+                    // 부제가 카드마다 1~2줄로 길이가 달라서(예: "시설 찾기"만 1줄), Column이
+                    // Center 정렬이라 그만큼 위쪽 아이콘·제목 높이가 카드마다 미묘하게 어긋났다
+                    // (요청: "아이콘이랑 글자가 다른카드들 글자 높이가 안맞는다"). 항상 2줄
+                    // 높이를 확보해 실제 줄 수와 무관하게 위쪽 블록이 모든 카드에서 같은
+                    // 높이에 오게 한다.
+                    minLines = 2,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
