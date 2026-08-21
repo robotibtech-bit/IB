@@ -29,10 +29,12 @@ data class LibrarySettings(
     /** 홈 화면 "행사 안내" 버튼이 여는 웹페이지 주소. */
     val eventNoticeUrl: String = DEFAULT_EVENT_NOTICE_URL,
     /**
-     * 도서검색 서버 주소(홈 > 책 찾기). 예: "http://192.168.0.50:8080".
+     * 도서검색 서버 주소(홈 > 책 찾기).
      *
-     * 비어 있으면 아직 설정하지 않은 상태이며, 책 찾기 화면이 "관리자 설정에서 서버 주소를
-     * 지정해 주세요" 안내를 띄운다. 도서관마다 서버 IP가 달라 기본값을 둘 수 없다.
+     * 기본값은 운영 중인 Cloud Run 주소라, 앱을 새로 설치해도 바로 검색이 된다. 관리자
+     * 화면에서 덮어쓸 수 있으므로 로컬 서버(예: "http://192.168.0.50:8080")로 돌리는 것도
+     * 그대로 가능하다. 비워 두면 책 찾기 화면이 "관리자 설정에서 서버 주소를 지정해
+     * 주세요" 안내를 띄운다.
      */
     val bookSearchBaseUrl: String = DEFAULT_BOOK_SEARCH_BASE_URL
 ) {
@@ -52,7 +54,17 @@ data class LibrarySettings(
         const val DEFAULT_FEATURED_FACILITY_COUNT = 4
         const val DEFAULT_EVENT_NOTICE_URL = "https://lib.ice.go.kr/shintree/index.do"
 
-        /** 도서관마다 서버 IP가 달라 기본값을 둘 수 없다. 관리자가 넣기 전까지는 미설정. */
-        const val DEFAULT_BOOK_SEARCH_BASE_URL = ""
+        /**
+         * 도서검색 서버. Google Cloud Run(asia-northeast3)으로 운영한다.
+         *
+         * 주소는 서비스 이름·프로젝트·리전으로 정해지므로 재배포해도, 인스턴스가 잠들었다
+         * 깨어나도 바뀌지 않는다. 그래서 기본값으로 박아 둘 수 있고, 앱을 재설치해도
+         * 관리자가 주소를 다시 넣을 필요가 없다.
+         *
+         * 이 값을 고쳐야 하는 경우는 서비스를 지우고 다시 만들거나 리전·프로젝트를 옮길
+         * 때뿐이다. 그런 상황에서도 앱을 다시 배포하기 전까지는 관리자 화면에서 덮어쓰면 된다.
+         */
+        const val DEFAULT_BOOK_SEARCH_BASE_URL =
+            "https://iblib-search-704637166605.asia-northeast3.run.app"
     }
 }
