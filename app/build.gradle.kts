@@ -21,6 +21,20 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // 여러 PC/작업자가 각자 다른 로컬 디버그 키(~/.android/debug.keystore)로 빌드하면 자체
+    // 업데이터(AppUpdateRepository)가 배포마다 서명이 달라져 "앱이 설치되지 않았습니다" 오류로
+    // 설치가 막힌다(2026-08-20 실제 발생 — 로컬 키스토어가 갱신되며 기존 설치와 서명이 어긋남).
+    // 그래서 디버그 키를 로컬에 맡기지 않고 이 저장소에 커밋해 둔 app/debug.keystore 하나로
+    // 고정한다 — 어느 PC에서 pull해서 빌드해도 항상 같은 서명이 나온다.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
