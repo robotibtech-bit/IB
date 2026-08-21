@@ -98,15 +98,9 @@ fun BookHitCard(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Text(
-                text = hit.author,
-                style = cardBodyStyle,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                minLines = 1,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
+            // 요청: "책제목이랑 밑에글까지 공백 한줄만 줄여볼래" — hit.author는 장서
+            // 데이터에 저자 열이 없어 지금은 항상 비어 있고, 그 빈 줄이 제목 밑에 공백처럼
+            // 보였다. 나중에 저자 데이터가 채워지면 그때 다시 넣으면 된다.
             Text(
                 text = hit.callNo,
                 style = cardBodyStyle,
@@ -174,10 +168,10 @@ private fun BookCover(title: String, thumbnail: String?) {
 /** 카드 표지 높이. 기존 aspectRatio(3:4) 기준 값보다 살짝 줄였다. */
 private val BOOK_COVER_HEIGHT = 190.dp
 
-/** 카드 안쪽(표지+텍스트 5줄) 고정 높이 — CardPadding을 뺀 순수 콘텐츠 영역 기준이다.
- * 표지(190) + 제목 2줄(36dp×2) + 나머지 4줄(30dp×4) + 줄 사이 간격(spacedBy 10dp × 5) +
- * 여유값. 실제 lineHeight 기준(190+72+120+50=432)보다 넉넉히 잡아 클리핑을 막는다. */
-private val BOOK_CARD_CONTENT_HEIGHT = 460.dp
+/** 카드 안쪽(표지+텍스트 4줄) 고정 높이 — CardPadding을 뺀 순수 콘텐츠 영역 기준이다.
+ * 표지(190) + 제목 2줄(36dp×2) + 나머지 3줄(30dp×3) + 줄 사이 간격(spacedBy 10dp × 4) +
+ * 여유값. 실제 lineHeight 기준(190+72+90+40=392)보다 넉넉히 잡아 클리핑을 막는다. */
+private val BOOK_CARD_CONTENT_HEIGHT = 420.dp
 
 /** 카드에 한 줄로 보여줄 위치 요약. 예: "1층 어린이자료실 · 아동4~1" */
 @Composable

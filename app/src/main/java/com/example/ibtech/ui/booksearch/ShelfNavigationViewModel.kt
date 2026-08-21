@@ -235,9 +235,9 @@ class ShelfNavigationViewModel(
         // "home base"는 충전 도킹 전용 지점이라 goTo로 보내면 temi SDK가 근처에서 스스로
         // 중단해 버려(실측: goTo status=abort desc=Abort by user) Arrived까지 가지 않는다.
         // 동행 화면의 상태 전환(도착 포함)을 눈으로 확인하려는 장치이므로 실제로 도착
-        // 가능한 POI를 골라야 한다 — 있으면 엘리베이터로 보낸다(엘리베이터 안내 문구까지
-        // 함께 확인할 수 있어서), 없으면 home base를 뺀 첫 항목으로 대신한다.
-        val replacement = known.firstOrNull { it == ELEVATOR_POI_NAME }
+        // 가능한 POI를 골라야 한다 — 시연 단계라 어린이자료실로 고정하고(있으면), 없으면
+        // home base를 뺀 첫 항목으로 대신한다.
+        val replacement = known.firstOrNull { it == DEMO_FALLBACK_POI_NAME }
             ?: known.firstOrNull { it != HOME_BASE_POI_NAME }
             ?: known.first()
         substitutePoi.value = replacement
@@ -295,7 +295,8 @@ class ShelfNavigationViewModel(
         /** temi SDK가 자동으로 붙이는 충전 도킹 POI 이름. [substituteIfMissing] 대체 후보에서 뺀다. */
         private const val HOME_BASE_POI_NAME = "home base"
 
-        /** [substituteIfMissing]이 가능하면 우선 고르는 대체 POI. */
-        private const val ELEVATOR_POI_NAME = "엘리베이터"
+        /** [substituteIfMissing]이 가능하면 우선 고르는 대체 POI. 시연 단계라 대부분의
+         * 서가 POI가 속한 자료실로 고정한다(요청: "설정 어린이자료실로 고정해줘 시연용단계니깐"). */
+        private const val DEMO_FALLBACK_POI_NAME = "어린이자료실"
     }
 }
